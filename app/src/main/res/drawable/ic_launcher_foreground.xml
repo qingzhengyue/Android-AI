@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Central Glow behind rocket -->
+    <path
+        android:fillColor="#402196F3"
+        android:pathData="M54,54 m-28,0 a28,28 0 1,1 56,0 a28,28 0 1,1 -56,0 Z" />
+
+    <!-- Code Brackets <> on sides -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#64B5F6"
+        android:strokeWidth="5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M32,44 L20,54 L32,64" />
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#64B5F6"
+        android:strokeWidth="5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M76,44 L88,54 L76,64" />
+
+    <!-- Rocket Fire -->
+    <path
+        android:fillColor="#FF5722"
+        android:pathData="M49,76 C49,90 54,100 54,100 C54,100 59,90 59,76 Z" />
+    <path
+        android:fillColor="#FFC107"
+        android:pathData="M52,76 C52,84 54,92 54,92 C54,92 56,84 56,76 Z" />
+
+    <!-- Left Fin -->
+    <path
+        android:fillColor="#E53935"
+        android:pathData="M44,56 L32,70 L32,76 L44,76 Z" />
+
+    <!-- Right Fin -->
+    <path
+        android:fillColor="#E53935"
+        android:pathData="M64,56 L76,70 L76,76 L64,76 Z" />
+
+    <!-- Rocket Body -->
+    <path
+        android:fillColor="#ECEFF1"
+        android:pathData="M54,20 C42,42 44,68 44,76 L64,76 C64,68 66,42 54,20 Z" />
+
+    <!-- Nose Cone Overlay -->
+    <path
+        android:fillColor="#E53935"
+        android:pathData="M54,20 C48.5,30 46.5,38 45.8,42 L62.2,42 C61.5,38 59.5,30 54,20 Z" />
+
+    <!-- Cockpit Window -->
+    <path
+        android:fillColor="#29B6F6"
+        android:pathData="M54,46 A8,8 0 1,1 54,62 A8,8 0 1,1 54,46 Z" />
+    <!-- Window Highlight -->
+    <path
+        android:fillColor="#E1F5FE"
+        android:pathData="M51,49 A3,3 0 1,1 51,55 A3,3 0 1,1 51,49 Z" />
+
+</vector>
