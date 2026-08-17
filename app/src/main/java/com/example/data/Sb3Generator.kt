@@ -126,6 +126,53 @@ object Sb3Generator {
     }
 
     /**
+     * 从各种输入（原始 JSON、Base64 编码的 .sb3、文件路径）中统一提取出结构化的 project.json 文本
+     */
+    fun extractProjectJson(dataOrPath: String?): String {
+        if (dataOrPath.isNullOrBlank()) return "{}"
+        val trimmed = dataOrPath.trim()
+        if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
+            return sanitizeProjectJson(trimmed)
+        }
+
+        // 1. 尝试作为本地文件路径读取 ZIP 内的 project.json
+        try {
+            val file = File(trimmed)
+            if (file.exists() && file.isFile) {
+                java.util.zip.ZipInputStream(file.inputStream()).use { zip ->
+                    var entry = zip.nextEntry
+                    while (entry != null) {
+                        if (entry.name == "project.json") {
+                            val json = zip.bufferedReader(Charsets.UTF_8).readText()
+                            if (json.isNotBlank()) return sanitizeProjectJson(json)
+                        }
+                        entry = zip.nextEntry
+                    }
+                }
+            }
+        } catch (e: Exception) {}
+
+        // 2. 尝试作为 Base64 编码的 .sb3 压缩包解码
+        try {
+            val bytes = Base64.decode(trimmed, Base64.DEFAULT)
+            if (bytes != null && bytes.isNotEmpty()) {
+                java.util.zip.ZipInputStream(bytes.inputStream()).use { zip ->
+                    var entry = zip.nextEntry
+                    while (entry != null) {
+                        if (entry.name == "project.json") {
+                            val json = zip.bufferedReader(Charsets.UTF_8).readText()
+                            if (json.isNotBlank()) return sanitizeProjectJson(json)
+                        }
+                        entry = zip.nextEntry
+                    }
+                }
+            }
+        } catch (e: Exception) {}
+
+        return if (trimmed.startsWith("{")) trimmed else "{}"
+    }
+
+    /**
      * 生成真实的 .sb3 ZIP 压缩包字节数组
      */
     fun createSb3ZipBytes(projectJson: String): ByteArray {

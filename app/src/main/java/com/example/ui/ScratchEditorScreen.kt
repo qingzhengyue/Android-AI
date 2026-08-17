@@ -201,7 +201,7 @@ fun InteractiveScratchProgrammingScreen(viewModel: MainViewModel, onBackToHall: 
 
     val workspaceLoadEvent by viewModel.workspaceLoadEvent.collectAsState()
 
-    // ★ 【完美修复】处理复杂作品载入流程：如果是真实的 sb3 文件，绝不当作 UTF-8 读取
+    // ★ 处理复杂作品载入流程：如果是真实的 sb3 文件或 Base64 或 JSON，统一提取标准 project.json 并注入
     fun handleCodeInjection(codeOrPath: String, isFilePath: Boolean = false) {
         val webView = webViewInstance ?: return
         var finalJson = "{}"
@@ -209,26 +209,27 @@ fun InteractiveScratchProgrammingScreen(viewModel: MainViewModel, onBackToHall: 
 
         try {
             if (isFilePath) {
-                // 1. 如果是文件路径（如教师下发的作品），这是二进制 ZIP 包，必须读取为 Bytes
+                // 1. 如果是文件路径（如教师下发的作品），这是二进制 ZIP 包
                 val file = java.io.File(codeOrPath)
                 if (file.exists()) {
                     val bytes = file.readBytes()
                     finalBase64 = android.util.Base64.encodeToString(bytes, android.util.Base64.NO_WRAP)
-                    viewModel.currentDraftCode.value = finalBase64
+                    finalJson = com.example.data.Sb3Generator.extractProjectJson(codeOrPath)
                 }
             } else {
-                // 2. 如果是代码文本，判断它是 JSON 还是已编码的 Base64 压缩包
+                // 2. 如果是代码文本，统一提取 project.json
+                finalJson = com.example.data.Sb3Generator.extractProjectJson(codeOrPath)
                 if (codeOrPath.trim().startsWith("{")) {
-                    finalJson = codeOrPath
                     finalBase64 = try { com.example.data.Sb3Generator.createSb3Base64(codeOrPath) } catch (e: Exception) { "" }
                 } else {
                     finalBase64 = codeOrPath
                 }
-                viewModel.currentDraftCode.value = codeOrPath
+            }
+            if (finalJson.isNotBlank() && finalJson != "{}") {
+                viewModel.currentDraftCode.value = finalJson
             }
 
             if (finalJson.isNotBlank() || finalBase64.isNotBlank()) {
-                
                 loadProjectIntoWebView(webView, finalJson, finalBase64)
             }
         } catch (e: Exception) {
@@ -259,7 +260,7 @@ fun InteractiveScratchProgrammingScreen(viewModel: MainViewModel, onBackToHall: 
 
     val mirrors = remember {
         listOf(
-            "file:///android_asset/scratch_blocks_viewer.html",  // 源1: 内置零流量极速离线引擎 (秒开0白屏)
+            "file:///android_asset/scratch_blocks_viewer.html",  // 源1: 内置零流量极速离线积木工作区
             "https://editor.scratch-cn.cn/editor",                // 源2: 线上 Scratch 社区镜像
             "https://scratch3.fun/editor",                        // 源3: 线上国内极速源
             "https://turbowarp.org/editor"                        // 源4: TurboWarp 强力引擎
@@ -274,23 +275,24 @@ fun InteractiveScratchProgrammingScreen(viewModel: MainViewModel, onBackToHall: 
 
     LaunchedEffect(scratchUrl, webViewInstance) {
         val webView = webViewInstance ?: return@LaunchedEffect
-        isPageLoading = true
         isAllFailed = false
-        val sourceName = if (scratchUrl.startsWith("file:///")) "内置零流量离线积木引擎" else "线上社区云端源 (${currentMirrorIndex + 1}/${mirrors.size})"
-        loadingMessage = "正在秒级装载 $sourceName..."
+        val isLocal = scratchUrl.startsWith("file:///")
+        val sourceName = if (isLocal) "内置零流量离线积木引擎" else "线上社区云端源 (${currentMirrorIndex + 1}/${mirrors.size})"
+        loadingMessage = "正在装载 $sourceName..."
         webView.loadUrl(scratchUrl)
         
-        val timeoutMs = if (scratchUrl.startsWith("file:///")) 1500L else 3000L
-        kotlinx.coroutines.delay(timeoutMs)
-        if (isPageLoading && !isAllFailed) {
-            if (currentMirrorIndex < mirrors.size - 1) {
-                currentMirrorIndex++
-                scratchUrl = mirrors[currentMirrorIndex]
-            } else {
-                // 回退到本地引擎保障可用性
-                currentMirrorIndex = 0
-                scratchUrl = mirrors[0]
-                isPageLoading = false
+        if (!isLocal) {
+            // 仅对外部线上镜像设置超时换源保护
+            kotlinx.coroutines.delay(10000L)
+            if (isPageLoading && !isAllFailed) {
+                if (currentMirrorIndex < mirrors.size - 1) {
+                    currentMirrorIndex++
+                    scratchUrl = mirrors[currentMirrorIndex]
+                } else {
+                    currentMirrorIndex = 0
+                    scratchUrl = mirrors[0]
+                    isPageLoading = false
+                }
             }
         }
     }
@@ -1310,205 +1312,213 @@ fun loadProjectIntoWebView(webView: WebView?, projectJson: String, base64Data: S
         if (base64Data.isNotEmpty()) android.util.Base64.decode(base64Data, android.util.Base64.DEFAULT) else null
     } catch(e: Exception) { null }
 
-    // 3. 开始执行核心注入
-    val js = """
+    // 1. 优先尝试秒级直接载入（源1 内置离线积木引擎）
+    val escapedJson = org.json.JSONObject.quote(projectJson)
+    val fastJs = """
         (function() {
             try {
-                var currentJobId = $jobId;
-                
-                
-                window.__scratch_job_id = currentJobId;
-                
-                // Natively fetch data from JavascriptInterface, bypassing all IPC limits
-                var rawData = window.AndroidProjectProvider.fetchProjectJson() || "";
-                var base64Data = window.AndroidProjectProvider.fetchBase64Data() || "";
-                window.AndroidProjectProvider.clearData(); // Clean up immediately
-                
-                if ((!base64Data || base64Data.length === 0) && (!rawData || rawData.length === 0)) return "Empty data";
-                
-                var uint8Array = null;
-                var attempts = 0;
-                var maxAttempts = 120; // 60秒最大轮询
-                var readyCount = 0;
-                
-                function getVm() {
-                    if (window.vm) return window.vm;
-                    if (window.scratch && window.scratch.vm) return window.scratch.vm;
-                    if (window.__turboWarp__ && window.__turboWarp__.vm) return window.__turboWarp__.vm;
-                    var frames = document.querySelectorAll('iframe');
-                    for (var i = 0; i < frames.length; i++) {
-                        try { if (frames[i].contentWindow && frames[i].contentWindow.vm) return frames[i].contentWindow.vm; } catch(e) {}
-                    }
-                    
-                    // 极限 React Fiber DOM 强扒
-                    try {
-                        var el = document.getElementById('scratch') || document.querySelector('[class^="gui_stage-wrapper_"]') || document.querySelector('[class*="gui_page-wrapper_"]');
-                        if (el) {
-                            var keys = Object.keys(el);
-                            var reactKey = keys.find(function(k) { return k.startsWith('__reactInternalInstance') || k.startsWith('__reactFiber'); });
-                            if (reactKey) {
-                                var fiber = el[reactKey];
-                                while (fiber) {
-                                    if (fiber.stateNode && fiber.stateNode.props && fiber.stateNode.props.vm) return fiber.stateNode.props.vm;
-                                    if (fiber.memoizedProps && fiber.memoizedProps.vm) return fiber.memoizedProps.vm;
-                                    fiber = fiber.return;
-                                }
-                            }
-                        }
-                    } catch(e) {}
-                    return null;
+                if (typeof window.loadProject === 'function') {
+                    window.loadProject($escapedJson);
+                    return "FAST_LOAD_SUCCESS";
                 }
-                
-                function tryInject() {
-                    // 若检测到后续切片任务开启，旧探针立刻销毁，绝不干扰
-                    if (window.__scratch_job_id !== currentJobId) return true; 
-                    attempts++;
-
-                    // 1. 🚀 TurboWarp 极速通道 (完美)
-                    if (window.loadProject && typeof window.loadProject === 'function') {
-                        var twData = uint8Array ? uint8Array.buffer : (rawData ? JSON.parse(rawData) : null);
-                        if (twData) window.loadProject(twData);
-                        console.log("Success: Injected via TurboWarp API.");
-                        return true; 
-                    }
-
-                    // 2. 🐢 标准版底层强插通道
-                    var targetVm = getVm();
-                    
-                    if (!targetVm || !targetVm.editingTarget || !targetVm.runtime || targetVm.runtime.targets.length === 0) {
-                        readyCount = 0; return false; 
-                    }
-                    
-                    // 利用最稳妥的 DOM 探测
-                    var hasWorkspace = document.querySelector('.blocklyWorkspace') || document.querySelector('[class*="gui_blocks-wrapper"]');
-                    if (!hasWorkspace) {
-                        var frames = document.querySelectorAll('iframe');
-                        for(var f=0; f<frames.length; f++){
-                            try { if(frames[f].contentDocument.querySelector('.blocklyWorkspace')) { hasWorkspace = true; break; } }catch(e){}
-                        }
-                    }
-                    if (!hasWorkspace) {
-                        readyCount = 0; return false;
-                    }
-
-                    var loaderVisible = false;
-                    var loaders = document.querySelectorAll('[class*="loader_fullscreen"], [class*="loader_background"]');
-                    for (var i = 0; i < loaders.length; i++) {
-                        if (window.getComputedStyle(loaders[i]).display !== 'none') {
-                            loaderVisible = true; break;
-                        }
-                    }
-                    if (loaderVisible) {
-                        readyCount = 0; return false;
-                    }
-
-                    // 彻底稳定期：4周期 (约2秒)
-                    readyCount++;
-                    if (readyCount < 4) {
-                        return false; 
-                    }
-
-                    console.log("Target VM locked. Executing safe payload.");
-
-                    try {
-                        // 兜底强刷：绕开所有 UI
-                        var dataToLoad = uint8Array ? uint8Array.buffer : JSON.parse(rawData);
-                        var loadPromise = targetVm.loadProject(dataToLoad);
-                        
-                        loadPromise.then(function() {
-                            setTimeout(function() {
-                                if (window.__scratch_job_id !== currentJobId) return;
-                                
-                                // 销毁残余旧视图
-                                var bly = window.Blockly;
-                                if (!bly) {
-                                    var fs = document.querySelectorAll('iframe');
-                                    for(var j=0; j<fs.length; j++) {
-                                        try { if(fs[j].contentWindow && fs[j].contentWindow.Blockly) { bly = fs[j].contentWindow.Blockly; break; } }catch(e){}
-                                    }
-                                }
-                                try { if (bly && bly.getMainWorkspace()) bly.getMainWorkspace().clear(); } catch(err){}
-                                
-                                if (targetVm.emitWorkspaceUpdate) targetVm.emitWorkspaceUpdate();
-                                if (targetVm.emitTargetsUpdate) targetVm.emitTargetsUpdate();
-                                
-                                var targets = targetVm.runtime.targets;
-                                if (targets && targets.length > 0 && targetVm.setEditingTarget) {
-                                    var stage = targets.find(function(t) { return t.isStage; });
-                                    var sprite = targets.find(function(t) { return !t.isStage; }) || targets[0];
-                                    
-                                    if (stage) targetVm.setEditingTarget(stage.id);
-                                    setTimeout(function() {
-                                        if (window.__scratch_job_id !== currentJobId) return;
-                                        if (sprite) targetVm.setEditingTarget(sprite.id);
-                                        
-                                        // 强制唤醒 Redux 核心状态机
-                                        try {
-                                            var el = document.getElementById('scratch') || document.querySelector('[class^="gui_stage-wrapper_"]');
-                                            if (el) {
-                                                var keys = Object.keys(el);
-                                                var reactKey = keys.find(function(k) { return k.startsWith('__reactInternalInstance') || k.startsWith('__reactFiber'); });
-                                                if (reactKey) {
-                                                    var fiber = el[reactKey];
-                                                    var store = null;
-                                                    while (fiber) {
-                                                        if (fiber.stateNode && fiber.stateNode.store) { store = fiber.stateNode.store; break; }
-                                                        if (fiber.memoizedProps && fiber.memoizedProps.store) { store = fiber.memoizedProps.store; break; }
-                                                        fiber = fiber.return;
-                                                    }
-                                                    if (store) store.dispatch({ type: 'scratch-gui/project-state/SET_PROJECT_ID', projectId: 'injected_' + currentJobId });
-                                                }
-                                            }
-                                        } catch(ex) {}
-                                        
-                                        window.dispatchEvent(new Event('resize'));
-                                    }, 80);
-                                } else {
-                                    window.dispatchEvent(new Event('resize'));
-                                }
-                            }, 150);
-                        }).catch(function(e) { console.error("VM load error:", e); });
-                        
-                        return true;
-                    } catch(e) {
-                        console.error("Injection error:", e);
-                        readyCount = 0;
-                        return false;
-                    }
-                }
-
-                function startInjecting() {
-                    if (!tryInject()) {
-                        var timer = setInterval(function() {
-                            if (tryInject() || attempts >= maxAttempts || window.__scratch_job_id !== currentJobId) {
-                                clearInterval(timer);
-                            }
-                        }, 500);
-                    }
-                }
-                
-                if (base64Data && base64Data.length > 0) {
-                    fetch("/___android_injected_project.sb3")
-                        .then(res => res.arrayBuffer())
-                        .then(buffer => {
-                            uint8Array = new Uint8Array(buffer);
-                            startInjecting();
-                        })
-                        .catch(e => {
-                            console.error("Base64 decode failed", e);
-                        });
-                } else {
-                    startInjecting();
-                }
-                
-                return "Polling Started for Job: " + currentJobId;
             } catch(e) {
-                return "Fatal Error: " + e.message;
+                console.error("Fast load error:", e);
             }
+            return "NOT_FAST_VIEWER";
         })();
     """.trimIndent()
-    
-    webView.evaluateJavascript(js, null)
+
+    webView.evaluateJavascript(fastJs) { result ->
+        if (result != null && result.contains("FAST_LOAD_SUCCESS")) {
+            return@evaluateJavascript
+        }
+
+        // 2. 若非简易离线引擎，则执行针对标准 Scratch 3.0 / TurboWarp 网站的深度 VM 注入流程
+        val js = """
+            (function() {
+                try {
+                    var currentJobId = $jobId;
+                    window.__scratch_job_id = currentJobId;
+                    
+                    var rawData = window.AndroidProjectProvider.fetchProjectJson() || "";
+                    var base64Data = window.AndroidProjectProvider.fetchBase64Data() || "";
+                    window.AndroidProjectProvider.clearData();
+                    
+                    if ((!base64Data || base64Data.length === 0) && (!rawData || rawData.length === 0)) return "Empty data";
+                    
+                    var uint8Array = null;
+                    var attempts = 0;
+                    var maxAttempts = 120;
+                    var readyCount = 0;
+                    
+                    function getVm() {
+                        if (window.vm) return window.vm;
+                        if (window.scratch && window.scratch.vm) return window.scratch.vm;
+                        if (window.__turboWarp__ && window.__turboWarp__.vm) return window.__turboWarp__.vm;
+                        var frames = document.querySelectorAll('iframe');
+                        for (var i = 0; i < frames.length; i++) {
+                            try { if (frames[i].contentWindow && frames[i].contentWindow.vm) return frames[i].contentWindow.vm; } catch(e) {}
+                        }
+                        
+                        try {
+                            var el = document.getElementById('scratch') || document.querySelector('[class^="gui_stage-wrapper_"]') || document.querySelector('[class*="gui_page-wrapper_"]');
+                            if (el) {
+                                var keys = Object.keys(el);
+                                var reactKey = keys.find(function(k) { return k.startsWith('__reactInternalInstance') || k.startsWith('__reactFiber'); });
+                                if (reactKey) {
+                                    var fiber = el[reactKey];
+                                    while (fiber) {
+                                        if (fiber.stateNode && fiber.stateNode.props && fiber.stateNode.props.vm) return fiber.stateNode.props.vm;
+                                        if (fiber.memoizedProps && fiber.memoizedProps.vm) return fiber.memoizedProps.vm;
+                                        fiber = fiber.return;
+                                    }
+                                }
+                            }
+                        } catch(e) {}
+                        return null;
+                    }
+                    
+                    function tryInject() {
+                        if (window.__scratch_job_id !== currentJobId) return true; 
+                        attempts++;
+
+                        // 1. TurboWarp API 通道
+                        if (window.loadProject && typeof window.loadProject === 'function') {
+                            var twData = uint8Array ? uint8Array.buffer : (rawData ? JSON.parse(rawData) : null);
+                            if (twData) window.loadProject(twData);
+                            return true; 
+                        }
+
+                        // 2. 标准版 VM 通道
+                        var targetVm = getVm();
+                        if (!targetVm || !targetVm.editingTarget || !targetVm.runtime || targetVm.runtime.targets.length === 0) {
+                            readyCount = 0; return false; 
+                        }
+                        
+                        var hasWorkspace = document.querySelector('.blocklyWorkspace') || document.querySelector('[class*="gui_blocks-wrapper"]');
+                        if (!hasWorkspace) {
+                            var frames = document.querySelectorAll('iframe');
+                            for(var f=0; f<frames.length; f++){
+                                try { if(frames[f].contentDocument.querySelector('.blocklyWorkspace')) { hasWorkspace = true; break; } }catch(e){}
+                            }
+                        }
+                        if (!hasWorkspace) {
+                            readyCount = 0; return false;
+                        }
+
+                        var loaderVisible = false;
+                        var loaders = document.querySelectorAll('[class*="loader_fullscreen"], [class*="loader_background"]');
+                        for (var i = 0; i < loaders.length; i++) {
+                            if (window.getComputedStyle(loaders[i]).display !== 'none') {
+                                loaderVisible = true; break;
+                            }
+                        }
+                        if (loaderVisible) {
+                            readyCount = 0; return false;
+                        }
+
+                        readyCount++;
+                        if (readyCount < 4) {
+                            return false; 
+                        }
+
+                        try {
+                            var dataToLoad = uint8Array ? uint8Array.buffer : JSON.parse(rawData);
+                            var loadPromise = targetVm.loadProject(dataToLoad);
+                            
+                            loadPromise.then(function() {
+                                setTimeout(function() {
+                                    if (window.__scratch_job_id !== currentJobId) return;
+                                    
+                                    var bly = window.Blockly;
+                                    if (!bly) {
+                                        var fs = document.querySelectorAll('iframe');
+                                        for(var j=0; j<fs.length; j++) {
+                                            try { if(fs[j].contentWindow && fs[j].contentWindow.Blockly) { bly = fs[j].contentWindow.Blockly; break; } }catch(e){}
+                                        }
+                                    }
+                                    try { if (bly && bly.getMainWorkspace()) bly.getMainWorkspace().clear(); } catch(err){}
+                                    
+                                    if (targetVm.emitWorkspaceUpdate) targetVm.emitWorkspaceUpdate();
+                                    if (targetVm.emitTargetsUpdate) targetVm.emitTargetsUpdate();
+                                    
+                                    var targets = targetVm.runtime.targets;
+                                    if (targets && targets.length > 0 && targetVm.setEditingTarget) {
+                                        var stage = targets.find(function(t) { return t.isStage; });
+                                        var sprite = targets.find(function(t) { return !t.isStage; }) || targets[0];
+                                        
+                                        if (stage) targetVm.setEditingTarget(stage.id);
+                                        setTimeout(function() {
+                                            if (window.__scratch_job_id !== currentJobId) return;
+                                            if (sprite) targetVm.setEditingTarget(sprite.id);
+                                            
+                                            try {
+                                                var el = document.getElementById('scratch') || document.querySelector('[class^="gui_stage-wrapper_"]');
+                                                if (el) {
+                                                    var keys = Object.keys(el);
+                                                    var reactKey = keys.find(function(k) { return k.startsWith('__reactInternalInstance') || k.startsWith('__reactFiber'); });
+                                                    if (reactKey) {
+                                                        var fiber = el[reactKey];
+                                                        var store = null;
+                                                        while (fiber) {
+                                                            if (fiber.stateNode && fiber.stateNode.store) { store = fiber.stateNode.store; break; }
+                                                            if (fiber.memoizedProps && fiber.memoizedProps.store) { store = fiber.memoizedProps.store; break; }
+                                                            fiber = fiber.return;
+                                                        }
+                                                        if (store) store.dispatch({ type: 'scratch-gui/project-state/SET_PROJECT_ID', projectId: 'injected_' + currentJobId });
+                                                    }
+                                                }
+                                            } catch(ex) {}
+                                            
+                                            window.dispatchEvent(new Event('resize'));
+                                        }, 80);
+                                    } else {
+                                        window.dispatchEvent(new Event('resize'));
+                                    }
+                                }, 150);
+                            }).catch(function(e) { console.error("VM load error:", e); });
+                            
+                            return true;
+                        } catch(e) {
+                            console.error("Injection error:", e);
+                            readyCount = 0;
+                            return false;
+                        }
+                    }
+
+                    function startInjecting() {
+                        if (!tryInject()) {
+                            var timer = setInterval(function() {
+                                if (tryInject() || attempts >= maxAttempts || window.__scratch_job_id !== currentJobId) {
+                                    clearInterval(timer);
+                                }
+                            }, 500);
+                        }
+                    }
+                    
+                    if (base64Data && base64Data.length > 0) {
+                        fetch("/___android_injected_project.sb3")
+                            .then(res => res.arrayBuffer())
+                            .then(buffer => {
+                                uint8Array = new Uint8Array(buffer);
+                                startInjecting();
+                            })
+                            .catch(e => {
+                                console.error("Base64 decode failed", e);
+                            });
+                    } else {
+                        startInjecting();
+                    }
+                    
+                    return "Polling Started for Job: " + currentJobId;
+                } catch(e) {
+                    return "Fatal Error: " + e.message;
+                }
+            })();
+        """.trimIndent()
+        
+        webView.evaluateJavascript(js, null)
+    }
 }
 
 class ScratchJsInterface(private val onChanged: () -> Unit) {

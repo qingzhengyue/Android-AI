@@ -363,39 +363,170 @@ window.getProjectJson = function() {
   return JSON.stringify(projectObj);
 };
 
-window.loadProject = function(jsonStr) {
+const OP_TRANSLATE_MAP = {
+  // Motion
+  'motion_movesteps': '移动 10 步',
+  'motion_turnright': '右转 15 度',
+  'motion_turnleft': '左转 15 度',
+  'motion_goto': '移到 随机位置',
+  'motion_gotoxy': '移到 x:0 y:0',
+  'motion_glideto': '在 1 秒内滑行到 随机位置',
+  'motion_glidesecstoxy': '在 1 秒内滑行到 x:0 y:0',
+  'motion_pointindirection': '面向 90 方向',
+  'motion_pointtowards': '面向 鼠标指针',
+  'motion_changexby': '将 x 坐标增加 10',
+  'motion_setx': '将 x 坐标设为 0',
+  'motion_changeyby': '将 y 坐标增加 10',
+  'motion_sety': '将 y 坐标设为 0',
+  'motion_ifonedgebounce': '碰到边缘就反弹',
+  'motion_setrotationstyle': '将旋转方式设为 [左右翻转]',
+  'motion_xposition': 'x 坐标',
+  'motion_yposition': 'y 坐标',
+  'motion_direction': '方向',
+
+  // Looks
+  'looks_sayforsecs': '说 Hello! 2 秒',
+  'looks_say': '说 Hello!',
+  'looks_thinkforsecs': '思考 Hmm... 2 秒',
+  'looks_think': '思考 Hmm...',
+  'looks_switchcostumeto': '换成 造型1 造型',
+  'looks_nextcostume': '下一个造型',
+  'looks_switchbackdropto': '换成 背景1 背景',
+  'looks_nextbackdrop': '下一个背景',
+  'looks_changesizeby': '将大小增加 10',
+  'looks_setsizeto': '将大小设为 100 %',
+  'looks_changeeffectby': '将 颜色 特效增加 25',
+  'looks_seteffectto': '将 颜色 特效设定为 0',
+  'looks_cleargraphiceffects': '清除所有图形特效',
+  'looks_show': '显示',
+  'looks_hide': '隐藏',
+  'looks_gotofrontback': '移到 最前面',
+  'looks_goforwardbackwardlayers': '前移 1 层',
+  'looks_costumenumbername': '造型 编号',
+  'looks_backdropnumbername': '背景 编号',
+  'looks_size': '大小',
+
+  // Sound
+  'sound_playuntildone': '播放声音 喵 直到播完',
+  'sound_play': '播放声音 喵',
+  'sound_stopallsounds': '停止所有声音',
+  'sound_stopallloops': '停止所有声音',
+  'sound_changevolumeby': '将音量增加 -10',
+  'sound_setvolumeto': '将音量设为 100 %',
+  'sound_volume': '音量',
+
+  // Events
+  'event_whenflagclicked': '当 🟢 被点击',
+  'event_whenkeypressed': '当按下 空格 键',
+  'event_whenthisspriteclicked': '当角色被点击',
+  'event_whenstageclicked': '当舞台被点击',
+  'event_whenbackdropswitchesto': '当背景换成 背景1',
+  'event_whengreaterthan': '当 响度 > 10',
+  'event_whenbroadcastreceived': '当接收到 消息1',
+  'event_broadcast': '广播 消息1',
+  'event_broadcastandwait': '广播 消息1 并等待',
+
+  // Control
+  'control_wait': '等待 1 秒',
+  'control_repeat': '重复执行 10 次',
+  'control_forever': '重复执行 [循环]',
+  'control_if': '如果 <条件> 那么',
+  'control_if_else': '如果 <条件> 那么 否则',
+  'control_wait_until': '等待直到 <条件>',
+  'control_repeat_until': '重复执行直到 <条件>',
+  'control_stop': '停止 全部脚本',
+  'control_start_as_clone': '当作为克隆体启动时',
+  'control_create_clone_of': '克隆 自己',
+  'control_delete_this_clone': '删除此克隆体',
+
+  // Sensing
+  'sensing_touchingobject': '碰到 鼠标指针 ?',
+  'sensing_touchingcolor': '碰到 颜色 ?',
+  'sensing_coloristouchingcolor': '颜色 碰到 颜色 ?',
+  'sensing_distanceto': '到 鼠标指针 的距离',
+  'sensing_askandwait': '询问 你叫什么名字? 并等待',
+  'sensing_answer': '回答',
+  'sensing_keypressed': '按下 空格 键?',
+  'sensing_mousedown': '鼠标被按下?',
+  'sensing_mousex': '鼠标的 x 坐标',
+  'sensing_mousey': '鼠标的 y 坐标',
+  'sensing_timer': '计时器',
+  'sensing_resettimer': '计时器归零',
+
+  // Operators
+  'operator_add': 'a + b',
+  'operator_subtract': 'a - b',
+  'operator_multiply': 'a * b',
+  'operator_divide': 'a / b',
+  'operator_random': '在 1 到 10 间随机选数',
+  'operator_gt': 'a > 50',
+  'operator_lt': 'a < 50',
+  'operator_equals': 'a = 50',
+  'operator_and': '<条件1> 与 <条件2>',
+  'operator_or': '<条件1> 或 <条件2>',
+  'operator_not': '<条件> 不成立',
+  'operator_join': '连接 苹果 与 香蕉',
+  'operator_letter_of': '第 1 个字符',
+  'operator_length': '字符串的长度',
+  'operator_contains': '字符串包含 a ?',
+  'operator_mod': 'a 除以 b 的余数',
+  'operator_round': '四舍五入',
+
+  // Data
+  'data_variable': '变量',
+  'data_setvariableto': '将 变量 设为 0',
+  'data_changevariableby': '将 变量 增加 1',
+  'data_showvariable': '显示变量 变量',
+  'data_hidevariable': '隐藏变量 变量'
+};
+
+window.loadProject = function(jsonInput) {
   try {
-    const obj = (typeof jsonStr === 'object') ? jsonStr : JSON.parse(jsonStr);
+    if (!jsonInput) return;
+    let obj = jsonInput;
+    if (typeof jsonInput === 'string') {
+      const trimmed = jsonInput.trim();
+      if (!trimmed || trimmed === "{}") return;
+      try {
+        obj = JSON.parse(trimmed);
+      } catch(e) {
+        console.warn("Direct parse failed, attempting loose json parse", e);
+        return;
+      }
+    }
+    
     activeBlocks = [];
-    if (obj && obj.targets) {
+    if (obj && obj.targets && Array.isArray(obj.targets)) {
       obj.targets.forEach(t => {
-        if (!t.isStage && t.blocks) {
-          for (let id in t.blocks) {
-            const b = t.blocks[id];
-            if (b && typeof b === 'object' && b.opcode) {
-              const cls = getCategoryClassByOpcode(b.opcode);
-              const translateMap = {
-                'event_whenflagclicked': '当 🟢 被点击',
-                'event_whenkeypressed': '当按下空格键',
-                'event_whenthisspriteclicked': '当角色被点击',
-                'control_wait': '等待 1 秒',
-                'control_repeat': '重复执行 10 次',
-                'control_forever': '重复执行',
-                'control_if': '如果 < > 那么',
-                'motion_movesteps': '移动 10 步',
-                'motion_turnright': '右转 15 度',
-                'motion_turnleft': '左转 15 度',
-                'motion_changexby': '将 x 坐标增加 10',
-                'motion_ifonedgebounce': '碰到边缘就反弹',
-                'sensing_touchingobject': '碰到鼠标指针?',
-                'sensing_askandwait': '询问并等待',
-                'sensing_keypressed': '按下空格键?',
-                'looks_say': '说 Hello!'
-              };
-              const zhLabel = translateMap[b.opcode] || b.opcode;
-              activeBlocks.push({ id: id, opcode: b.opcode, label: `<span class="${cls}">${zhLabel}</span>` });
+        if (t && t.blocks) {
+          if (Array.isArray(t.blocks)) {
+            t.blocks.forEach(b => {
+              const op = (typeof b === 'string') ? b : (b.opcode || '');
+              if (op) {
+                const cls = getCategoryClassByOpcode(op);
+                const zhLabel = OP_TRANSLATE_MAP[op] || op;
+                activeBlocks.push({ id: 'block_' + Math.random().toString(36).substr(2, 9), opcode: op, label: `<span class="${cls}">${zhLabel}</span>` });
+              }
+            });
+          } else if (typeof t.blocks === 'object') {
+            for (let id in t.blocks) {
+              const b = t.blocks[id];
+              if (b && typeof b === 'object' && b.opcode) {
+                const op = b.opcode;
+                const cls = getCategoryClassByOpcode(op);
+                const zhLabel = OP_TRANSLATE_MAP[op] || op;
+                activeBlocks.push({ id: id, opcode: op, label: `<span class="${cls}">${zhLabel}</span>` });
+              }
             }
           }
+        } else if (t && t.opcodes && Array.isArray(t.opcodes)) {
+          t.opcodes.forEach(op => {
+            if (op) {
+              const cls = getCategoryClassByOpcode(op);
+              const zhLabel = OP_TRANSLATE_MAP[op] || op;
+              activeBlocks.push({ id: 'block_' + Math.random().toString(36).substr(2, 9), opcode: op, label: `<span class="${cls}">${zhLabel}</span>` });
+            }
+          });
         }
       });
     }
@@ -423,20 +554,24 @@ window.onload = function() {
   renderPalette('motion');
   
   function tryFetchAndLoad() {
+    if (window.AndroidProjectProvider && window.AndroidProjectProvider.fetchProjectJson) {
+      const json = window.AndroidProjectProvider.fetchProjectJson();
+      if (json && json !== "{}" && json.length > 2) {
+        window.loadProject(json);
+        return true;
+      }
+    }
     if (window.AndroidBlockViewer && window.AndroidBlockViewer.getProjectJson) {
       const json = window.AndroidBlockViewer.getProjectJson();
-      if (json) { window.loadProject(json); return true; }
-    }
-    if (window.AndroidProjectLoader && window.AndroidProjectLoader.getProjectData) {
-      const json = window.AndroidProjectLoader.getProjectData();
       if (json) { window.loadProject(json); return true; }
     }
     return false;
   }
 
   if (!tryFetchAndLoad()) {
-    setTimeout(tryFetchAndLoad, 300);
-    setTimeout(tryFetchAndLoad, 1000);
+    setTimeout(tryFetchAndLoad, 200);
+    setTimeout(tryFetchAndLoad, 600);
+    setTimeout(tryFetchAndLoad, 1200);
   }
 };
 </script>
