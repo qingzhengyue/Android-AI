@@ -260,7 +260,7 @@ fun InteractiveScratchProgrammingScreen(viewModel: MainViewModel, onBackToHall: 
 
     val mirrors = remember {
         listOf(
-            "file:///android_asset/scratch_blocks_viewer.html",  // 源1: 内置零流量极速离线积木工作区
+            "file:///android_asset/scratch.html",                // 源1: 内置零流量极速离线积木工作区
             "https://editor.scratch-cn.cn/editor",                // 源2: 线上 Scratch 社区镜像
             "https://scratch3.fun/editor",                        // 源3: 线上国内极速源
             "https://turbowarp.org/editor"                        // 源4: TurboWarp 强力引擎
@@ -1340,28 +1340,45 @@ fun loadProjectIntoWebView(webView: WebView?, projectJson: String, base64Data: S
                     var currentJobId = $jobId;
                     window.__scratch_job_id = currentJobId;
                     
-                    var rawData = window.AndroidProjectProvider.fetchProjectJson() || "";
-                    var base64Data = window.AndroidProjectProvider.fetchBase64Data() || "";
-                    window.AndroidProjectProvider.clearData();
+                    var rawData = window.AndroidProjectProvider ? window.AndroidProjectProvider.fetchProjectJson() : "";
+                    var b64Data = window.AndroidProjectProvider ? window.AndroidProjectProvider.fetchBase64Data() : "";
                     
-                    if ((!base64Data || base64Data.length === 0) && (!rawData || rawData.length === 0)) return "Empty data";
+                    if ((!b64Data || b64Data.length === 0) && (!rawData || rawData.length === 0)) return "Empty data";
                     
-                    var uint8Array = null;
+                    function b64ToArrayBuffer(b64) {
+                        try {
+                            var bin = window.atob(b64);
+                            var len = bin.length;
+                            var bytes = new Uint8Array(len);
+                            for (var i = 0; i < len; i++) {
+                                bytes[i] = bin.charCodeAt(i);
+                            }
+                            return bytes.buffer;
+                        } catch(e) {
+                            return null;
+                        }
+                    }
+                    
+                    var arrayBuffer = (b64Data && b64Data.length > 0) ? b64ToArrayBuffer(b64Data) : null;
                     var attempts = 0;
-                    var maxAttempts = 120;
-                    var readyCount = 0;
+                    var maxAttempts = 80;
                     
-                    function getVm() {
-                        if (window.vm) return window.vm;
-                        if (window.scratch && window.scratch.vm) return window.scratch.vm;
-                        if (window.__turboWarp__ && window.__turboWarp__.vm) return window.__turboWarp__.vm;
+                    function findVm() {
+                        if (window.vm && window.vm.loadProject) return window.vm;
+                        if (window.scratch && window.scratch.vm && window.scratch.vm.loadProject) return window.scratch.vm;
+                        if (window.__turboWarp__ && window.__turboWarp__.vm && window.__turboWarp__.vm.loadProject) return window.__turboWarp__.vm;
+                        
                         var frames = document.querySelectorAll('iframe');
                         for (var i = 0; i < frames.length; i++) {
-                            try { if (frames[i].contentWindow && frames[i].contentWindow.vm) return frames[i].contentWindow.vm; } catch(e) {}
+                            try {
+                                if (frames[i].contentWindow && frames[i].contentWindow.vm && frames[i].contentWindow.vm.loadProject) {
+                                    return frames[i].contentWindow.vm;
+                                }
+                            } catch(e) {}
                         }
                         
                         try {
-                            var el = document.getElementById('scratch') || document.querySelector('[class^="gui_stage-wrapper_"]') || document.querySelector('[class*="gui_page-wrapper_"]');
+                            var el = document.getElementById('scratch') || document.querySelector('[class^="gui_stage-wrapper_"]') || document.querySelector('[class*="gui_page-wrapper_"]') || document.querySelector('#app') || document.querySelector('.gui');
                             if (el) {
                                 var keys = Object.keys(el);
                                 var reactKey = keys.find(function(k) { return k.startsWith('__reactInternalInstance') || k.startsWith('__reactFiber'); });
@@ -1382,135 +1399,75 @@ fun loadProjectIntoWebView(webView: WebView?, projectJson: String, base64Data: S
                         if (window.__scratch_job_id !== currentJobId) return true; 
                         attempts++;
 
-                        // 1. TurboWarp API 通道
-                        if (window.loadProject && typeof window.loadProject === 'function') {
-                            var twData = uint8Array ? uint8Array.buffer : (rawData ? JSON.parse(rawData) : null);
-                            if (twData) window.loadProject(twData);
-                            return true; 
+                        // 1. TurboWarp 全局 API 通道
+                        if (window.loadProject && typeof window.loadProject === 'function' && arrayBuffer) {
+                            try {
+                                window.loadProject(arrayBuffer);
+                                return true; 
+                            } catch(e) {}
                         }
 
-                        // 2. 标准版 VM 通道
-                        var targetVm = getVm();
-                        if (!targetVm || !targetVm.editingTarget || !targetVm.runtime || targetVm.runtime.targets.length === 0) {
-                            readyCount = 0; return false; 
-                        }
-                        
-                        var hasWorkspace = document.querySelector('.blocklyWorkspace') || document.querySelector('[class*="gui_blocks-wrapper"]');
-                        if (!hasWorkspace) {
-                            var frames = document.querySelectorAll('iframe');
-                            for(var f=0; f<frames.length; f++){
-                                try { if(frames[f].contentDocument.querySelector('.blocklyWorkspace')) { hasWorkspace = true; break; } }catch(e){}
-                            }
-                        }
-                        if (!hasWorkspace) {
-                            readyCount = 0; return false;
-                        }
-
-                        var loaderVisible = false;
-                        var loaders = document.querySelectorAll('[class*="loader_fullscreen"], [class*="loader_background"]');
-                        for (var i = 0; i < loaders.length; i++) {
-                            if (window.getComputedStyle(loaders[i]).display !== 'none') {
-                                loaderVisible = true; break;
-                            }
-                        }
-                        if (loaderVisible) {
-                            readyCount = 0; return false;
-                        }
-
-                        readyCount++;
-                        if (readyCount < 4) {
+                        // 2. Scratch VM 通道
+                        var targetVm = findVm();
+                        if (!targetVm) {
                             return false; 
                         }
 
+                        var dataToLoad = arrayBuffer || (rawData ? JSON.parse(rawData) : null);
+                        if (!dataToLoad) return true;
+
                         try {
-                            var dataToLoad = uint8Array ? uint8Array.buffer : JSON.parse(rawData);
                             var loadPromise = targetVm.loadProject(dataToLoad);
-                            
-                            loadPromise.then(function() {
-                                setTimeout(function() {
-                                    if (window.__scratch_job_id !== currentJobId) return;
-                                    
-                                    var bly = window.Blockly;
-                                    if (!bly) {
-                                        var fs = document.querySelectorAll('iframe');
-                                        for(var j=0; j<fs.length; j++) {
-                                            try { if(fs[j].contentWindow && fs[j].contentWindow.Blockly) { bly = fs[j].contentWindow.Blockly; break; } }catch(e){}
+                            if (loadPromise && typeof loadPromise.then === 'function') {
+                                loadPromise.then(function() {
+                                    setTimeout(function() {
+                                        if (window.__scratch_job_id !== currentJobId) return;
+                                        try {
+                                            if (targetVm.emitTargetsUpdate) targetVm.emitTargetsUpdate();
+                                            
+                                            var targets = targetVm.runtime ? targetVm.runtime.targets : [];
+                                            var stage = targets.find(function(t) { return t.isStage; });
+                                            var sprite = targets.find(function(t) { return !t.isStage; }) || (targets.length > 0 ? targets[0] : null);
+                                            
+                                            if (targetVm.setEditingTarget && stage && sprite) {
+                                                targetVm.setEditingTarget(stage.id);
+                                                setTimeout(function() {
+                                                    if (window.__scratch_job_id !== currentJobId) return;
+                                                    targetVm.setEditingTarget(sprite.id);
+                                                    if (targetVm.emitWorkspaceUpdate) targetVm.emitWorkspaceUpdate();
+                                                    window.dispatchEvent(new Event('resize'));
+                                                }, 100);
+                                            } else if (targetVm.emitWorkspaceUpdate) {
+                                                targetVm.emitWorkspaceUpdate();
+                                                window.dispatchEvent(new Event('resize'));
+                                            }
+                                        } catch(ex) {
+                                            console.error("Post injection refresh error:", ex);
                                         }
+                                    }, 150);
+                                }).catch(function(e) {
+                                    console.error("VM loadProject error:", e);
+                                    if (rawData && rawData.length > 2 && dataToLoad !== rawData) {
+                                        try { targetVm.loadProject(JSON.parse(rawData)); } catch(e2){}
                                     }
-                                    try { if (bly && bly.getMainWorkspace()) bly.getMainWorkspace().clear(); } catch(err){}
-                                    
-                                    if (targetVm.emitWorkspaceUpdate) targetVm.emitWorkspaceUpdate();
-                                    if (targetVm.emitTargetsUpdate) targetVm.emitTargetsUpdate();
-                                    
-                                    var targets = targetVm.runtime.targets;
-                                    if (targets && targets.length > 0 && targetVm.setEditingTarget) {
-                                        var stage = targets.find(function(t) { return t.isStage; });
-                                        var sprite = targets.find(function(t) { return !t.isStage; }) || targets[0];
-                                        
-                                        if (stage) targetVm.setEditingTarget(stage.id);
-                                        setTimeout(function() {
-                                            if (window.__scratch_job_id !== currentJobId) return;
-                                            if (sprite) targetVm.setEditingTarget(sprite.id);
-                                            
-                                            try {
-                                                var el = document.getElementById('scratch') || document.querySelector('[class^="gui_stage-wrapper_"]');
-                                                if (el) {
-                                                    var keys = Object.keys(el);
-                                                    var reactKey = keys.find(function(k) { return k.startsWith('__reactInternalInstance') || k.startsWith('__reactFiber'); });
-                                                    if (reactKey) {
-                                                        var fiber = el[reactKey];
-                                                        var store = null;
-                                                        while (fiber) {
-                                                            if (fiber.stateNode && fiber.stateNode.store) { store = fiber.stateNode.store; break; }
-                                                            if (fiber.memoizedProps && fiber.memoizedProps.store) { store = fiber.memoizedProps.store; break; }
-                                                            fiber = fiber.return;
-                                                        }
-                                                        if (store) store.dispatch({ type: 'scratch-gui/project-state/SET_PROJECT_ID', projectId: 'injected_' + currentJobId });
-                                                    }
-                                                }
-                                            } catch(ex) {}
-                                            
-                                            window.dispatchEvent(new Event('resize'));
-                                        }, 80);
-                                    } else {
-                                        window.dispatchEvent(new Event('resize'));
-                                    }
-                                }, 150);
-                            }).catch(function(e) { console.error("VM load error:", e); });
-                            
+                                });
+                            }
                             return true;
                         } catch(e) {
-                            console.error("Injection error:", e);
-                            readyCount = 0;
+                            console.error("Injection invocation error:", e);
                             return false;
                         }
                     }
 
-                    function startInjecting() {
-                        if (!tryInject()) {
-                            var timer = setInterval(function() {
-                                if (tryInject() || attempts >= maxAttempts || window.__scratch_job_id !== currentJobId) {
-                                    clearInterval(timer);
-                                }
-                            }, 500);
-                        }
+                    if (!tryInject()) {
+                        var timer = setInterval(function() {
+                            if (tryInject() || attempts >= maxAttempts || window.__scratch_job_id !== currentJobId) {
+                                clearInterval(timer);
+                            }
+                        }, 400);
                     }
                     
-                    if (base64Data && base64Data.length > 0) {
-                        fetch("/___android_injected_project.sb3")
-                            .then(res => res.arrayBuffer())
-                            .then(buffer => {
-                                uint8Array = new Uint8Array(buffer);
-                                startInjecting();
-                            })
-                            .catch(e => {
-                                console.error("Base64 decode failed", e);
-                            });
-                    } else {
-                        startInjecting();
-                    }
-                    
-                    return "Polling Started for Job: " + currentJobId;
+                    return "Injection started for job: " + currentJobId;
                 } catch(e) {
                     return "Fatal Error: " + e.message;
                 }
