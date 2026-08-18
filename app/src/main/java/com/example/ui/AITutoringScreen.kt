@@ -25,6 +25,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -646,6 +648,7 @@ fun DrawerHistoryListItem(
 
 /**
  * 2. 艺术化空状态破冰页 (Elegant Empty State)
+ * 采用可滑动布局，确保小屏设备上所有快捷建议卡片完整显示与流畅滚动
  */
 @Composable
 fun ElegantEmptyState(
@@ -654,30 +657,35 @@ fun ElegantEmptyState(
     onSelectSession: ((String) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
+    val scrollState = rememberScrollState()
+
     Box(
         modifier = modifier
             .fillMaxSize()
-            .padding(24.dp),
-        contentAlignment = Alignment.Center
+            .verticalScroll(scrollState)
+            .padding(horizontal = 16.dp, vertical = 16.dp),
+        contentAlignment = Alignment.TopCenter
     ) {
         Surface(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(28.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .widthIn(max = 520.dp),
+            shape = RoundedCornerShape(24.dp),
             color = Color.White,
-            shadowElevation = 4.dp,
+            shadowElevation = 3.dp,
             border = BorderStroke(1.dp, Color(0xFFF0F2F5))
         ) {
             Column(
                 modifier = Modifier
-                    .padding(horizontal = 24.dp, vertical = 24.dp)
+                    .padding(horizontal = 20.dp, vertical = 20.dp)
                     .fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 // 顶部图标柔光卡片
                 Box(
                     modifier = Modifier
-                        .size(56.dp)
-                        .clip(RoundedCornerShape(18.dp))
+                        .size(52.dp)
+                        .clip(RoundedCornerShape(16.dp))
                         .background(
                             brush = Brush.linearGradient(
                                 colors = listOf(
@@ -692,11 +700,11 @@ fun ElegantEmptyState(
                         imageVector = Icons.Rounded.AutoAwesome,
                         contentDescription = "AI 智能精灵",
                         tint = PrimaryIndigo,
-                        modifier = Modifier.size(28.dp)
+                        modifier = Modifier.size(26.dp)
                     )
                 }
 
-                Spacer(modifier = Modifier.height(14.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
                 Text(
                     text = "开启 Scratch AI 探秘之旅",
@@ -705,28 +713,28 @@ fun ElegantEmptyState(
                     color = Color(0xFF111827)
                 )
 
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height(4.dp))
 
                 Text(
                     text = "我是你的专属编程小助手。遇到积木报错、逻辑卡壳还是创意设计？随时问我！",
-                    fontSize = 12.5.sp,
+                    fontSize = 12.sp,
                     color = Color(0xFF6B7280),
-                    lineHeight = 18.sp,
+                    lineHeight = 17.sp,
                     textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(horizontal = 8.dp)
+                    modifier = Modifier.padding(horizontal = 6.dp)
                 )
 
                 if (recentScratchSession != null && onSelectSession != null) {
-                    Spacer(modifier = Modifier.height(14.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
                     Surface(
                         onClick = { onSelectSession(recentScratchSession.sessionId) },
-                        shape = RoundedCornerShape(16.dp),
+                        shape = RoundedCornerShape(14.dp),
                         color = Color(0xFFFFFBEB),
                         border = BorderStroke(1.dp, Color(0xFFFDE68A)),
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Row(
-                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(text = "🧩", fontSize = 18.sp)
@@ -734,7 +742,7 @@ fun ElegantEmptyState(
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
                                     text = "Scratch 智能精灵答疑历史 (${recentScratchSession.records.size}条)",
-                                    fontSize = 13.sp,
+                                    fontSize = 12.5.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = Color(0xFF92400E)
                                 )
@@ -748,15 +756,15 @@ fun ElegantEmptyState(
                                 imageVector = Icons.Default.ChevronRight,
                                 contentDescription = "查看",
                                 tint = Color(0xFFD97706),
-                                modifier = Modifier.size(18.dp)
+                                modifier = Modifier.size(16.dp)
                             )
                         }
                     }
                 }
 
-                Spacer(modifier = Modifier.height(18.dp))
+                Spacer(modifier = Modifier.height(14.dp))
 
-                // 启发式快捷提问胶囊
+                // 启发式快捷提问胶囊列表（全部完整呈现，支持滚动）
                 Column(
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                     modifier = Modifier.fillMaxWidth()
@@ -775,6 +783,11 @@ fun ElegantEmptyState(
                         emoji = "⚡️",
                         text = "循环代码卡住了不走怎么排查？",
                         onClick = { onPromptClick("为什么我的重复执行循环代码卡住了不走？如何调试？") }
+                    )
+                    SuggestionPromptChip(
+                        emoji = "🎮",
+                        text = "如何做角色血条扣减与游戏结束判定？",
+                        onClick = { onPromptClick("如何在 Scratch 中制作角色生命值血条和游戏失败判定？") }
                     )
                 }
             }
