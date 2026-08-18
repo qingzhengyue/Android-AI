@@ -353,77 +353,89 @@ html, body {
 .del-btn:hover { opacity: 1; background: rgba(0,0,0,0.3); }
 
 /* =================================================== */
-/* C-Block 嵌套分支结构与明显缩进 (专业 Scratch 凹槽形态) */
+/* C-Block 嵌套分支结构与清晰无重叠凹槽造型 */
 /* =================================================== */
 .c-block-container {
   width: 100%;
   display: flex;
   flex-direction: column;
   border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  border: 2px solid #d97706;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+  border: 2.5px solid #d97706;
   transition: all 0.2s ease;
-  background: #fff;
+  background: #ffffff;
+  margin-bottom: 10px;
+  overflow: visible;
 }
 .c-block-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 6px 10px;
+  padding: 8px 10px;
   color: #fff;
   font-size: 11.5px;
   font-weight: 700;
-  border-top-left-radius: 6px;
-  border-top-right-radius: 6px;
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+  gap: 6px;
+  flex-wrap: wrap;
 }
-/* 核心缩进区：采用加粗脊柱条 (20px left spine) + 内部缩进 */
+/* 核心缩进区：加宽高辨识度脊柱 (22px left spine) + 宽敞内部留白 */
 .c-block-body {
-  background: #fffdf5;
-  border-left: 20px solid #FFAB19;
-  padding: 8px 8px 8px 12px;
+  background: #fffdf6;
+  border-left: 22px solid #FFAB19;
+  padding: 10px 10px 12px 12px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  min-height: 48px;
+  gap: 8px;
+  min-height: 52px;
   position: relative;
+  transition: background 0.15s ease, border-color 0.15s ease;
 }
 .c-block-body::before {
   content: '';
   position: absolute;
-  left: -14px;
+  left: -15px;
   top: 0;
   bottom: 0;
   width: 3px;
-  background: rgba(255,255,255,0.6);
+  background: rgba(255,255,255,0.7);
+}
+
+.c-block-body.drag-over-container {
+  background: #fef3c7 !important;
+  border-left-color: #22c55e !important;
+  box-shadow: inset 0 0 0 2px #22c55e !important;
 }
 
 .c-block-body-empty {
-  font-size: 10.5px;
+  font-size: 11px;
   color: #b45309;
   background: #fef3c7;
-  border: 1px dashed #f59e0b;
+  border: 1.5px dashed #f59e0b;
   border-radius: 6px;
-  padding: 5px 8px;
+  padding: 8px 10px;
   display: flex;
   align-items: center;
-  gap: 5px;
+  justify-content: center;
+  gap: 6px;
+  text-align: center;
 }
 
-/* 循环体内部快捷添加芯片条 (1键直接放入循环体) */
+/* 循环体内部快捷添加与全量选择工具条 (彻底杜绝文字与底栏重叠) */
 .c-quick-bar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 4px;
-  padding-top: 4px;
-  border-top: 1px dashed #fed7aa;
-  margin-top: 2px;
+  gap: 5px;
+  padding-top: 8px;
+  border-top: 1.5px dashed #fed7aa;
+  margin-top: 4px;
 }
 .quick-chip-label {
   font-size: 10px;
-  font-weight: 700;
-  color: #b45309;
+  font-weight: 800;
+  color: #9a3412;
   margin-right: 2px;
 }
 .c-quick-chip {
@@ -431,31 +443,36 @@ html, body {
   color: #fff;
   font-size: 10px;
   font-weight: 700;
-  padding: 3px 7px;
+  padding: 4px 8px;
   border-radius: 5px;
   cursor: pointer;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.12);
-  transition: transform 0.1s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+  transition: transform 0.1s, opacity 0.15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
 }
-.c-quick-chip:active { transform: scale(0.95); }
+.c-quick-chip:active { transform: scale(0.95); opacity: 0.9; }
 .c-more-btn {
   background: #fff !important;
   color: #b45309 !important;
-  border: 1px solid #d97706 !important;
+  border: 1.5px solid #d97706 !important;
+  font-weight: 800;
 }
 
 .c-block-footer {
-  height: 18px;
+  min-height: 24px;
   background: #FFAB19;
-  border-bottom-left-radius: 6px;
-  border-bottom-right-radius: 6px;
+  border-bottom-left-radius: 5px;
+  border-bottom-right-radius: 5px;
   display: flex;
   align-items: center;
-  padding-left: 10px;
-  color: rgba(255,255,255,0.95);
-  font-size: 9.5px;
-  font-weight: 700;
+  padding: 3px 10px;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
   letter-spacing: 0.5px;
+  border-top: 1px solid rgba(0,0,0,0.05);
 }
 
 /* 循环体内部子积木外观 (带阶梯缩进与连接记号) */
@@ -467,21 +484,53 @@ html, body {
   border-radius: 6px;
   margin-left: 2px;
   transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+  margin-bottom: 2px;
 }
 .child-indent-notch {
-  color: rgba(255,255,255,0.8);
+  color: rgba(255,255,255,0.85);
   font-weight: 900;
-  font-size: 11px;
+  font-size: 12px;
   margin-right: 4px;
 }
 .step-number-tag {
   background: rgba(0,0,0,0.3);
   border-radius: 4px;
-  padding: 1px 4px;
-  font-size: 9px;
+  padding: 1px 5px;
+  font-size: 9.5px;
   font-weight: 800;
   margin-right: 4px;
+}
+
+/* 条件嵌套槽 (Condition Slot) - 支持嵌套运算/侦测积木 */
+.condition-slot {
+  background: #59C059;
+  color: #fff;
+  border: 1.5px solid #ffffff;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 10.5px;
+  font-weight: 800;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  transition: all 0.15s ease;
+  user-select: none;
+}
+.condition-slot:hover {
+  transform: scale(1.03);
+  box-shadow: 0 0 6px rgba(255,255,255,0.8);
+}
+.condition-slot.sensing-cond {
+  background: #5CB1D6;
+}
+.condition-slot.drag-over-cond {
+  background: #22c55e !important;
+  box-shadow: 0 0 0 3px #fff, 0 0 12px #22c55e !important;
+  transform: scale(1.08) !important;
+  animation: pulseBg 0.6s infinite alternate;
 }
 
 /* 4. 右侧舞台预览面板 */
@@ -574,58 +623,64 @@ html, body {
   max-height: 110px;
 }
 
-/* 模态弹窗与参数修改器 (横屏与移动端全面适配) */
+/* 模态弹窗与参数修改器 (横屏与移动端全面适配 - 杜绝折叠) */
 .modal-mask {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.6);
+  width: 100vw; height: 100vh;
+  background: rgba(0,0,0,0.65);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 100;
-  padding: 12px;
+  z-index: 9999;
+  padding: 10px;
+  backdrop-filter: blur(2px);
 }
 .modal-dialog {
-  background: #fff;
+  background: #ffffff;
   border-radius: 12px;
-  width: 92vw;
-  max-width: 480px;
+  width: 90vw;
+  max-width: 500px;
   max-height: 88vh;
-  padding: 14px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.35);
+  padding: 12px 14px;
+  box-shadow: 0 16px 40px rgba(0,0,0,0.4);
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  overflow: hidden;
+  gap: 8px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 .modal-title {
-  font-size: 13.5px;
-  font-weight: 700;
-  color: #1e293b;
+  font-size: 13px;
+  font-weight: 800;
+  color: #0f172a;
   display: flex;
   align-items: center;
   gap: 6px;
+  flex-shrink: 0;
 }
 .modal-input {
   width: 100%;
-  padding: 7px 9px;
+  padding: 6px 9px;
   border: 1.5px solid #cbd5e1;
   border-radius: 6px;
-  font-size: 12px;
+  font-size: 11.5px;
   outline: none;
+  background: #fff;
 }
 .modal-input:focus { border-color: #3b82f6; }
 .modal-actions {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
-  margin-top: 4px;
+  margin-top: 6px;
+  flex-shrink: 0;
 }
 .modal-btn {
   padding: 5px 12px;
   border-radius: 6px;
   font-size: 11.5px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
   border: none;
 }
@@ -857,6 +912,7 @@ const PALETTE_DEFINITIONS = {
   ],
   operators: [
     { opcode:'operator_gt', label:'<span class="param-pill" data-key="varName">x</span> > <span class="param-pill" data-key="val">5</span> 📈', cls:'cat-operators', params:{ varName: 'x', val: 5 } },
+    { opcode:'operator_lt', label:'<span class="param-pill" data-key="varName">x</span> < <span class="param-pill" data-key="val">10</span> 📉', cls:'cat-operators', params:{ varName: 'x', val: 10 } },
     { opcode:'operator_lt', label:'<span class="param-pill" data-key="varName">得分</span> < <span class="param-pill" data-key="val">10</span> 📉', cls:'cat-operators', params:{ varName: '得分', val: 10 } },
     { opcode:'operator_equals', label:'<span class="param-pill" data-key="varName">得分</span> = <span class="param-pill" data-key="val">100</span> ⚖️', cls:'cat-operators', params:{ varName: '得分', val: 100 } },
     { opcode:'operator_add', label:'<span class="param-pill" data-key="a">5</span> + <span class="param-pill" data-key="b">10</span> ➕', cls:'cat-operators', params:{ a: 5, b: 10 } },
@@ -920,6 +976,33 @@ function switchCategory(catKey, elem) {
   renderPalette(catKey);
 }
 
+// 全局拖拽数据缓存
+let currentDraggedBlock = null;
+
+// 深度递归查找积木
+function findBlockById(id, list = activeBlocks) {
+  for (let b of list) {
+    if (b.id === id) return b;
+    if (b.children && b.children.length > 0) {
+      const found = findBlockById(id, b.children);
+      if (found) return found;
+    }
+  }
+  return null;
+}
+
+// 深度递归查找包含指定 ID 积木的列表与索引
+function findBlockParentList(id, list = activeBlocks) {
+  for (let i = 0; i < list.length; i++) {
+    if (list[i].id === id) return { list: list, index: i };
+    if (list[i].children && list[i].children.length > 0) {
+      const res = findBlockParentList(id, list[i].children);
+      if (res) return res;
+    }
+  }
+  return null;
+}
+
 function renderPalette(catKey) {
   const panel = document.getElementById('palettePanel');
   if (!panel) return;
@@ -947,7 +1030,7 @@ function renderPalette(catKey) {
         { opcode:'data_hidevariable', label:`隐藏变量 <span class="param-pill" data-key="varName">${primaryVar}</span> 🙈`, cls:'cat-data', params:{ varName: primaryVar } }
       ];
       dataBlocks.forEach((b, idx) => {
-        html += `<div class="scratch-block ${b.cls}" onclick="addBlockFromPalette('data', ${idx})">${b.label}</div>`;
+        html += `<div class="scratch-block ${b.cls}" draggable="true" ondragstart="handlePaletteDragStart(event, 'data', ${idx})" onclick="addBlockFromPalette('data', ${idx})">${b.label}</div>`;
       });
     } else {
       html += `<div style="font-size:10.5px;color:#94a3b8;padding:8px 0;text-align:center;">暂无变量<br>点击上方按钮新建</div>`;
@@ -957,11 +1040,140 @@ function renderPalette(catKey) {
   }
 
   const list = PALETTE_DEFINITIONS[catKey] || [];
-  let html = `<div class="palette-header"><span>选择积木</span></div>`;
+  let html = `<div class="palette-header"><span>选择积木 (可点击或拖拽)</span></div>`;
   list.forEach((b, idx) => {
-    html += `<div class="scratch-block ${b.cls}" onclick="addBlockFromPalette('${catKey}', ${idx})">${b.label}</div>`;
+    html += `<div class="scratch-block ${b.cls}" draggable="true" ondragstart="handlePaletteDragStart(event, '${catKey}', ${idx})" onclick="addBlockFromPalette('${catKey}', ${idx})">${b.label}</div>`;
   });
   panel.innerHTML = html;
+}
+
+// 拖拽积木处理逻辑
+function handlePaletteDragStart(event, catKey, idx) {
+  let template;
+  if (catKey === 'data') {
+    const varNames = Object.keys(projectVariables);
+    const primaryVar = varNames[0] || '得分';
+    const dataBlocks = [
+      { opcode:'data_setvariableto', label:`将 <span class="param-pill" data-key="varName">${primaryVar}</span> 设为 <span class="param-pill" data-key="value">0</span> 📦`, cls:'cat-data', params:{ varName: primaryVar, value: 0 } },
+      { opcode:'data_changevariableby', label:`将 <span class="param-pill" data-key="varName">${primaryVar}</span> 增加 <span class="param-pill" data-key="value">1</span> 🏆`, cls:'cat-data', params:{ varName: primaryVar, value: 1 } },
+      { opcode:'data_showvariable', label:`显示变量 <span class="param-pill" data-key="varName">${primaryVar}</span> 👁️`, cls:'cat-data', params:{ varName: primaryVar } },
+      { opcode:'data_hidevariable', label:`隐藏变量 <span class="param-pill" data-key="varName">${primaryVar}</span> 🙈`, cls:'cat-data', params:{ varName: primaryVar } }
+    ];
+    template = dataBlocks[idx];
+  } else {
+    template = PALETTE_DEFINITIONS[catKey][idx];
+  }
+  if (!template) return;
+
+  currentDraggedBlock = {
+    category: catKey,
+    template: template
+  };
+  if (event.dataTransfer) {
+    event.dataTransfer.setData('text/plain', JSON.stringify({ catKey, opcode: template.opcode }));
+    event.dataTransfer.effectAllowed = 'copy';
+  }
+}
+
+function handleContainerDragOver(event, containerId) {
+  event.preventDefault();
+  event.stopPropagation();
+  const el = document.getElementById('container_body_' + containerId);
+  if (el) el.classList.add('drag-over-container');
+}
+
+function handleContainerDragLeave(event, containerId) {
+  event.preventDefault();
+  event.stopPropagation();
+  const el = document.getElementById('container_body_' + containerId);
+  if (el) el.classList.remove('drag-over-container');
+}
+
+function handleContainerDrop(event, containerId) {
+  event.preventDefault();
+  event.stopPropagation();
+  const el = document.getElementById('container_body_' + containerId);
+  if (el) el.classList.remove('drag-over-container');
+
+  if (!currentDraggedBlock || !currentDraggedBlock.template) return;
+  const template = currentDraggedBlock.template;
+  if (template.opcode === 'event_whenflagclicked') {
+    alert('“当 🟢 被点击”事件积木是顶层入口，不能放入循环体内部哦！');
+    return;
+  }
+
+  const container = findBlockById(containerId);
+  if (!container) return;
+  if (!container.children) container.children = [];
+
+  const newChild = {
+    id: 'child_' + Date.now() + '_' + Math.floor(Math.random()*100),
+    opcode: template.opcode,
+    label: template.label,
+    params: JSON.parse(JSON.stringify(template.params || {})),
+    isContainer: !!template.isContainer,
+    children: template.children ? JSON.parse(JSON.stringify(template.children)) : []
+  };
+
+  container.children.push(newChild);
+  updateWorkspaceUI();
+  logMessage(`📥 拖拽放入循环体: ${OP_TRANSLATE_MAP[newChild.opcode] || newChild.opcode}`);
+  notifyAndroidCodeChange();
+  currentDraggedBlock = null;
+}
+
+function handleConditionDragOver(event) {
+  event.preventDefault();
+  event.stopPropagation();
+  if (event.currentTarget) {
+    event.currentTarget.classList.add('drag-over-cond');
+  }
+}
+
+function handleConditionDragLeave(event) {
+  event.preventDefault();
+  event.stopPropagation();
+  if (event.currentTarget) {
+    event.currentTarget.classList.remove('drag-over-cond');
+  }
+}
+
+function handleConditionDrop(event, blockId) {
+  event.preventDefault();
+  event.stopPropagation();
+  if (event.currentTarget) {
+    event.currentTarget.classList.remove('drag-over-cond');
+  }
+
+  if (!currentDraggedBlock || !currentDraggedBlock.template) return;
+  const t = currentDraggedBlock.template;
+  let newCond = '';
+
+  if (t.opcode === 'operator_gt') {
+    const v = (t.params && t.params.varName) || 'x';
+    const val = (t.params && t.params.val) !== undefined ? t.params.val : 5;
+    newCond = `${v} > ${val}`;
+  } else if (t.opcode === 'operator_lt') {
+    const v = (t.params && t.params.varName) || '得分';
+    const val = (t.params && t.params.val) !== undefined ? t.params.val : 10;
+    newCond = `${v} < ${val}`;
+  } else if (t.opcode === 'operator_equals') {
+    const v = (t.params && t.params.varName) || '得分';
+    const val = (t.params && t.params.val) !== undefined ? t.params.val : 100;
+    newCond = `${v} = ${val}`;
+  } else if (t.opcode === 'operator_random') {
+    newCond = `随机数(1~10) > 5`;
+  } else if (t.opcode === 'sensing_touchingobject') {
+    newCond = `碰到舞台边缘`;
+  } else if (t.opcode === 'sensing_keypressed') {
+    newCond = `按下空格键`;
+  } else {
+    newCond = `${t.label || t.opcode}`;
+  }
+
+  saveBlockParamDirect(blockId, 'condition', newCond);
+  logMessage(`⚡ 成功将【${newCond}】运算积木嵌套为条件判断！`);
+  currentDraggedBlock = null;
 }
 
 function openNewVariableDialog() {
@@ -1069,9 +1281,9 @@ function addBlockFromPalette(catKey, idx) {
   notifyAndroidCodeChange();
 }
 
-// 循环体内部 1-Click 极速添加功能 (快捷按钮)
-function addQuickChild(parentIndex, opcode) {
-  const parent = activeBlocks[parentIndex];
+// 循环体内部 1-Click 极速添加功能 (快捷按钮) - 基于 containerId 绝对唯一绑定
+function addQuickChild(containerId, opcode) {
+  const parent = findBlockById(containerId);
   if (!parent) return;
   if (!parent.children) parent.children = [];
 
@@ -1096,9 +1308,9 @@ function addQuickChild(parentIndex, opcode) {
   }
 }
 
-// 全分类“添加积木到循环体”弹窗 (横屏自适应网格)
-function addChildBlockToContainer(parentIndex, selectedCategory = 'motion') {
-  const parent = activeBlocks[parentIndex];
+// 全分类“添加积木到循环体”弹窗 - 基于 containerId 解决多循环结构冲突
+function addChildBlockToContainer(containerId, selectedCategory = 'motion') {
+  const parent = findBlockById(containerId);
   if (!parent || !parent.isContainer) return;
 
   const container = document.getElementById('modalContainer');
@@ -1118,7 +1330,7 @@ function addChildBlockToContainer(parentIndex, selectedCategory = 'motion') {
   categories.forEach(c => {
     const isAct = c.key === selectedCategory;
     catTabsHtml += `
-      <button style="padding:4px 9px;border-radius:6px;border:none;background:${isAct ? c.color : '#f1f5f9'};color:${isAct ? '#fff' : '#64748b'};font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0;" onclick="addChildBlockToContainer(${parentIndex}, '${c.key}')">
+      <button type="button" style="padding:4px 9px;border-radius:6px;border:none;background:${isAct ? c.color : '#f1f5f9'};color:${isAct ? '#fff' : '#64748b'};font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0;" onclick="addChildBlockToContainer('${containerId}', '${c.key}')">
         ${c.name}
       </button>
     `;
@@ -1140,7 +1352,7 @@ function addChildBlockToContainer(parentIndex, selectedCategory = 'motion') {
   let listHtml = '';
   blockList.forEach((c, cIdx) => {
     listHtml += `
-      <div class="scratch-block ${c.cls}" style="margin-bottom:4px;width:100%;font-size:11px;" onclick="confirmAddChildDynamic(${parentIndex}, '${selectedCategory}', ${cIdx})">
+      <div class="scratch-block ${c.cls}" style="margin-bottom:4px;width:100%;font-size:11px;cursor:pointer;" onclick="confirmAddChildDynamic('${containerId}', '${selectedCategory}', ${cIdx})">
         ${c.label}
       </div>
     `;
@@ -1150,9 +1362,9 @@ function addChildBlockToContainer(parentIndex, selectedCategory = 'motion') {
     <div class="modal-mask" onclick="closeModal()">
       <div class="modal-dialog" onclick="event.stopPropagation()">
         <div class="modal-title">🔄 添加积木到循环体 / 分支内部</div>
-        <div style="font-size:11px;color:#64748b;">点击下方任一积木，即可将其嵌套放入内部：</div>
+        <div style="font-size:11px;color:#64748b;flex-shrink:0;">点击下方任一积木，即可将其嵌套放入内部：</div>
         ${catTabsHtml}
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px;max-height:220px;overflow-y:auto;padding:2px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px;max-height:220px;overflow-y:auto;padding:2px;flex:1;">
           ${listHtml}
         </div>
         <div class="modal-actions">
@@ -1163,8 +1375,8 @@ function addChildBlockToContainer(parentIndex, selectedCategory = 'motion') {
   `;
 }
 
-function confirmAddChildDynamic(parentIndex, category, candidateIdx) {
-  const parent = activeBlocks[parentIndex];
+function confirmAddChildDynamic(containerId, category, candidateIdx) {
+  const parent = findBlockById(containerId);
   if (!parent) return;
 
   let cand;
@@ -1198,21 +1410,27 @@ function confirmAddChildDynamic(parentIndex, category, candidateIdx) {
   closeModal();
 }
 
-function removeChildBlock(parentIndex, childIndex) {
-  const parent = activeBlocks[parentIndex];
+function removeChildBlock(containerId, childId) {
+  const parent = findBlockById(containerId);
   if (parent && parent.children) {
-    parent.children.splice(childIndex, 1);
-    updateWorkspaceUI();
-    logMessage('🗑️ 从循环体内移除积木');
-    notifyAndroidCodeChange();
+    const idx = parent.children.findIndex(c => c.id === childId);
+    if (idx !== -1) {
+      parent.children.splice(idx, 1);
+      updateWorkspaceUI();
+      logMessage('🗑️ 从循环体内移除积木');
+      notifyAndroidCodeChange();
+    }
   }
 }
 
-function removeBlock(index) {
-  activeBlocks.splice(index, 1);
-  updateWorkspaceUI();
-  logMessage('🗑️ 移除积木');
-  notifyAndroidCodeChange();
+function removeBlock(blockId) {
+  const res = findBlockParentList(blockId);
+  if (res) {
+    res.list.splice(res.index, 1);
+    updateWorkspaceUI();
+    logMessage('🗑️ 移除积木');
+    notifyAndroidCodeChange();
+  }
 }
 
 function clearWorkspace() {
@@ -1223,7 +1441,7 @@ function clearWorkspace() {
   notifyAndroidCodeChange();
 }
 
-// 运算与条件深度配置弹窗 (结合“运算”积木，如 x > 5)
+// 运算与条件深度配置弹窗 (支持嵌套运算积木，如 x < 10, 得分 > 5, 碰到边缘等)
 function openConditionCustomizer(blockId, currentCondition) {
   const container = document.getElementById('modalContainer');
   container.style.display = 'block';
@@ -1239,39 +1457,50 @@ function openConditionCustomizer(blockId, currentCondition) {
 
   container.innerHTML = `
     <div class="modal-mask" onclick="closeModal()">
-      <div class="modal-dialog" style="max-width:340px;" onclick="event.stopPropagation()">
-        <div class="modal-title">⚡ 自定义条件 (结合“运算”积木)</div>
-        <div style="font-size:11px;color:#64748b;">构建如【x > 5】或【得分 > 10】等运算表达式：</div>
+      <div class="modal-dialog" style="max-width:380px;" onclick="event.stopPropagation()">
+        <div class="modal-title">⚡ 嵌套条件与运算积木</div>
+        <div style="font-size:11px;color:#64748b;flex-shrink:0;">通过嵌套“运算”或“侦测”积木修改如果条件：</div>
         
+        <div style="background:#f0fdf4;border:1.5px solid #86efac;border-radius:8px;padding:8px;display:flex;flex-direction:column;gap:6px;">
+          <div style="font-size:11px;font-weight:800;color:#166534;">🌟 推荐嵌套运算积木 (点击即可嵌套):</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">
+            <button class="modal-btn" style="background:#dcfce7;color:#15803d;border:1px solid #86efac;font-size:11px;font-weight:700;" onclick="selectQuickCondition('${blockId}', 'x > 5')">📈 ⟨ x &gt; 5 ⟩</button>
+            <button class="modal-btn" style="background:#dcfce7;color:#15803d;border:1px solid #86efac;font-size:11px;font-weight:700;" onclick="selectQuickCondition('${blockId}', 'x < 10')">📉 ⟨ x &lt; 10 ⟩</button>
+            <button class="modal-btn" style="background:#dcfce7;color:#15803d;border:1px solid #86efac;font-size:11px;font-weight:700;" onclick="selectQuickCondition('${blockId}', '得分 > 10')">🏆 ⟨ 得分 &gt; 10 ⟩</button>
+            <button class="modal-btn" style="background:#dcfce7;color:#15803d;border:1px solid #86efac;font-size:11px;font-weight:700;" onclick="selectQuickCondition('${blockId}', '得分 = 100')">🎯 ⟨ 得分 = 100 ⟩</button>
+            <button class="modal-btn" style="background:#dcfce7;color:#15803d;border:1px solid #86efac;font-size:11px;font-weight:700;" onclick="selectQuickCondition('${blockId}', 'x = 0')">🔢 ⟨ x = 0 ⟩</button>
+            <button class="modal-btn" style="background:#dcfce7;color:#15803d;border:1px solid #86efac;font-size:11px;font-weight:700;" onclick="selectQuickCondition('${blockId}', '随机数(1~10) > 5')">🎲 ⟨ 随机数 &gt; 5 ⟩</button>
+          </div>
+        </div>
+
+        <div style="background:#f0f9ff;border:1.5px solid #bae6fd;border-radius:8px;padding:8px;display:flex;flex-direction:column;gap:6px;">
+          <div style="font-size:11px;font-weight:800;color:#0369a1;">🎯 推荐嵌套侦测积木:</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">
+            <button class="modal-btn" style="background:#e0f2fe;color:#0369a1;border:1px solid #7dd3fc;font-size:11px;font-weight:700;" onclick="selectQuickCondition('${blockId}', '碰到舞台边缘')">💥 碰到舞台边缘 ?</button>
+            <button class="modal-btn" style="background:#e0f2fe;color:#0369a1;border:1px solid #7dd3fc;font-size:11px;font-weight:700;" onclick="selectQuickCondition('${blockId}', '按下空格键')">⌨️ 按下空格键 ?</button>
+          </div>
+        </div>
+
         <div style="background:#f8fafc;border:1px solid #cbd5e1;border-radius:8px;padding:8px;display:flex;flex-direction:column;gap:6px;">
-          <div style="font-size:10.5px;font-weight:700;color:#0f172a;">📊 运算关系表达式:</div>
+          <div style="font-size:11px;font-weight:800;color:#0f172a;">🛠️ 自定义运算比较构建器:</div>
           <div style="display:flex;align-items:center;gap:4px;">
             <select id="condLeftVar" class="modal-input" style="flex:1;">
               ${varOptionsHtml}
-              <option value="自定义">自定义输入...</option>
             </select>
-            <select id="condOp" class="modal-input" style="width:70px;">
+            <select id="condOp" class="modal-input" style="width:72px;font-weight:700;">
               <option value=">">&gt; (大于)</option>
               <option value="<">&lt; (小于)</option>
               <option value="=">= (等于)</option>
               <option value=">=">&gt;= (大于等于)</option>
               <option value="<=">&lt;= (小于等于)</option>
             </select>
-            <input type="number" id="condRightVal" class="modal-input" style="flex:1;" value="5" placeholder="数值">
+            <input type="number" id="condRightVal" class="modal-input" style="flex:1;" value="10" placeholder="比较值">
           </div>
         </div>
 
-        <div style="font-size:10.5px;font-weight:700;color:#64748b;">或者选择快捷侦测条件：</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">
-          <button class="modal-btn modal-btn-cancel" style="font-size:10.5px;" onclick="selectQuickCondition('${blockId}', '碰到舞台边缘')">🎯 碰到舞台边缘</button>
-          <button class="modal-btn modal-btn-cancel" style="font-size:10.5px;" onclick="selectQuickCondition('${blockId}', '按下空格键')">⌨️ 按下空格键</button>
-          <button class="modal-btn modal-btn-cancel" style="font-size:10.5px;" onclick="selectQuickCondition('${blockId}', '角色被点击')">👆 角色被点击</button>
-          <button class="modal-btn modal-btn-cancel" style="font-size:10.5px;" onclick="selectQuickCondition('${blockId}', 'x > 5')">📈 x > 5</button>
-        </div>
-
-        <div class="modal-actions" style="margin-top:4px;">
+        <div class="modal-actions">
           <button class="modal-btn modal-btn-cancel" onclick="closeModal()">取消</button>
-          <button class="modal-btn modal-btn-confirm" onclick="applyCustomOperatorCondition('${blockId}')">确认设定条件</button>
+          <button class="modal-btn modal-btn-confirm" onclick="applyCustomOperatorCondition('${blockId}')">确认应用条件</button>
         </div>
       </div>
     </div>
@@ -1284,7 +1513,7 @@ function applyCustomOperatorCondition(blockId) {
   const right = document.getElementById('condRightVal').value || '0';
   const condStr = `${left} ${op} ${right}`;
   
-  if (left && !projectVariables.hasOwnProperty(left) && left !== '自定义') {
+  if (left && !projectVariables.hasOwnProperty(left)) {
     projectVariables[left] = 0;
     visibleVariables[left] = true;
     updateStageVarHUD();
@@ -1304,7 +1533,7 @@ function saveBlockParamDirect(blockId, paramKey, newVal) {
     for (let b of list) {
       if (b.id === blockId) {
         if (!b.params) b.params = {};
-        if (!isNaN(newVal) && String(newVal).trim() !== '') {
+        if (!isNaN(newVal) && String(newVal).trim() !== '' && paramKey !== 'condition') {
           b.params[paramKey] = Number(newVal);
         } else {
           b.params[paramKey] = newVal;
@@ -1386,31 +1615,31 @@ function renderBlockHtml(b, parentIndex = null) {
               <span class="step-number-tag">${cIdx + 1}</span>
               <span>${renderBlockInnerHtml(cBlock)}</span>
             </div>
-            <span class="del-btn" onclick="event.stopPropagation();removeChildBlock(${parentIndex}, ${cIdx})">✕</span>
+            <span class="del-btn" onclick="event.stopPropagation();removeChildBlock('${b.id}', '${cBlock.id}')">✕</span>
           </div>
         `;
       });
     } else {
-      childrenHtml = `<div class="c-block-body-empty"><span>👉 循环体为空，点击下方快捷按钮放入内部动作积木</span></div>`;
+      childrenHtml = `<div class="c-block-body-empty"><span>👉 循环体内部为空，可从左侧拖拽或点击下方快捷按钮放入动作</span></div>`;
     }
 
     return `
       <div class="c-block-container" id="block_ui_${b.id}">
         <div class="c-block-header ${cls}">
           <span>${formattedLabel}</span>
-          <span class="del-btn" onclick="event.stopPropagation();removeBlock(${parentIndex})">✕</span>
+          <span class="del-btn" onclick="event.stopPropagation();removeBlock('${b.id}')">✕</span>
         </div>
-        <div class="c-block-body">
+        <div class="c-block-body" id="container_body_${b.id}" ondragover="handleContainerDragOver(event, '${b.id}')" ondragleave="handleContainerDragLeave(event, '${b.id}')" ondrop="handleContainerDrop(event, '${b.id}')">
           ${childrenHtml}
           <!-- 循环体内部快捷添加工具条 -->
           <div class="c-quick-bar">
             <span class="quick-chip-label">快捷放入:</span>
-            <button class="c-quick-chip cat-motion" onclick="event.stopPropagation();addQuickChild(${parentIndex}, 'motion_movesteps')">＋移动10步</button>
-            <button class="c-quick-chip cat-motion" onclick="event.stopPropagation();addQuickChild(${parentIndex}, 'motion_turnright')">＋右转15°</button>
-            <button class="c-quick-chip cat-motion" onclick="event.stopPropagation();addQuickChild(${parentIndex}, 'motion_ifonedgebounce')">＋边缘反弹</button>
-            <button class="c-quick-chip cat-looks" onclick="event.stopPropagation();addQuickChild(${parentIndex}, 'looks_nextcostume')">＋换造型</button>
-            <button class="c-quick-chip cat-control" onclick="event.stopPropagation();addQuickChild(${parentIndex}, 'control_wait')">＋等待0.2s</button>
-            <button class="c-quick-chip c-more-btn" onclick="event.stopPropagation();addChildBlockToContainer(${parentIndex})">➕ 更多积木库...</button>
+            <button type="button" class="c-quick-chip cat-motion" onclick="event.stopPropagation();addQuickChild('${b.id}', 'motion_movesteps')">＋移动10步</button>
+            <button type="button" class="c-quick-chip cat-motion" onclick="event.stopPropagation();addQuickChild('${b.id}', 'motion_turnright')">＋右转15°</button>
+            <button type="button" class="c-quick-chip cat-motion" onclick="event.stopPropagation();addQuickChild('${b.id}', 'motion_ifonedgebounce')">＋边缘反弹</button>
+            <button type="button" class="c-quick-chip cat-looks" onclick="event.stopPropagation();addQuickChild('${b.id}', 'looks_nextcostume')">＋换造型</button>
+            <button type="button" class="c-quick-chip cat-control" onclick="event.stopPropagation();addQuickChild('${b.id}', 'control_wait')">＋等待0.2s</button>
+            <button type="button" class="c-quick-chip c-more-btn" onclick="event.stopPropagation();addChildBlockToContainer('${b.id}')">➕ 更多积木库...</button>
           </div>
         </div>
         <div class="c-block-footer">↺ 循环体闭合 (执行完毕后回到顶部重复)</div>
@@ -1422,7 +1651,7 @@ function renderBlockHtml(b, parentIndex = null) {
   return `
     <div class="scratch-block ${cls} block-row" id="block_ui_${b.id}">
       <span>${formattedLabel}</span>
-      <span class="del-btn" onclick="event.stopPropagation();removeBlock(${parentIndex})">✕</span>
+      <span class="del-btn" onclick="event.stopPropagation();removeBlock('${b.id}')">✕</span>
     </div>
   `;
 }
@@ -1461,7 +1690,9 @@ function formatBlockLabel(b) {
   } else if (b.opcode === 'control_forever') {
     return `重复执行 [无限循环] ♾️`;
   } else if (b.opcode === 'control_if') {
-    return `如果 <span class="param-pill" onclick="event.stopPropagation();openConditionCustomizer('${blockId}', '${p.condition || 'x > 5'}')">${p.condition || 'x > 5'}</span> 那么 ⚡`;
+    const condStr = p.condition || 'x > 5';
+    const isSensing = condStr.includes('边缘') || condStr.includes('空格') || condStr.includes('点击');
+    return `如果 <span class="condition-slot ${isSensing ? 'sensing-cond' : ''}" ondragover="handleConditionDragOver(event)" ondragleave="handleConditionDragLeave(event)" ondrop="handleConditionDrop(event, '${blockId}')" onclick="event.stopPropagation();openConditionCustomizer('${blockId}', '${condStr}')">⟨ ${condStr} ⟩</span> 那么 ⚡`;
   } else if (b.opcode === 'operator_gt') {
     return `<span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'varName', '${p.varName || 'x'}')">${p.varName || 'x'}</span> > <span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'val', '${p.val ?? 5}')">${p.val ?? 5}</span> 📈`;
   } else if (b.opcode === 'operator_lt') {
