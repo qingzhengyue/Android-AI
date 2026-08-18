@@ -1,5 +1,15 @@
 import java.util.Properties
 
+val envFile = rootProject.file(".env")
+val envExampleFile = rootProject.file(".env.example")
+if (!envFile.exists()) {
+    if (envExampleFile.exists()) {
+        envExampleFile.copyTo(envFile, overwrite = false)
+    } else {
+        envFile.writeText("GEMINI_API_KEY=AIzaSyCP8U0yipI8szm20UXAHBO861Jdfo2mR4I\nDEEPSEEK_API_KEY=sk-placeholder\nCEREBRAS_API_KEY=csk-6h4pp6hne55etmhwy83pm2jdrtmy3rv5yxp5nedvyffn3w46\n")
+    }
+}
+
 val localProperties = Properties()
 val localPropertiesFile = rootProject.file("local.properties")
 if (localPropertiesFile.exists()) {
