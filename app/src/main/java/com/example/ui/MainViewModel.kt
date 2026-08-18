@@ -1058,21 +1058,21 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             Log.d("AIFlow", "[4/7] 开始多通道调用 AI 助手 (funcType=$funcType, prompt长度=${prompt.length})...")
             val aiResponse = try {
                 val dsResult = try { 
-                    withTimeoutOrNull(2500L) { deepSeekRepository.getAiTutorResponse(userQuery = prompt) } ?: "" 
+                    withTimeoutOrNull(4000L) { deepSeekRepository.getAiTutorResponse(userQuery = prompt) } ?: "" 
                 } catch (e: Exception) { "" }
                 
                 if (dsResult.isNotBlank() && !dsResult.startsWith("【小精灵稍作休息") && !dsResult.startsWith("【网络连接超时")) {
                     dsResult
                 } else {
                     val cerebrasResult = try { 
-                        withTimeoutOrNull(2000L) { cerebrasRepository.getAiTutorResponse(userQuery = prompt) } ?: "" 
+                        withTimeoutOrNull(3000L) { cerebrasRepository.getAiTutorResponse(userQuery = prompt) } ?: "" 
                     } catch (e: Exception) { "" }
                     
                     if (cerebrasResult.isNotBlank() && !cerebrasResult.startsWith("【小精灵稍作休息") && !cerebrasResult.startsWith("【网络连接超时")) {
                         cerebrasResult
                     } else {
                         val geminiResult = try { 
-                            withTimeoutOrNull(2000L) { geminiRepository.getAiTutorResponse(userQuery = prompt) } ?: "" 
+                            withTimeoutOrNull(3000L) { geminiRepository.getAiTutorResponse(userQuery = prompt) } ?: "" 
                         } catch (e: Exception) { "" }
                         
                         if (geminiResult.isNotBlank() && !geminiResult.startsWith("【小精灵稍作休息") && !geminiResult.startsWith("【网络连接超时")) {
@@ -1225,34 +1225,44 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 if (!grammarCorrect) {
                     response = "【功能提示 💡】老师暂未开启 AI 在线答疑功能噢，先自己开动脑筋想一想吧！"
                 } else {
+                    val prompt = """
+                        你是一个超级有爱心、说话极其温柔和蔼、充满童趣的少儿编程 (Scratch 3.0)“编程精灵姐姐”。
+                        提问学生是【$level】的小朋友，说话风格请保持【$style】。回答必须通俗易懂、生动有趣，多用卡通表情符号（✨, 🐱, 🚀, 💡, 🐾, 🎮）。
+                        
+                        【学生当前提问】: $question
+                        【当前作品代码/画布摘要】: ${code.ifBlank { "（当前工作区暂无积木）" }}
+                        
+                        请结合小朋友的问题以及他当前的积木代码，给出最清晰、具体、一步步可跟着做的积木解答指引（标明分类颜色、积木名称和拼接位置）！
+                    """.trimIndent()
+
                     response = try {
                         val dsResult = try {
-                            withTimeoutOrNull(2500L) { deepSeekRepository.getAiTutorResponse(userQuery = question) } ?: ""
+                            withTimeoutOrNull(4000L) { deepSeekRepository.getAiTutorResponse(userQuery = prompt) } ?: ""
                         } catch (e: Exception) { "" }
 
                         if (dsResult.isNotBlank() && !dsResult.startsWith("【小精灵稍作休息") && !dsResult.startsWith("【网络连接超时")) {
                             dsResult
                         } else {
                             val cerebrasResult = try {
-                                withTimeoutOrNull(2000L) { cerebrasRepository.getAiTutorResponse(userQuery = question) } ?: ""
+                                withTimeoutOrNull(3000L) { cerebrasRepository.getAiTutorResponse(userQuery = prompt) } ?: ""
                             } catch (e: Exception) { "" }
 
                             if (cerebrasResult.isNotBlank() && !cerebrasResult.startsWith("【小精灵稍作休息") && !cerebrasResult.startsWith("【网络连接超时")) {
                                 cerebrasResult
                             } else {
                                 val geminiResult = try {
-                                    withTimeoutOrNull(2000L) { geminiRepository.getAiTutorResponse(userQuery = question) } ?: ""
+                                    withTimeoutOrNull(3000L) { geminiRepository.getAiTutorResponse(userQuery = prompt) } ?: ""
                                 } catch (e: Exception) { "" }
 
                                 if (geminiResult.isNotBlank() && !geminiResult.startsWith("【小精灵稍作休息") && !geminiResult.startsWith("【网络连接超时")) {
                                     geminiResult
                                 } else {
-                                    geminiRepository.getAiTutorResponse(userQuery = question)
+                                    GeminiClient.generateContent(prompt, isNetworkAvailable())
                                 }
                             }
                         }
                     } catch (e: Exception) {
-                        geminiRepository.getAiTutorResponse(userQuery = question)
+                        GeminiClient.generateContent(prompt, false)
                     }
                 }
             }
