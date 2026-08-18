@@ -708,11 +708,8 @@ fun InteractiveScratchProgrammingScreen(viewModel: MainViewModel, onBackToHall: 
                     settings.apply {
                         javaScriptEnabled = true
                         domStorageEnabled = true
-                        databaseEnabled = true
                         allowFileAccess = true
                         allowContentAccess = true
-                        allowFileAccessFromFileURLs = true
-                        allowUniversalAccessFromFileURLs = true
                         mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
                         useWideViewPort = true
                         loadWithOverviewMode = true
@@ -724,6 +721,7 @@ fun InteractiveScratchProgrammingScreen(viewModel: MainViewModel, onBackToHall: 
                         userAgentString = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
                         mediaPlaybackRequiresUserGesture = false
                     }
+                    setLayerType(android.view.View.LAYER_TYPE_HARDWARE, null)
                     
                     requestFocus()
                     

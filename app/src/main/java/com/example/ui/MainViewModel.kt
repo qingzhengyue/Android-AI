@@ -1103,7 +1103,19 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 answer = aiResponse,
                 timestamp = timeStr
             )
-            dialogueHistoryList.value = listOf(historyItem) + dialogueHistoryList.value
+            val currentHist = dialogueHistoryList.value
+            val hasPending = currentHist.any { it.question == questionLabel && it.answer.contains("正在") }
+            if (hasPending) {
+                dialogueHistoryList.value = currentHist.map {
+                    if (it.question == questionLabel && it.answer.contains("正在")) {
+                        it.copy(answer = aiResponse, timestamp = timeStr)
+                    } else {
+                        it
+                    }
+                }
+            } else {
+                dialogueHistoryList.value = listOf(historyItem) + currentHist
+            }
 
             val isFailed = aiResponse.startsWith("【连接超时") || aiResponse.startsWith("【服务器忙碌")
 

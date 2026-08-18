@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>星梭 Scratch 智学积木工作台</title>
+<title>星梭 Scratch 3.0 智学积木工作台</title>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
 html, body {
@@ -60,7 +60,7 @@ html, body {
 .btn-red { background: #ef4444; color: #fff; }
 .btn-outline { background: #334155; color: #cbd5e1; border: 1px solid #475569; }
 
-/* 主工作区三栏布局：分类导航 + 积木候选区 + 脚本画布 + 舞台预览 */
+/* 主工作区布局：分类导航 + 积木候选区 + 脚本画布 + 舞台预览 */
 .main-layout {
   display: flex;
   flex: 1;
@@ -113,7 +113,7 @@ html, body {
 
 /* 2. 积木候选库面板 */
 .palette-pane {
-  width: 155px;
+  width: 165px;
   background: #ffffff;
   border-right: 1px solid #e2e8f0;
   overflow-y: auto;
@@ -131,7 +131,27 @@ html, body {
   letter-spacing: 0.5px;
   padding-bottom: 4px;
   border-bottom: 1px solid #f1f5f9;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
+.new-var-btn {
+  background: #ff8c1a;
+  color: #fff;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  box-shadow: 0 2px 4px rgba(255,140,26,0.3);
+  margin-bottom: 6px;
+}
+.new-var-btn:active { transform: scale(0.96); }
 
 /* 积木外观样式 */
 .scratch-block {
@@ -153,14 +173,23 @@ html, body {
   line-height: 1.3;
 }
 .scratch-block:active { transform: scale(0.97); }
-.scratch-block .param-pill {
-  background: rgba(0,0,0,0.18);
-  padding: 2px 6px;
-  border-radius: 8px;
+
+.param-pill {
+  background: rgba(0,0,0,0.22);
+  padding: 2px 7px;
+  border-radius: 10px;
   font-size: 10.5px;
-  border: 1px solid rgba(255,255,255,0.25);
+  border: 1px solid rgba(255,255,255,0.35);
   color: #fff;
   font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+.param-pill:hover {
+  background: rgba(0,0,0,0.35);
+  border-color: #fff;
 }
 
 .cat-motion { background: #4C97FF; }
@@ -205,7 +234,7 @@ html, body {
   border: 2px dashed #cbd5e1;
   border-radius: 10px;
   flex: 1;
-  min-height: 200px;
+  min-height: 220px;
   padding: 12px;
   display: flex;
   flex-direction: column;
@@ -249,6 +278,77 @@ html, body {
 }
 .del-btn:hover { opacity: 1; background: rgba(0,0,0,0.2); }
 
+/* C-Block (循环与条件结构体容器) 专有结构样式 */
+.c-block-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.12);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.c-block-container.running-highlight {
+  box-shadow: 0 0 0 3px #f59e0b, 0 4px 12px rgba(245,158,11,0.4);
+  transform: scale(1.02);
+}
+.c-block-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  color: #fff;
+  font-size: 11.5px;
+  font-weight: 700;
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+}
+.c-block-body {
+  background: #f8fafc;
+  border-left: 14px solid #FFAB19;
+  padding: 6px 6px 6px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-height: 40px;
+  position: relative;
+}
+.c-block-body.sensing-body { border-left-color: #5CB1D6; }
+.c-block-body-empty {
+  font-size: 10.5px;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 0;
+}
+.c-body-add-btn {
+  background: #fff;
+  border: 1px dashed #FFAB19;
+  color: #d97706;
+  font-size: 10.5px;
+  font-weight: 700;
+  border-radius: 4px;
+  padding: 3px 6px;
+  cursor: pointer;
+  width: fit-content;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+.c-body-add-btn:active { background: #fffbeb; }
+.c-block-footer {
+  height: 12px;
+  background: #FFAB19;
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
+  display: flex;
+  align-items: center;
+  padding-left: 8px;
+  color: rgba(255,255,255,0.7);
+  font-size: 8px;
+}
+
 /* 4. 右侧舞台预览面板 */
 .stage-pane {
   width: 210px;
@@ -269,19 +369,23 @@ html, body {
   position: relative;
   overflow: hidden;
 }
-.stage-var-hud {
+.stage-var-container {
   position: absolute;
-  top: 6px;
-  left: 6px;
-  background: rgba(255, 140, 26, 0.9);
+  top: 4px;
+  left: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  z-index: 5;
+}
+.stage-var-badge {
+  background: rgba(255, 140, 26, 0.95);
   color: #fff;
-  font-size: 10px;
+  font-size: 9.5px;
   font-weight: 700;
   padding: 2px 6px;
   border-radius: 4px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-  display: none;
-  z-index: 5;
 }
 .cat-character {
   width: 44px;
@@ -290,7 +394,7 @@ html, body {
   left: 70px;
   top: 45px;
   transform-origin: center center;
-  transition: left 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), top 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), transform 0.3s ease, opacity 0.3s ease;
+  transition: left 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), top 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), transform 0.25s ease, opacity 0.25s ease;
   filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
 }
 .speech-bubble {
@@ -335,6 +439,61 @@ html, body {
   max-height: 120px;
 }
 
+/* 模态弹窗与参数修改器 */
+.modal-mask {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 20px;
+}
+.modal-dialog {
+  background: #fff;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 320px;
+  padding: 16px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.modal-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.modal-input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 13px;
+  outline: none;
+}
+.modal-input:focus { border-color: #3b82f6; }
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.modal-btn {
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+}
+.modal-btn-cancel { background: #f1f5f9; color: #475569; }
+.modal-btn-confirm { background: #3b82f6; color: #fff; }
+
 @media (max-width: 600px) {
   .stage-pane { width: 140px; }
   .palette-pane { width: 110px; }
@@ -348,16 +507,16 @@ html, body {
 <!-- 顶栏快捷操作 -->
 <div class="top-nav">
   <div class="top-title">
-    <span>🧩 离线极速 Scratch 积木工作台</span>
+    <span>🧩 Scratch 3.0 智学积木工作台</span>
   </div>
   <div class="top-actions">
-    <button class="nav-btn btn-green" onclick="runScratchBlocks()">🟢 运行</button>
+    <button class="nav-btn btn-green" id="runBtn" onclick="runScratchBlocks()">🟢 运行</button>
     <button class="nav-btn btn-red" onclick="stopScratchBlocks()">🛑 重置</button>
     <button class="nav-btn btn-outline" onclick="clearWorkspace()">🧹 清空</button>
   </div>
 </div>
 
-<!-- 主界面三栏布局 -->
+<!-- 主界面布局 -->
 <div class="main-layout">
   <!-- 1. 分类栏 -->
   <div class="cat-sidebar">
@@ -401,7 +560,7 @@ html, body {
     <div class="canvas-container" id="canvasStack">
       <div class="empty-canvas" id="emptyTip">
         <span style="font-size:20px;">👈</span>
-        <span>点击左侧分类库添加积木<br>点击顶栏“🟢 运行”在舞台看实时动画效果</span>
+        <span>点击左侧分类库添加积木<br>支持循环体嵌套与条件判断，点击“🟢 运行”看实时舞台动画</span>
       </div>
     </div>
   </div>
@@ -410,7 +569,9 @@ html, body {
   <div class="stage-pane">
     <div style="font-size:11px;font-weight:700;color:#334155;">🖼️ 舞台运行效果</div>
     <div class="stage-screen-box" id="stageBox">
-      <div class="stage-var-hud" id="varHud">变量 my variable = 0</div>
+      <div class="stage-var-container" id="stageVarContainer">
+        <!-- 变量动态 HUD -->
+      </div>
       <div class="speech-bubble" id="sayBubble">你好！星梭！✨</div>
       <svg class="cat-character" id="catSprite" viewBox="0 0 100 100">
         <path id="catBody" d="M20,30 L30,10 L45,25 L55,25 L70,10 L80,30 C90,45 85,70 50,85 C15,70 10,45 20,30 Z" fill="#FFAB19" stroke="#E67E22" stroke-width="2"/>
@@ -420,89 +581,90 @@ html, body {
       </svg>
     </div>
     <div style="font-size:10px;font-weight:700;color:#64748b;">📜 运行日志</div>
-    <div class="log-box" id="stageLog">【系统】离线轻量积木工作区已就绪...</div>
+    <div class="log-box" id="stageLog">【系统】Scratch 3.0 引擎就绪...</div>
   </div>
 </div>
 
+<!-- 动态弹窗容器 -->
+<div id="modalContainer" style="display:none;"></div>
+
 <script>
-// 积木定义库
-const PALETTE = {
+// 全局变量库管理
+let projectVariables = {
+  "得分": 0
+};
+let visibleVariables = {
+  "得分": true
+};
+
+// 预定义积木模板
+const PALETTE_DEFINITIONS = {
   motion: [
-    { opcode:'motion_movesteps', label:'移动 <span class="param-pill">10</span> 步', cls:'cat-motion' },
-    { opcode:'motion_turnright', label:'右转 <span class="param-pill">15</span> 度 ↷', cls:'cat-motion' },
-    { opcode:'motion_turnleft', label:'左转 <span class="param-pill">15</span> 度 ↶', cls:'cat-motion' },
-    { opcode:'motion_gotoxy', label:'移到 x:<span class="param-pill">0</span> y:<span class="param-pill">0</span>', cls:'cat-motion' },
-    { opcode:'motion_changexby', label:'将 x 坐标增加 <span class="param-pill">10</span>', cls:'cat-motion' },
-    { opcode:'motion_changeyby', label:'将 y 坐标增加 <span class="param-pill">10</span>', cls:'cat-motion' },
-    { opcode:'motion_ifonedgebounce', label:'碰到边缘就反弹 💥', cls:'cat-motion' }
+    { opcode:'motion_movesteps', label:'移动 <span class="param-pill" data-key="steps">10</span> 步', cls:'cat-motion', params:{ steps: 10 } },
+    { opcode:'motion_turnright', label:'右转 <span class="param-pill" data-key="degrees">15</span> 度 ↷', cls:'cat-motion', params:{ degrees: 15 } },
+    { opcode:'motion_turnleft', label:'左转 <span class="param-pill" data-key="degrees">15</span> 度 ↶', cls:'cat-motion', params:{ degrees: 15 } },
+    { opcode:'motion_gotoxy', label:'移到 x:<span class="param-pill" data-key="x">0</span> y:<span class="param-pill" data-key="y">0</span>', cls:'cat-motion', params:{ x: 0, y: 0 } },
+    { opcode:'motion_changexby', label:'将 x 坐标增加 <span class="param-pill" data-key="dx">10</span>', cls:'cat-motion', params:{ dx: 10 } },
+    { opcode:'motion_changeyby', label:'将 y 坐标增加 <span class="param-pill" data-key="dy">10</span>', cls:'cat-motion', params:{ dy: 10 } },
+    { opcode:'motion_ifonedgebounce', label:'碰到边缘就反弹 💥', cls:'cat-motion', params:{} },
+    { opcode:'motion_pointindirection', label:'面向 <span class="param-pill" data-key="dir">90</span> 方向', cls:'cat-motion', params:{ dir: 90 } }
   ],
   looks: [
-    { opcode:'looks_sayforsecs', label:'说 <span class="param-pill">Hello!</span> <span class="param-pill">2</span> 秒', cls:'cat-looks' },
-    { opcode:'looks_say', label:'说 <span class="param-pill">Hello!</span>', cls:'cat-looks' },
-    { opcode:'looks_thinkforsecs', label:'思考 <span class="param-pill">Hmm...</span> <span class="param-pill">2</span> 秒', cls:'cat-looks' },
-    { opcode:'looks_nextcostume', label:'下一个造型 ✨', cls:'cat-looks' },
-    { opcode:'looks_show', label:'显示 👁️', cls:'cat-looks' },
-    { opcode:'looks_hide', label:'隐藏 🙈', cls:'cat-looks' },
-    { opcode:'looks_changesizeby', label:'将大小增加 <span class="param-pill">10</span>', cls:'cat-looks' }
+    { opcode:'looks_sayforsecs', label:'说 <span class="param-pill" data-key="message">Hello!</span> <span class="param-pill" data-key="secs">2</span> 秒', cls:'cat-looks', params:{ message: 'Hello!', secs: 2 } },
+    { opcode:'looks_say', label:'说 <span class="param-pill" data-key="message">Hello!</span>', cls:'cat-looks', params:{ message: 'Hello!' } },
+    { opcode:'looks_thinkforsecs', label:'思考 <span class="param-pill" data-key="message">Hmm...</span> <span class="param-pill" data-key="secs">2</span> 秒', cls:'cat-looks', params:{ message: 'Hmm...', secs: 2 } },
+    { opcode:'looks_nextcostume', label:'下一个造型 ✨', cls:'cat-looks', params:{} },
+    { opcode:'looks_show', label:'显示 👁️', cls:'cat-looks', params:{} },
+    { opcode:'looks_hide', label:'隐藏 🙈', cls:'cat-looks', params:{} },
+    { opcode:'looks_changesizeby', label:'将大小增加 <span class="param-pill" data-key="dsize">10</span>', cls:'cat-looks', params:{ dsize: 10 } }
   ],
   sound: [
-    { opcode:'sound_play', label:'播放声音 <span class="param-pill">喵 🐱</span>', cls:'cat-sound' },
-    { opcode:'sound_playuntildone', label:'播放声音 <span class="param-pill">喵 🐱</span> 直到播完', cls:'cat-sound' },
-    { opcode:'sound_stopallsounds', label:'停止所有声音 🔇', cls:'cat-sound' }
+    { opcode:'sound_play', label:'播放声音 <span class="param-pill" data-key="sound">喵 🐱</span>', cls:'cat-sound', params:{ sound: '喵 🐱' } },
+    { opcode:'sound_playuntildone', label:'播放声音 <span class="param-pill" data-key="sound">喵 🐱</span> 直到播完', cls:'cat-sound', params:{ sound: '喵 🐱' } },
+    { opcode:'sound_stopallsounds', label:'停止所有声音 🔇', cls:'cat-sound', params:{} }
   ],
   events: [
-    { opcode:'event_whenflagclicked', label:'当 🟢 被点击', cls:'cat-events' },
-    { opcode:'event_whenkeypressed', label:'当按下 <span class="param-pill">空格</span> 键', cls:'cat-events' },
-    { opcode:'event_whenthisspriteclicked', label:'当角色被点击 👆', cls:'cat-events' }
+    { opcode:'event_whenflagclicked', label:'当 🟢 被点击', cls:'cat-events', params:{} },
+    { opcode:'event_whenkeypressed', label:'当按下 <span class="param-pill" data-key="key">空格</span> 键', cls:'cat-events', params:{ key: '空格' } },
+    { opcode:'event_whenthisspriteclicked', label:'当角色被点击 👆', cls:'cat-events', params:{} }
   ],
   control: [
-    { opcode:'control_wait', label:'等待 <span class="param-pill">1</span> 秒 ⏳', cls:'cat-control' },
-    { opcode:'control_repeat', label:'重复执行 <span class="param-pill">10</span> 次 🔄', cls:'cat-control' },
-    { opcode:'control_forever', label:'重复执行 [无限循环] ♾️', cls:'cat-control' },
-    { opcode:'control_if', label:'如果 <span class="param-pill">条件</span> 那么 ⚡', cls:'cat-control' }
+    { opcode:'control_wait', label:'等待 <span class="param-pill" data-key="duration">1</span> 秒 ⏳', cls:'cat-control', params:{ duration: 1 } },
+    { opcode:'control_repeat', label:'重复执行 <span class="param-pill" data-key="times">10</span> 次 🔄', cls:'cat-control', isContainer: true, params:{ times: 10 }, children: [] },
+    { opcode:'control_forever', label:'重复执行 [无限循环] ♾️', cls:'cat-control', isContainer: true, params:{}, children: [] },
+    { opcode:'control_if', label:'如果 <span class="param-pill" data-key="condition">碰到舞台边缘</span> 那么 ⚡', cls:'cat-control', isContainer: true, params:{ condition: '碰到舞台边缘' }, children: [] }
   ],
   sensing: [
-    { opcode:'sensing_touchingobject', label:'碰到 <span class="param-pill">舞台边缘</span> ? 🎯', cls:'cat-sensing' },
-    { opcode:'sensing_askandwait', label:'询问 <span class="param-pill">你叫什么名字?</span> 💬', cls:'cat-sensing' }
+    { opcode:'sensing_touchingobject', label:'碰到 <span class="param-pill" data-key="target">舞台边缘</span> ? 🎯', cls:'cat-sensing', params:{ target: '舞台边缘' } },
+    { opcode:'sensing_keypressed', label:'按下 <span class="param-pill" data-key="key">空格</span> 键 ? ⌨️', cls:'cat-sensing', params:{ key: '空格' } },
+    { opcode:'sensing_askandwait', label:'询问 <span class="param-pill" data-key="question">你叫什么名字?</span> 💬', cls:'cat-sensing', params:{ question: '你叫什么名字?' } }
   ],
   operators: [
-    { opcode:'operator_add', label:'<span class="param-pill">a</span> + <span class="param-pill">b</span> ➕', cls:'cat-operators' },
-    { opcode:'operator_random', label:'在 <span class="param-pill">1</span> 到 <span class="param-pill">10</span> 随机数 🎲', cls:'cat-operators' }
+    { opcode:'operator_add', label:'<span class="param-pill" data-key="a">5</span> + <span class="param-pill" data-key="b">10</span> ➕', cls:'cat-operators', params:{ a: 5, b: 10 } },
+    { opcode:'operator_random', label:'在 <span class="param-pill" data-key="from">1</span> 到 <span class="param-pill" data-key="to">10</span> 随机数 🎲', cls:'cat-operators', params:{ from: 1, to: 10 } },
+    { opcode:'operator_gt', label:'<span class="param-pill" data-key="varName">得分</span> > <span class="param-pill" data-key="val">5</span> 📈', cls:'cat-operators', params:{ varName: '得分', val: 5 } }
   ],
-  data: [
-    { opcode:'data_setvariableto', label:'将 <span class="param-pill">得分</span> 设为 <span class="param-pill">0</span> 📦', cls:'cat-data' },
-    { opcode:'data_changevariableby', label:'将 <span class="param-pill">得分</span> 增加 <span class="param-pill">1</span> 🏆', cls:'cat-data' }
-  ]
+  data: [] // 动态生成变量积木
 };
 
 const OP_TRANSLATE_MAP = {
   'motion_movesteps': '移动 10 步',
   'motion_turnright': '右转 15 度 ↷',
   'motion_turnleft': '左转 15 度 ↶',
-  'motion_goto': '移到 随机位置',
   'motion_gotoxy': '移到 x:0 y:0',
-  'motion_glideto': '在 1 秒内滑行到 随机位置',
-  'motion_glidesecstoxy': '在 1 秒内滑行到 x:0 y:0',
-  'motion_pointindirection': '面向 90 方向',
-  'motion_pointtowards': '面向 鼠标指针',
   'motion_changexby': '将 x 坐标增加 10',
-  'motion_setx': '将 x 坐标设为 0',
   'motion_changeyby': '将 y 坐标增加 10',
-  'motion_sety': '将 y 坐标设为 0',
   'motion_ifonedgebounce': '碰到边缘就反弹 💥',
-  'motion_setrotationstyle': '将旋转方式设为 [左右翻转]',
+  'motion_pointindirection': '面向 90 方向',
   'looks_sayforsecs': '说 Hello! 2 秒',
   'looks_say': '说 Hello!',
   'looks_thinkforsecs': '思考 Hmm... 2 秒',
-  'looks_think': '思考 Hmm...',
-  'looks_switchcostumeto': '换成 造型1 造型',
   'looks_nextcostume': '下一个造型 ✨',
   'looks_changesizeby': '将大小增加 10',
-  'looks_setsizeto': '将大小设为 100 %',
   'looks_show': '显示 👁️',
   'looks_hide': '隐藏 🙈',
-  'sound_playuntildone': '播放声音 喵 🐱 直到播完',
   'sound_play': '播放声音 喵 🐱',
+  'sound_playuntildone': '播放声音 喵 🐱 直到播完',
   'sound_stopallsounds': '停止所有声音 🔇',
   'event_whenflagclicked': '当 🟢 被点击',
   'event_whenkeypressed': '当按下 空格 键',
@@ -512,28 +674,24 @@ const OP_TRANSLATE_MAP = {
   'control_forever': '重复执行 [无限循环] ♾️',
   'control_if': '如果 <条件> 那么 ⚡',
   'sensing_touchingobject': '碰到 舞台边缘 ? 🎯',
-  'sensing_askandwait': '询问 你叫什么名字? 并等待 💬',
+  'sensing_askandwait': '询问 并等待 💬',
   'operator_add': 'a + b ➕',
   'operator_random': '在 1 到 10 间随机选数 🎲',
-  'data_setvariableto': '将 得分 设为 0 📦',
-  'data_changevariableby': '将 得分 增加 1 🏆'
+  'data_setvariableto': '将 变量 设为 0 📦',
+  'data_changevariableby': '将 变量 增加 1 🏆'
 };
 
 let activeBlocks = [];
 let catX = 70, catY = 45, catRotation = 0, catScale = 1.0, isVisible = true;
-let myVariableValue = 0;
 let isScriptRunning = false;
-let executionTimers = [];
+let currentRunnerTimer = null;
 let audioCtx = null;
+let currentCatCategory = 'motion';
 
 function playMeowSound() {
   try {
-    if (!audioCtx) {
-      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    }
-    if (audioCtx.state === 'suspended') {
-      audioCtx.resume();
-    }
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
     osc.type = 'sine';
@@ -548,7 +706,7 @@ function playMeowSound() {
     osc.start(now);
     osc.stop(now + 0.36);
   } catch (e) {
-    console.log("Audio not supported", e);
+    console.log("Audio", e);
   }
 }
 
@@ -561,6 +719,7 @@ function logMessage(msg) {
 }
 
 function switchCategory(catKey, elem) {
+  currentCatCategory = catKey;
   document.querySelectorAll('.cat-btn').forEach(e => e.classList.remove('active'));
   if (elem) elem.classList.add('active');
   renderPalette(catKey);
@@ -569,12 +728,108 @@ function switchCategory(catKey, elem) {
 function renderPalette(catKey) {
   const panel = document.getElementById('palettePanel');
   if (!panel) return;
-  const list = PALETTE[catKey] || [];
-  let html = `<div class="palette-header">选择积木</div>`;
-  list.forEach(b => {
-    html += `<div class="scratch-block ${b.cls}" onclick="addBlock('${b.opcode}', '${encodeURIComponent(b.label)}')">${b.label}</div>`;
+
+  if (catKey === 'data') {
+    // 变量管理面板
+    let html = `<div class="palette-header"><span>变量管理</span></div>`;
+    html += `<button class="new-var-btn" onclick="openNewVariableDialog()">➕ 建立一个变量</button>`;
+    
+    // 变量列表
+    const varNames = Object.keys(projectVariables);
+    if (varNames.length > 0) {
+      html += `<div style="font-size:10px;font-weight:700;color:#64748b;margin:4px 0;">已建变量 (勾选在舞台显示):</div>`;
+      varNames.forEach(vName => {
+        const isChecked = visibleVariables[vName] ? 'checked' : '';
+        html += `<div style="display:flex;align-items:center;gap:4px;font-size:11px;background:#fff7ed;padding:3px 6px;border-radius:4px;border:1px solid #fed7aa;margin-bottom:3px;">
+          <input type="checkbox" ${isChecked} onchange="toggleVariableVisibility('${vName}', this.checked)">
+          <span style="font-weight:700;color:#ea580c;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">📦 ${vName}</span>
+        </div>`;
+      });
+
+      // 变量积木
+      const primaryVar = varNames[0];
+      const dataBlocks = [
+        { opcode:'data_setvariableto', label:`将 <span class="param-pill" data-key="varName">${primaryVar}</span> 设为 <span class="param-pill" data-key="value">0</span> 📦`, cls:'cat-data', params:{ varName: primaryVar, value: 0 } },
+        { opcode:'data_changevariableby', label:`将 <span class="param-pill" data-key="varName">${primaryVar}</span> 增加 <span class="param-pill" data-key="value">1</span> 🏆`, cls:'cat-data', params:{ varName: primaryVar, value: 1 } },
+        { opcode:'data_showvariable', label:`显示变量 <span class="param-pill" data-key="varName">${primaryVar}</span> 👁️`, cls:'cat-data', params:{ varName: primaryVar } },
+        { opcode:'data_hidevariable', label:`隐藏变量 <span class="param-pill" data-key="varName">${primaryVar}</span> 🙈`, cls:'cat-data', params:{ varName: primaryVar } }
+      ];
+      dataBlocks.forEach((b, idx) => {
+        html += `<div class="scratch-block ${b.cls}" onclick="addBlockFromPalette('data', ${idx})">${b.label}</div>`;
+      });
+    } else {
+      html += `<div style="font-size:11px;color:#94a3b8;padding:8px 0;text-align:center;">暂无变量<br>点击上方按钮新建</div>`;
+    }
+    panel.innerHTML = html;
+    return;
+  }
+
+  const list = PALETTE_DEFINITIONS[catKey] || [];
+  let html = `<div class="palette-header"><span>选择积木</span></div>`;
+  list.forEach((b, idx) => {
+    html += `<div class="scratch-block ${b.cls}" onclick="addBlockFromPalette('${catKey}', ${idx})">${b.label}</div>`;
   });
   panel.innerHTML = html;
+}
+
+function openNewVariableDialog() {
+  const container = document.getElementById('modalContainer');
+  container.style.display = 'block';
+  container.innerHTML = `
+    <div class="modal-mask" onclick="closeModal()">
+      <div class="modal-dialog" onclick="event.stopPropagation()">
+        <div class="modal-title">📦 新建一个变量</div>
+        <input type="text" id="newVarInput" class="modal-input" placeholder="输入变量名称，如: 金币 / 计时器 / 生命值" autofocus>
+        <div class="modal-actions">
+          <button class="modal-btn modal-btn-cancel" onclick="closeModal()">取消</button>
+          <button class="modal-btn modal-btn-confirm" onclick="confirmNewVariable()">确定创建</button>
+        </div>
+      </div>
+    </div>
+  `;
+  setTimeout(() => {
+    const input = document.getElementById('newVarInput');
+    if (input) input.focus();
+  }, 100);
+}
+
+function closeModal() {
+  const container = document.getElementById('modalContainer');
+  container.style.display = 'none';
+  container.innerHTML = '';
+}
+
+function confirmNewVariable() {
+  const input = document.getElementById('newVarInput');
+  const name = input ? input.value.trim() : '';
+  if (!name) {
+    alert('请输入变量名称哦！');
+    return;
+  }
+  projectVariables[name] = 0;
+  visibleVariables[name] = true;
+  closeModal();
+  updateStageVarHUD();
+  renderPalette('data');
+  logMessage(`📦 成功创建新变量: 【${name}】`);
+  notifyAndroidCodeChange();
+}
+
+function toggleVariableVisibility(varName, isVisible) {
+  visibleVariables[varName] = isVisible;
+  updateStageVarHUD();
+}
+
+function updateStageVarHUD() {
+  const hud = document.getElementById('stageVarContainer');
+  if (!hud) return;
+  let html = '';
+  for (let vName in projectVariables) {
+    if (visibleVariables[vName]) {
+      html += `<div class="stage-var-badge">📦 ${vName} = ${projectVariables[vName]}</div>`;
+    }
+  }
+  hud.innerHTML = html;
 }
 
 function getCategoryClassByOpcode(op) {
@@ -589,22 +844,118 @@ function getCategoryClassByOpcode(op) {
   return 'cat-data';
 }
 
-function addBlock(opcode, encodedLabel) {
-  const label = decodeURIComponent(encodedLabel);
-  activeBlocks.push({ id: 'block_' + Date.now() + '_' + Math.floor(Math.random()*100), opcode: opcode, label: label });
+function addBlockFromPalette(catKey, idx) {
+  let template;
+  if (catKey === 'data') {
+    const varNames = Object.keys(projectVariables);
+    const primaryVar = varNames[0] || '得分';
+    const dataBlocks = [
+      { opcode:'data_setvariableto', label:`将 <span class="param-pill" data-key="varName">${primaryVar}</span> 设为 <span class="param-pill" data-key="value">0</span> 📦`, cls:'cat-data', params:{ varName: primaryVar, value: 0 } },
+      { opcode:'data_changevariableby', label:`将 <span class="param-pill" data-key="varName">${primaryVar}</span> 增加 <span class="param-pill" data-key="value">1</span> 🏆`, cls:'cat-data', params:{ varName: primaryVar, value: 1 } },
+      { opcode:'data_showvariable', label:`显示变量 <span class="param-pill" data-key="varName">${primaryVar}</span> 👁️`, cls:'cat-data', params:{ varName: primaryVar } },
+      { opcode:'data_hidevariable', label:`隐藏变量 <span class="param-pill" data-key="varName">${primaryVar}</span> 🙈`, cls:'cat-data', params:{ varName: primaryVar } }
+    ];
+    template = dataBlocks[idx];
+  } else {
+    template = PALETTE_DEFINITIONS[catKey][idx];
+  }
+  if (!template) return;
+
+  const newBlock = {
+    id: 'block_' + Date.now() + '_' + Math.floor(Math.random()*100),
+    opcode: template.opcode,
+    label: template.label,
+    params: JSON.parse(JSON.stringify(template.params || {})),
+    isContainer: !!template.isContainer,
+    children: template.children ? JSON.parse(JSON.stringify(template.children)) : []
+  };
+
+  activeBlocks.push(newBlock);
   updateWorkspaceUI();
-  logMessage('➕ 添加积木: ' + opcode);
+  logMessage('➕ 添加积木: ' + (OP_TRANSLATE_MAP[newBlock.opcode] || newBlock.opcode));
   notifyAndroidCodeChange();
 }
 
-window.addBlockFromAndroid = function(opcode, label) {
-  const displayLabel = label || OP_TRANSLATE_MAP[opcode] || opcode;
-  activeBlocks.push({ id: 'block_' + Date.now(), opcode: opcode, label: displayLabel });
-  updateWorkspaceUI();
-  logMessage('🪄 AI魔法插入积木: ' + opcode);
-  notifyAndroidCodeChange();
-  return "success";
-};
+function addChildBlockToContainer(parentIndex) {
+  const parent = activeBlocks[parentIndex];
+  if (!parent || !parent.isContainer) return;
+
+  // 弹出选择添加到循环体内部的积木
+  const container = document.getElementById('modalContainer');
+  container.style.display = 'block';
+
+  let listHtml = '';
+  const quickChildCandidates = [
+    { opcode:'motion_movesteps', label:'移动 10 步', params:{ steps: 10 }, cls:'cat-motion' },
+    { opcode:'motion_turnright', label:'右转 15 度 ↷', params:{ degrees: 15 }, cls:'cat-motion' },
+    { opcode:'motion_turnleft', label:'左转 15 度 ↶', params:{ degrees: 15 }, cls:'cat-motion' },
+    { opcode:'motion_ifonedgebounce', label:'碰到边缘就反弹 💥', params:{}, cls:'cat-motion' },
+    { opcode:'looks_nextcostume', label:'下一个造型 ✨', params:{}, cls:'cat-looks' },
+    { opcode:'looks_changesizeby', label:'将大小增加 10', params:{ dsize: 10 }, cls:'cat-looks' },
+    { opcode:'sound_play', label:'播放声音 喵 🐱', params:{ sound: '喵 🐱' }, cls:'cat-sound' },
+    { opcode:'control_wait', label:'等待 0.2 秒 ⏳', params:{ duration: 0.2 }, cls:'cat-control' },
+    { opcode:'data_changevariableby', label:'将得分增加 1 🏆', params:{ varName:'得分', value:1 }, cls:'cat-data' }
+  ];
+
+  quickChildCandidates.forEach((c, cIdx) => {
+    listHtml += `<div class="scratch-block ${c.cls}" style="margin-bottom:6px;width:100%;justify-content:center;" onclick="confirmAddChild(${parentIndex}, ${cIdx})">${c.label}</div>`;
+  });
+
+  container.innerHTML = `
+    <div class="modal-mask" onclick="closeModal()">
+      <div class="modal-dialog" style="max-height:80vh;overflow-y:auto;" onclick="event.stopPropagation()">
+        <div class="modal-title">🔄 添加积木到循环体 / 分支内部</div>
+        <div style="font-size:11px;color:#64748b;">点击选择要放入内部重复执行的代码块：</div>
+        <div style="display:flex;flex-direction:column;gap:4px;margin-top:6px;">
+          ${listHtml}
+        </div>
+        <div class="modal-actions" style="margin-top:8px;">
+          <button class="modal-btn modal-btn-cancel" onclick="closeModal()">关闭</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function confirmAddChild(parentIndex, candidateIdx) {
+  const quickChildCandidates = [
+    { opcode:'motion_movesteps', label:'移动 <span class="param-pill" data-key="steps">10</span> 步', params:{ steps: 10 } },
+    { opcode:'motion_turnright', label:'右转 <span class="param-pill" data-key="degrees">15</span> 度 ↷', params:{ degrees: 15 } },
+    { opcode:'motion_turnleft', label:'左转 <span class="param-pill" data-key="degrees">15</span> 度 ↶', params:{ degrees: 15 } },
+    { opcode:'motion_ifonedgebounce', label:'碰到边缘就反弹 💥', params:{} },
+    { opcode:'looks_nextcostume', label:'下一个造型 ✨', params:{} },
+    { opcode:'looks_changesizeby', label:'将大小增加 <span class="param-pill" data-key="dsize">10</span>', params:{ dsize: 10 } },
+    { opcode:'sound_play', label:'播放声音 <span class="param-pill" data-key="sound">喵 🐱</span>', params:{ sound: '喵 🐱' } },
+    { opcode:'control_wait', label:'等待 <span class="param-pill" data-key="duration">0.2</span> 秒 ⏳', params:{ duration: 0.2 } },
+    { opcode:'data_changevariableby', label:'将 <span class="param-pill" data-key="varName">得分</span> 增加 <span class="param-pill" data-key="value">1</span> 🏆', params:{ varName:'得分', value:1 } }
+  ];
+
+  const cand = quickChildCandidates[candidateIdx];
+  const parent = activeBlocks[parentIndex];
+  if (parent && cand) {
+    if (!parent.children) parent.children = [];
+    parent.children.push({
+      id: 'child_' + Date.now() + '_' + Math.floor(Math.random()*100),
+      opcode: cand.opcode,
+      label: cand.label,
+      params: JSON.parse(JSON.stringify(cand.params || {}))
+    });
+    updateWorkspaceUI();
+    logMessage('📥 放入循环体: ' + cand.opcode);
+    notifyAndroidCodeChange();
+  }
+  closeModal();
+}
+
+function removeChildBlock(parentIndex, childIndex) {
+  const parent = activeBlocks[parentIndex];
+  if (parent && parent.children) {
+    parent.children.splice(childIndex, 1);
+    updateWorkspaceUI();
+    logMessage('🗑️ 从循环体内移除积木');
+    notifyAndroidCodeChange();
+  }
+}
 
 function removeBlock(index) {
   activeBlocks.splice(index, 1);
@@ -621,27 +972,193 @@ function clearWorkspace() {
   notifyAndroidCodeChange();
 }
 
+// 修改积木参数弹窗
+function editBlockParam(blockId, paramKey, currentValue, optionsJson) {
+  const options = optionsJson ? JSON.parse(decodeURIComponent(optionsJson)) : null;
+  const container = document.getElementById('modalContainer');
+  container.style.display = 'block';
+
+  let inputHtml = '';
+  if (options && Array.isArray(options)) {
+    inputHtml = `<select id="paramEditInput" class="modal-input">`;
+    options.forEach(opt => {
+      const isSel = (opt == currentValue) ? 'selected' : '';
+      inputHtml += `<option value="${opt}" ${isSel}>${opt}</option>`;
+    });
+    inputHtml += `</select>`;
+  } else {
+    inputHtml = `<input type="text" id="paramEditInput" class="modal-input" value="${currentValue}" autofocus>`;
+  }
+
+  container.innerHTML = `
+    <div class="modal-mask" onclick="closeModal()">
+      <div class="modal-dialog" onclick="event.stopPropagation()">
+        <div class="modal-title">✏️ 修改积木参数 (${paramKey})</div>
+        <div style="font-size:11px;color:#64748b;">请输入或选择新的数值/内容：</div>
+        ${inputHtml}
+        <div class="modal-actions">
+          <button class="modal-btn modal-btn-cancel" onclick="closeModal()">取消</button>
+          <button class="modal-btn modal-btn-confirm" onclick="confirmEditParam('${blockId}', '${paramKey}')">保存修改</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function confirmEditParam(blockId, paramKey) {
+  const input = document.getElementById('paramEditInput');
+  const newVal = input ? input.value : '';
+
+  // 在 activeBlocks 或 children 中查找对应积木并更新参数
+  function updateParamInList(list) {
+    for (let b of list) {
+      if (b.id === blockId) {
+        if (!b.params) b.params = {};
+        // 数值类型自动转换
+        if (!isNaN(newVal) && newVal.trim() !== '') {
+          b.params[paramKey] = Number(newVal);
+        } else {
+          b.params[paramKey] = newVal;
+        }
+        return true;
+      }
+      if (b.children && updateParamInList(b.children)) return true;
+    }
+    return false;
+  }
+
+  updateParamInList(activeBlocks);
+  closeModal();
+  updateWorkspaceUI();
+  logMessage(`✏️ 参数 [${paramKey}] 已更新为: ${newVal}`);
+  notifyAndroidCodeChange();
+}
+
+function renderBlockHtml(b, parentIndex = null, childIndex = null) {
+  const cls = getCategoryClassByOpcode(b.opcode);
+  const blockId = b.id;
+  const p = b.params || {};
+
+  // 格式化参数可点击药丸
+  let formattedLabel = b.label || OP_TRANSLATE_MAP[b.opcode] || b.opcode;
+
+  // 动态替换参数
+  if (b.opcode === 'motion_movesteps') {
+    formattedLabel = `移动 <span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'steps', '${p.steps ?? 10}')">${p.steps ?? 10}</span> 步`;
+  } else if (b.opcode === 'motion_turnright') {
+    formattedLabel = `右转 <span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'degrees', '${p.degrees ?? 15}')">${p.degrees ?? 15}</span> 度 ↷`;
+  } else if (b.opcode === 'motion_turnleft') {
+    formattedLabel = `左转 <span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'degrees', '${p.degrees ?? 15}')">${p.degrees ?? 15}</span> 度 ↶`;
+  } else if (b.opcode === 'motion_gotoxy') {
+    formattedLabel = `移到 x:<span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'x', '${p.x ?? 0}')">${p.x ?? 0}</span> y:<span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'y', '${p.y ?? 0}')">${p.y ?? 0}</span>`;
+  } else if (b.opcode === 'looks_sayforsecs') {
+    formattedLabel = `说 <span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'message', '${p.message || 'Hello!'}')">${p.message || 'Hello!'}</span> <span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'secs', '${p.secs ?? 2}')">${p.secs ?? 2}</span> 秒`;
+  } else if (b.opcode === 'looks_say') {
+    formattedLabel = `说 <span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'message', '${p.message || 'Hello!'}')">${p.message || 'Hello!'}</span>`;
+  } else if (b.opcode === 'control_wait') {
+    formattedLabel = `等待 <span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'duration', '${p.duration ?? 1}')">${p.duration ?? 1}</span> 秒 ⏳`;
+  } else if (b.opcode === 'control_repeat') {
+    formattedLabel = `重复执行 <span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'times', '${p.times ?? 10}')">${p.times ?? 10}</span> 次 🔄`;
+  } else if (b.opcode === 'control_if') {
+    const condOptions = encodeURIComponent(JSON.stringify(['碰到舞台边缘', '碰到鼠标指针', '得分 > 0', '得分 > 5', '按下空格键', '角色被点击']));
+    formattedLabel = `如果 <span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'condition', '${p.condition || '碰到舞台边缘'}', '${condOptions}')">${p.condition || '碰到舞台边缘'}</span> 那么 ⚡`;
+  } else if (b.opcode.startsWith('data_')) {
+    const varNames = Object.keys(projectVariables);
+    const varOptions = encodeURIComponent(JSON.stringify(varNames.length > 0 ? varNames : ['得分']));
+    if (b.opcode === 'data_setvariableto') {
+      formattedLabel = `将 <span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'varName', '${p.varName || '得分'}', '${varOptions}')">${p.varName || '得分'}</span> 设为 <span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'value', '${p.value ?? 0}')">${p.value ?? 0}</span> 📦`;
+    } else if (b.opcode === 'data_changevariableby') {
+      formattedLabel = `将 <span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'varName', '${p.varName || '得分'}', '${varOptions}')">${p.varName || '得分'}</span> 增加 <span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'value', '${p.value ?? 1}')">${p.value ?? 1}</span> 🏆`;
+    }
+  }
+
+  // 1. 如果是 C-Block (循环体或条件判断容器)
+  if (b.isContainer) {
+    let childrenHtml = '';
+    if (b.children && b.children.length > 0) {
+      b.children.forEach((cBlock, cIdx) => {
+        childrenHtml += `<div class="scratch-block ${getCategoryClassByOpcode(cBlock.opcode)} block-row" id="block_ui_${cBlock.id}">
+          <span>${renderBlockInnerHtml(cBlock)}</span>
+          <span class="del-btn" onclick="event.stopPropagation();removeChildBlock(${parentIndex}, ${cIdx})">✕</span>
+        </div>`;
+      });
+    } else {
+      childrenHtml = `<div class="c-block-body-empty"><span>👉 点击下方按钮向循环体添加内部积木</span></div>`;
+    }
+
+    return `
+      <div class="c-block-container" id="block_ui_${b.id}">
+        <div class="c-block-header ${cls}">
+          <span>${formattedLabel}</span>
+          <span class="del-btn" onclick="event.stopPropagation();removeBlock(${parentIndex})">✕</span>
+        </div>
+        <div class="c-block-body">
+          ${childrenHtml}
+          <button class="c-body-add-btn" onclick="event.stopPropagation();addChildBlockToContainer(${parentIndex})">➕ 放入循环体内部</button>
+        </div>
+        <div class="c-block-footer">↺ 循环体闭合</div>
+      </div>
+    `;
+  }
+
+  // 2. 普通单行积木
+  return `
+    <div class="scratch-block ${cls} block-row" id="block_ui_${b.id}">
+      <span>${formattedLabel}</span>
+      <span class="del-btn" onclick="event.stopPropagation();removeBlock(${parentIndex})">✕</span>
+    </div>
+  `;
+}
+
+function renderBlockInnerHtml(b) {
+  const p = b.params || {};
+  const blockId = b.id;
+  if (b.opcode === 'motion_movesteps') {
+    return `移动 <span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'steps', '${p.steps ?? 10}')">${p.steps ?? 10}</span> 步`;
+  }
+  if (b.opcode === 'motion_turnright') {
+    return `右转 <span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'degrees', '${p.degrees ?? 15}')">${p.degrees ?? 15}</span> 度 ↷`;
+  }
+  if (b.opcode === 'motion_turnleft') {
+    return `左转 <span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'degrees', '${p.degrees ?? 15}')">${p.degrees ?? 15}</span> 度 ↶`;
+  }
+  if (b.opcode === 'looks_changesizeby') {
+    return `将大小增加 <span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'dsize', '${p.dsize ?? 10}')">${p.dsize ?? 10}</span>`;
+  }
+  if (b.opcode === 'control_wait') {
+    return `等待 <span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'duration', '${p.duration ?? 0.2}')">${p.duration ?? 0.2}</span> 秒 ⏳`;
+  }
+  if (b.opcode === 'data_changevariableby') {
+    return `将 <span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'varName', '${p.varName || '得分'}')">${p.varName || '得分'}</span> 增加 <span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'value', '${p.value ?? 1}')">${p.value ?? 1}</span> 🏆`;
+  }
+  return b.label || OP_TRANSLATE_MAP[b.opcode] || b.opcode;
+}
+
 function updateWorkspaceUI() {
   const stackEl = document.getElementById('canvasStack');
   const countEl = document.getElementById('blockCountText');
-  if (countEl) countEl.innerText = activeBlocks.length + ' 个积木';
+  
+  // 计算总积木数（包括容器内子积木）
+  let totalCount = 0;
+  activeBlocks.forEach(b => {
+    totalCount++;
+    if (b.children) totalCount += b.children.length;
+  });
+
+  if (countEl) countEl.innerText = totalCount + ' 个积木';
 
   if (!stackEl) return;
   if (activeBlocks.length === 0) {
-    stackEl.innerHTML = `<div class="empty-canvas" id="emptyTip"><span style="font-size:20px;">👈</span><span>点击左侧分类库添加积木<br>点击顶栏“🟢 运行”在舞台看实时动画效果</span></div>`;
+    stackEl.innerHTML = `<div class="empty-canvas" id="emptyTip"><span style="font-size:20px;">👈</span><span>点击左侧分类库添加积木<br>支持循环体嵌套与条件判断，点击“🟢 运行”看实时舞台动画</span></div>`;
     return;
   }
 
   let html = '';
   activeBlocks.forEach((b, idx) => {
-    const cls = getCategoryClassByOpcode(b.opcode);
-    const displayHtml = b.label || OP_TRANSLATE_MAP[b.opcode] || b.opcode;
-    html += `<div class="scratch-block ${cls} block-row" id="block_ui_${idx}">
-      <span>${displayHtml}</span>
-      <span class="del-btn" onclick="event.stopPropagation();removeBlock(${idx})">✕</span>
-    </div>`;
+    html += renderBlockHtml(b, idx);
   });
   stackEl.innerHTML = html;
+  updateStageVarHUD();
 }
 
 function applyCatTransform() {
@@ -653,235 +1170,285 @@ function applyCatTransform() {
   catSvg.style.opacity = isVisible ? '1' : '0';
 }
 
-function runScratchBlocks() {
+// 执行单个积木动作逻辑
+function executeSingleBlock(b) {
+  const op = b.opcode;
+  const p = b.params || {};
+
+  // 1. 运动积木 (Motion)
+  if (op === 'motion_movesteps') {
+    const steps = Number(p.steps) || 10;
+    const rad = (catRotation * Math.PI) / 180;
+    catX += Math.cos(rad) * steps;
+    catY += Math.sin(rad) * steps;
+    // 边界环回限制
+    if (catX > 150) catX = 15;
+    if (catX < 10) catX = 145;
+    if (catY > 95) catY = 15;
+    if (catY < 10) catY = 90;
+    applyCatTransform();
+    logMessage(`▶ [运动] 移动 ${steps} 步 -> 坐标(${Math.round(catX)}, ${Math.round(catY)})`);
+  } else if (op === 'motion_turnright') {
+    const deg = Number(p.degrees) || 15;
+    catRotation += deg;
+    applyCatTransform();
+    logMessage(`▶ [运动] 右转 ${deg}° -> 当前朝向 ${catRotation}° ↷`);
+  } else if (op === 'motion_turnleft') {
+    const deg = Number(p.degrees) || 15;
+    catRotation -= deg;
+    applyCatTransform();
+    logMessage(`▶ [运动] 左转 ${deg}° -> 当前朝向 ${catRotation}° ↶`);
+  } else if (op === 'motion_gotoxy') {
+    catX = 70 + (Number(p.x) || 0);
+    catY = 45 - (Number(p.y) || 0);
+    applyCatTransform();
+    logMessage(`▶ [运动] 移到坐标 (x:${p.x||0}, y:${p.y||0})`);
+  } else if (op === 'motion_changexby') {
+    catX += Number(p.dx) || 10;
+    applyCatTransform();
+    logMessage(`▶ [运动] 将 x 坐标增加 ${p.dx || 10}`);
+  } else if (op === 'motion_changeyby') {
+    catY += Number(p.dy) || 10;
+    applyCatTransform();
+    logMessage(`▶ [运动] 将 y 坐标增加 ${p.dy || 10}`);
+  } else if (op === 'motion_ifonedgebounce') {
+    if (catX >= 125 || catX <= 20 || catY >= 85 || catY <= 15) {
+      catRotation += 180;
+      applyCatTransform();
+      logMessage('💥 [运动] 碰到舞台边缘！成功反弹旋转 180°！');
+    } else {
+      logMessage('▶ [运动] 检查边缘：未发生碰撞');
+    }
+  } else if (op === 'motion_pointindirection') {
+    catRotation = Number(p.dir) || 90;
+    applyCatTransform();
+    logMessage(`▶ [运动] 面向 ${catRotation}° 方向`);
+  }
+
+  // 2. 外观积木 (Looks)
+  else if (op.startsWith('looks_say')) {
+    const bubble = document.getElementById('sayBubble');
+    const msg = p.message || 'Hello!';
+    if (bubble) {
+      bubble.innerText = msg;
+      bubble.style.display = 'block';
+      setTimeout(() => { if (bubble) bubble.style.display = 'none'; }, (Number(p.secs) || 1.5) * 1000);
+    }
+    logMessage(`💬 [外观] 说: ${msg}`);
+  } else if (op.startsWith('looks_think')) {
+    const bubble = document.getElementById('sayBubble');
+    const msg = p.message || 'Hmm...';
+    if (bubble) {
+      bubble.innerText = '💭 ' + msg;
+      bubble.style.display = 'block';
+      setTimeout(() => { if (bubble) bubble.style.display = 'none'; }, (Number(p.secs) || 1.5) * 1000);
+    }
+    logMessage(`💭 [外观] 思考: ${msg}`);
+  } else if (op === 'looks_changesizeby') {
+    const d = (Number(p.dsize) || 10) / 100;
+    catScale = Math.max(0.4, Math.min(2.5, catScale + d));
+    applyCatTransform();
+    logMessage(`✨ [外观] 调整角色大小 -> ${Math.round(catScale * 100)}%`);
+  } else if (op === 'looks_nextcostume') {
+    const catBody = document.getElementById('catBody');
+    if (catBody) {
+      const colors = ['#FFAB19', '#9966FF', '#4C97FF', '#22C55E', '#EC4899', '#38BDF8'];
+      const randColor = colors[Math.floor(Math.random() * colors.length)];
+      catBody.setAttribute('fill', randColor);
+    }
+    logMessage('✨ [外观] 切换造型 (换装变色)');
+  } else if (op === 'looks_show') {
+    isVisible = true;
+    applyCatTransform();
+    logMessage('👁️ [外观] 显示角色');
+  } else if (op === 'looks_hide') {
+    isVisible = false;
+    applyCatTransform();
+    logMessage('🙈 [外观] 隐藏角色');
+  }
+
+  // 3. 声音积木 (Sound)
+  else if (op.startsWith('sound_')) {
+    playMeowSound();
+    logMessage('🔊 [声音] 播放音效: 喵喵叫 🐱');
+  }
+
+  // 4. 事件积木 (Events)
+  else if (op.startsWith('event_')) {
+    logMessage('🟢 [事件] 触发启动响应');
+  }
+
+  // 5. 变量积木 (Data)
+  else if (op === 'data_setvariableto') {
+    const vName = p.varName || '得分';
+    const val = Number(p.value) || 0;
+    projectVariables[vName] = val;
+    updateStageVarHUD();
+    logMessage(`📦 [变量] 将【${vName}】设为 ${val}`);
+  } else if (op === 'data_changevariableby') {
+    const vName = p.varName || '得分';
+    const dVal = Number(p.value) || 1;
+    projectVariables[vName] = (projectVariables[vName] || 0) + dVal;
+    updateStageVarHUD();
+    logMessage(`🏆 [变量] 将【${vName}】增加 ${dVal} (当前值: ${projectVariables[vName]})`);
+  } else if (op === 'data_showvariable') {
+    const vName = p.varName || '得分';
+    visibleVariables[vName] = true;
+    updateStageVarHUD();
+    logMessage(`👁️ [变量] 显示变量【${vName}】`);
+  } else if (op === 'data_hidevariable') {
+    const vName = p.varName || '得分';
+    visibleVariables[vName] = false;
+    updateStageVarHUD();
+    logMessage(`🙈 [变量] 隐藏变量【${vName}】`);
+  }
+
+  // 6. 侦测与运算 (Sensing & Operators)
+  else if (op === 'sensing_askandwait') {
+    const bubble = document.getElementById('sayBubble');
+    if (bubble) {
+      bubble.innerText = '问：' + (p.question || '你叫什么名字?') + ' 答：星梭小极客！✨';
+      bubble.style.display = 'block';
+      setTimeout(() => { if (bubble) bubble.style.display = 'none'; }, 2000);
+    }
+    logMessage(`💬 [侦测] 询问: ${p.question || '你叫什么名字?'}`);
+  } else if (op === 'operator_add') {
+    const a = Number(p.a) || 5, b = Number(p.b) || 10;
+    logMessage(`➕ [运算] 加法求和: ${a} + ${b} = ${a + b}`);
+  } else if (op === 'operator_random') {
+    const from = Number(p.from) || 1, to = Number(p.to) || 10;
+    const res = Math.floor(Math.random() * (to - from + 1)) + from;
+    logMessage(`🎲 [运算] 生成随机数 [${from}~${to}]: ${res}`);
+  }
+}
+
+// 评估条件是否成立
+function evaluateCondition(condStr) {
+  if (!condStr) return true;
+  if (condStr.includes('边缘')) {
+    return (catX >= 120 || catX <= 25 || catY >= 80 || catY <= 20);
+  }
+  if (condStr.includes('得分 > 0')) {
+    return (projectVariables['得分'] || 0) > 0;
+  }
+  if (condStr.includes('得分 > 5')) {
+    return (projectVariables['得分'] || 0) > 5;
+  }
+  return true;
+}
+
+// 核心执行调度器 (完美支持无限循环、重复执行、条件分支)
+async function runScratchBlocks() {
   if (activeBlocks.length === 0) {
     logMessage('⚠️ 画布为空，请先在左侧添加积木');
     return;
   }
-  
+
   stopScratchBlocks();
   isScriptRunning = true;
+  const runBtn = document.getElementById('runBtn');
+  if (runBtn) runBtn.innerText = '⚡ 运行中...';
   logMessage('🟢 开始执行 Scratch 积木程序...');
-  
-  const catSvg = document.getElementById('catSprite');
-  const bubble = document.getElementById('sayBubble');
-  const varHud = document.getElementById('varHud');
-  const stageBox = document.getElementById('stageBox');
 
-  // 构建指令流（支持循环展开与连续控制）
-  let expandedSequence = [];
-  let repeatCount = 1;
-  let hasLoop = false;
+  // 异步步进调度器
+  async function executeStep(block) {
+    if (!isScriptRunning) return;
 
-  activeBlocks.forEach((b, idx) => {
-    if (b.opcode === 'control_repeat') {
-      repeatCount = 3; // 演示展开 3 次完整循环动画
-      hasLoop = true;
-    } else if (b.opcode === 'control_forever') {
-      repeatCount = 5; // 演示 5 次连续循环动画
-      hasLoop = true;
-    } else {
-      expandedSequence.push({ block: b, idx: idx });
+    // 高亮正在执行的积木
+    document.querySelectorAll('.block-row, .c-block-container').forEach(el => el.classList.remove('running-highlight'));
+    const uiEl = document.getElementById('block_ui_' + block.id);
+    if (uiEl) uiEl.classList.add('running-highlight');
+
+    // 1. 如果是重复执行 (control_repeat)
+    if (block.opcode === 'control_repeat') {
+      const times = Number(block.params.times) || 10;
+      logMessage(`🔄 [控制] 进入重复执行 (${times} 次) 循环体`);
+      const children = block.children || [];
+      if (children.length === 0) {
+        // 默认内置演示动作
+        children.push({ opcode:'motion_movesteps', params:{ steps:10 } });
+        children.push({ opcode:'motion_turnright', params:{ degrees:15 } });
+      }
+      for (let i = 1; i <= times && isScriptRunning; i++) {
+        logMessage(`  ↳ [循环] 第 ${i} / ${times} 轮迭代`);
+        for (let c of children) {
+          if (!isScriptRunning) return;
+          executeSingleBlock(c);
+          await sleep(150);
+        }
+      }
+      return;
     }
-  });
 
-  // 如果包含循环积木，对后续积木重复展开
-  let executionList = [];
-  if (hasLoop && expandedSequence.length > 0) {
-    for (let r = 0; r < repeatCount; r++) {
-      expandedSequence.forEach(item => {
-        executionList.push({ ...item, loopIndex: r + 1 });
-      });
+    // 2. 如果是无限循环 (control_forever) ★ 真正的无限循环！
+    if (block.opcode === 'control_forever') {
+      logMessage(`♾️ [控制] 进入【无限循环】模式 (持续运行直至点击重置)`);
+      const children = block.children || [];
+      if (children.length === 0) {
+        // 默认内置演示动作：移动并旋转
+        children.push({ opcode:'motion_movesteps', params:{ steps:8 } });
+        children.push({ opcode:'motion_turnright', params:{ degrees:10 } });
+        children.push({ opcode:'motion_ifonedgebounce', params:{} });
+      }
+      let loopRound = 1;
+      while (isScriptRunning) {
+        if (loopRound % 5 === 1) {
+          logMessage(`  ♾️ [无限循环] 持续运行中 (第 ${loopRound} 轮)...`);
+        }
+        for (let c of children) {
+          if (!isScriptRunning) return;
+          executeSingleBlock(c);
+          await sleep(120);
+        }
+        loopRound++;
+        await sleep(60);
+      }
+      return;
     }
-  } else {
-    activeBlocks.forEach((b, idx) => {
-      executionList.push({ block: b, idx: idx });
-    });
+
+    // 3. 如果是条件分支 (control_if)
+    if (block.opcode === 'control_if') {
+      const cond = block.params.condition || '碰到舞台边缘';
+      const isMatched = evaluateCondition(cond);
+      logMessage(`⚡ [控制] 判断条件【${cond}】-> 结果: ${isMatched ? '真 (执行分支)' : '假 (跳过)'}`);
+      if (isMatched && block.children && block.children.length > 0) {
+        for (let c of block.children) {
+          if (!isScriptRunning) return;
+          executeSingleBlock(c);
+          await sleep(180);
+        }
+      }
+      return;
+    }
+
+    // 4. 普通积木执行
+    executeSingleBlock(block);
+    const waitTime = (block.opcode === 'control_wait') ? ((Number(block.params.duration) || 1) * 1000) : 250;
+    await sleep(waitTime);
   }
 
-  let delay = 100;
-  executionList.forEach((item, stepIndex) => {
-    const timer = setTimeout(() => {
-      if (!isScriptRunning) return;
+  // 顶层积木流水线
+  for (let b of activeBlocks) {
+    if (!isScriptRunning) break;
+    await executeStep(b);
+  }
 
-      // 高亮正在执行的积木
-      document.querySelectorAll('.block-row').forEach(el => el.classList.remove('running-highlight'));
-      const activeEl = document.getElementById('block_ui_' + item.idx);
-      if (activeEl) {
-        activeEl.classList.add('running-highlight');
-      }
+  if (isScriptRunning) {
+    document.querySelectorAll('.block-row, .c-block-container').forEach(el => el.classList.remove('running-highlight'));
+    if (runBtn) runBtn.innerText = '🟢 运行';
+    logMessage('🎉 脚本流水线执行完成！');
+  }
+}
 
-      const op = item.block.opcode;
-      
-      // 1. 运动积木 (Motion)
-      if (op.includes('movesteps') || op.includes('changexby')) {
-        const rad = (catRotation * Math.PI) / 180;
-        catX += Math.cos(rad) * 15;
-        catY += Math.sin(rad) * 15;
-        if (catX > 150) catX = 20;
-        if (catX < 10) catX = 140;
-        if (catY > 95) catY = 20;
-        if (catY < 10) catY = 90;
-        applyCatTransform();
-        logMessage(`▶ [运动] 移动步长 -> 坐标(${Math.round(catX)}, ${Math.round(catY)})`);
-      } else if (op.includes('turnright')) {
-        catRotation += 15;
-        applyCatTransform();
-        logMessage(`▶ [运动] 右转15° -> 朝向 ${catRotation}° ↷`);
-      } else if (op.includes('turnleft')) {
-        catRotation -= 15;
-        applyCatTransform();
-        logMessage(`▶ [运动] 左转15° -> 朝向 ${catRotation}° ↶`);
-      } else if (op.includes('gotoxy')) {
-        catX = 70; catY = 45;
-        applyCatTransform();
-        logMessage('▶ [运动] 移到中心 (x:0, y:0)');
-      } else if (op.includes('changeyby')) {
-        catY += 12;
-        if (catY > 95) catY = 20;
-        applyCatTransform();
-        logMessage(`▶ [运动] y坐标增加 -> y:${Math.round(catY)}`);
-      } else if (op.includes('ifonedgebounce')) {
-        if (catX >= 130 || catX <= 20 || catY >= 90 || catY <= 15) {
-          catRotation += 180;
-          applyCatTransform();
-          logMessage('💥 [运动] 碰到舞台边缘！成功反弹旋转！');
-        } else {
-          logMessage('▶ [运动] 检查边缘：未碰撞');
-        }
-      }
-      
-      // 2. 外观积木 (Looks)
-      else if (op.includes('say')) {
-        if (bubble) {
-          bubble.innerText = '喵！星梭正在运行！🐱';
-          bubble.style.display = 'block';
-          setTimeout(() => { if (bubble) bubble.style.display = 'none'; }, 1800);
-        }
-        logMessage('💬 [外观] 说话: 喵！星梭正在运行！');
-      } else if (op.includes('think')) {
-        if (bubble) {
-          bubble.innerText = 'Hmm... 小极客编程真棒！🧠';
-          bubble.style.display = 'block';
-          setTimeout(() => { if (bubble) bubble.style.display = 'none'; }, 1800);
-        }
-        logMessage('💭 [外观] 思考: Hmm... 小极客编程真棒！');
-      } else if (op.includes('changesizeby')) {
-        catScale = catScale >= 1.5 ? 1.0 : catScale + 0.2;
-        applyCatTransform();
-        logMessage(`✨ [外观] 调整角色大小 -> ${Math.round(catScale * 100)}%`);
-      } else if (op.includes('nextcostume')) {
-        const catBody = document.getElementById('catBody');
-        if (catBody) {
-          const colors = ['#FFAB19', '#9966FF', '#4C97FF', '#22C55E', '#EC4899'];
-          const randColor = colors[Math.floor(Math.random() * colors.length)];
-          catBody.setAttribute('fill', randColor);
-        }
-        logMessage('✨ [外观] 切换下一个造型（换装变色）');
-      } else if (op.includes('hide')) {
-        isVisible = false;
-        applyCatTransform();
-        logMessage('🙈 [外观] 隐藏角色');
-      } else if (op.includes('show')) {
-        isVisible = true;
-        applyCatTransform();
-        logMessage('👁️ [外观] 显示角色');
-      }
-
-      // 3. 声音积木 (Sound)
-      else if (op.includes('sound')) {
-        playMeowSound();
-        logMessage('🔊 [声音] 播放音效: 喵喵叫 🐱');
-      }
-
-      // 4. 事件积木 (Events)
-      else if (op.includes('event')) {
-        logMessage('🟢 [事件] 触发启动响应');
-      }
-
-      // 5. 控制积木 (Control)
-      else if (op.includes('control_repeat') || op.includes('control_forever')) {
-        logMessage(`🔄 [控制] 执行循环体 (第 ${item.loopIndex || 1} 轮)`);
-      } else if (op.includes('control_if')) {
-        logMessage('⚡ [控制] 条件为真，进入执行分支');
-      } else if (op.includes('control_wait')) {
-        logMessage('⏳ [控制] 等待执行中...');
-      }
-
-      // 6. 侦测积木 (Sensing)
-      else if (op.includes('sensing_touchingobject')) {
-        if (stageBox) {
-          stageBox.style.borderColor = '#22c55e';
-          setTimeout(() => { if (stageBox) stageBox.style.borderColor = '#cbd5e1'; }, 600);
-        }
-        logMessage('🎯 [侦测] 目标检测成功：检测到边缘碰撞');
-      } else if (op.includes('sensing_askandwait')) {
-        if (bubble) {
-          bubble.innerText = '问：你叫什么名字？答：星梭小极客！✨';
-          bubble.style.display = 'block';
-          setTimeout(() => { if (bubble) bubble.style.display = 'none'; }, 2000);
-        }
-        logMessage('💬 [侦测] 询问互动完成');
-      }
-
-      // 7. 运算积木 (Operators)
-      else if (op.includes('operator_add')) {
-        const a = 5, b = 10;
-        const res = a + b;
-        if (bubble) {
-          bubble.innerText = `➕ 计算: ${a} + ${b} = ${res}`;
-          bubble.style.display = 'block';
-          setTimeout(() => { if (bubble) bubble.style.display = 'none'; }, 2000);
-        }
-        logMessage(`➕ [运算] 加法求和: 5 + 10 = ${res}`);
-      } else if (op.includes('operator_random')) {
-        const rand = Math.floor(Math.random() * 10) + 1;
-        if (bubble) {
-          bubble.innerText = `🎲 随机数抽取: ${rand}`;
-          bubble.style.display = 'block';
-          setTimeout(() => { if (bubble) bubble.style.display = 'none'; }, 2000);
-        }
-        logMessage(`🎲 [运算] 生成 1~10 随机数: ${rand}`);
-      }
-
-      // 8. 变量积木 (Data / Variables)
-      else if (op.includes('data_setvariableto')) {
-        myVariableValue = 0;
-        if (varHud) {
-          varHud.innerText = `📦 得分 = ${myVariableValue}`;
-          varHud.style.display = 'block';
-        }
-        logMessage('📦 [变量] 将得分设为 0');
-      } else if (op.includes('data_changevariableby')) {
-        myVariableValue += 1;
-        if (varHud) {
-          varHud.innerText = `🏆 得分 = ${myVariableValue}`;
-          varHud.style.display = 'block';
-        }
-        logMessage(`🏆 [变量] 将得分增加 1 (当前得分: ${myVariableValue})`);
-      } else {
-        logMessage('▶ 执行: ' + op);
-      }
-
-      // 最后一项执行完清除高亮
-      if (stepIndex === executionList.length - 1) {
-        setTimeout(() => {
-          document.querySelectorAll('.block-row').forEach(el => el.classList.remove('running-highlight'));
-          logMessage('🎉 全部积木程序执行完成！');
-        }, 300);
-      }
-    }, delay);
-
-    executionTimers.push(timer);
-    delay += 400;
-  });
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 function stopScratchBlocks() {
   isScriptRunning = false;
-  executionTimers.forEach(t => clearTimeout(t));
-  executionTimers = [];
-  document.querySelectorAll('.block-row').forEach(el => el.classList.remove('running-highlight'));
+  const runBtn = document.getElementById('runBtn');
+  if (runBtn) runBtn.innerText = '🟢 运行';
+  document.querySelectorAll('.block-row, .c-block-container').forEach(el => el.classList.remove('running-highlight'));
   
   catX = 70; catY = 45; catRotation = 0; catScale = 1.0; isVisible = true;
   applyCatTransform();
@@ -891,12 +1458,8 @@ function stopScratchBlocks() {
   
   const bubble = document.getElementById('sayBubble');
   if (bubble) bubble.style.display = 'none';
-  
-  const varHud = document.getElementById('varHud');
-  if (varHud) varHud.style.display = 'none';
-  myVariableValue = 0;
 
-  logMessage('🛑 重置舞台完成');
+  logMessage('🛑 舞台已停止重置');
 }
 
 function notifyAndroidCodeChange() {
@@ -908,22 +1471,47 @@ function notifyAndroidCodeChange() {
   }
 }
 
+// 导出与 Android 双向通讯的标准化 project.json
 window.getProjectJson = function() {
   const blocksMap = {};
-  activeBlocks.forEach((b, idx) => {
-    blocksMap[b.id] = {
+  
+  function serializeBlock(b, parentId, nextId, isTopLevel) {
+    const blockObj = {
       opcode: b.opcode,
-      next: activeBlocks[idx+1] ? activeBlocks[idx+1].id : null,
-      parent: activeBlocks[idx-1] ? activeBlocks[idx-1].id : null,
+      next: nextId,
+      parent: parentId,
       inputs: {},
       fields: {},
-      topLevel: idx === 0
+      topLevel: isTopLevel
     };
+
+    if (b.params) {
+      for (let k in b.params) {
+        blockObj.fields[k] = [b.params[k], null];
+      }
+    }
+
+    if (b.children && b.children.length > 0) {
+      blockObj.inputs['SUBSTACK'] = [2, b.children[0].id];
+      b.children.forEach((cb, cIdx) => {
+        const cNext = b.children[cIdx + 1] ? b.children[cIdx + 1].id : null;
+        const cParent = cIdx === 0 ? b.id : b.children[cIdx - 1].id;
+        serializeBlock(cb, cParent, cNext, false);
+      });
+    }
+
+    blocksMap[b.id] = blockObj;
+  }
+
+  activeBlocks.forEach((b, idx) => {
+    const nextId = activeBlocks[idx + 1] ? activeBlocks[idx + 1].id : null;
+    const parentId = activeBlocks[idx - 1] ? activeBlocks[idx - 1].id : null;
+    serializeBlock(b, parentId, nextId, idx === 0);
   });
 
   const projectObj = {
     targets: [
-      { isStage: true, name: "Stage", variables: {}, lists: {}, broadcasts: {}, blocks: {} },
+      { isStage: true, name: "Stage", variables: projectVariables, lists: {}, broadcasts: {}, blocks: {} },
       { isStage: false, name: "Sprite1", variables: {}, lists: {}, broadcasts: {}, blocks: blocksMap }
     ],
     meta: { semver: "3.0.0", vm: "0.2.0", agent: "AndroidStarShuttle" }
@@ -949,13 +1537,16 @@ window.loadProject = function(jsonInput) {
     activeBlocks = [];
     if (obj && obj.targets && Array.isArray(obj.targets)) {
       obj.targets.forEach(t => {
+        if (t.variables) {
+          projectVariables = { ...projectVariables, ...t.variables };
+        }
         if (t && t.blocks) {
           if (Array.isArray(t.blocks)) {
             t.blocks.forEach(b => {
               const op = (typeof b === 'string') ? b : (b.opcode || '');
               if (op) {
                 const zhLabel = OP_TRANSLATE_MAP[op] || op;
-                activeBlocks.push({ id: 'block_' + Math.random().toString(36).substr(2, 9), opcode: op, label: zhLabel });
+                activeBlocks.push({ id: 'block_' + Math.random().toString(36).substr(2, 9), opcode: op, label: zhLabel, params:{}, children:[] });
               }
             });
           } else if (typeof t.blocks === 'object') {
@@ -964,18 +1555,10 @@ window.loadProject = function(jsonInput) {
               if (b && typeof b === 'object' && b.opcode) {
                 const op = b.opcode;
                 const zhLabel = OP_TRANSLATE_MAP[op] || op;
-                activeBlocks.push({ id: id, opcode: op, label: zhLabel });
+                activeBlocks.push({ id: id, opcode: op, label: zhLabel, params:{}, children:[] });
               }
             }
           }
-        }
-      });
-    } else if (Array.isArray(obj)) {
-      obj.forEach(b => {
-        const op = (typeof b === 'string') ? b : (b.opcode || '');
-        if (op) {
-          const zhLabel = OP_TRANSLATE_MAP[op] || op;
-          activeBlocks.push({ id: 'block_' + Math.random().toString(36).substr(2, 9), opcode: op, label: zhLabel });
         }
       });
     }
@@ -1003,13 +1586,22 @@ window.onload = function() {
   }
 
   if (!tryFetchAndLoad()) {
-    // 默认预置一套初始积木，让学生一进入就能立刻看到清晰、美观的 Scratch 编程画布
     if (activeBlocks.length === 0) {
       activeBlocks = [
-        { id: 'b_init_1', opcode: 'event_whenflagclicked', label: '当 🟢 被点击' },
-        { id: 'b_init_2', opcode: 'motion_gotoxy', label: '移到 x:<span class="param-pill">0</span> y:<span class="param-pill">0</span>' },
-        { id: 'b_init_3', opcode: 'looks_sayforsecs', label: '说 <span class="param-pill">Hello Scratch!</span> <span class="param-pill">2</span> 秒' },
-        { id: 'b_init_4', opcode: 'motion_movesteps', label: '移动 <span class="param-pill">10</span> 步' }
+        { id: 'b_init_1', opcode: 'event_whenflagclicked', label: '当 🟢 被点击', params:{} },
+        { id: 'b_init_2', opcode: 'motion_gotoxy', label: '移到 x:<span class="param-pill">0</span> y:<span class="param-pill">0</span>', params:{ x:0, y:0 } },
+        { id: 'b_init_3', opcode: 'looks_sayforsecs', label: '说 <span class="param-pill">Hello Scratch!</span> <span class="param-pill">2</span> 秒', params:{ message:'Hello Scratch!', secs:2 } },
+        {
+          id: 'b_init_4',
+          opcode: 'control_repeat',
+          label: '重复执行 <span class="param-pill">5</span> 次 🔄',
+          isContainer: true,
+          params: { times: 5 },
+          children: [
+            { id: 'b_sub_1', opcode: 'motion_movesteps', label: '移动 15 步', params: { steps: 15 } },
+            { id: 'b_sub_2', opcode: 'motion_turnright', label: '右转 15 度 ↷', params: { degrees: 15 } }
+          ]
+        }
       ];
       updateWorkspaceUI();
     }

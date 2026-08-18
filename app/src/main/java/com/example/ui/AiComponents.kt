@@ -395,6 +395,15 @@ fun AiAssistPanel(
                                                         .border(1.dp, Color(0xFFF8BBD0), RoundedCornerShape(10.dp))
                                                         .clickable {
                                                             creativePromptInput = TextFieldValue(theme)
+                                                            val timeStr = java.text.SimpleDateFormat("HH:mm:ss", java.util.Locale.getDefault()).format(java.util.Date())
+                                                            val newItem = DialogueHistoryItem(
+                                                                id = "scratch_ai_pending_${System.currentTimeMillis()}",
+                                                                title = "【创意引导】",
+                                                                question = "创意探索: $theme",
+                                                                answer = "精灵姐姐正在为你构思【$theme】主题的精彩创意魔法... ✨",
+                                                                timestamp = timeStr
+                                                            )
+                                                            viewModel.dialogueHistoryList.value = listOf(newItem) + viewModel.dialogueHistoryList.value
                                                             getLiveCodeAndCall("创意引导", theme)
                                                         }
                                                         .padding(horizontal = 10.dp, vertical = 4.dp),
@@ -443,6 +452,15 @@ fun AiAssistPanel(
                                                         .border(1.dp, Color(0xFFF8BBD0), RoundedCornerShape(10.dp))
                                                         .clickable { 
                                                             kbPromptInput = TextFieldValue(chip)
+                                                            val timeStr = java.text.SimpleDateFormat("HH:mm:ss", java.util.Locale.getDefault()).format(java.util.Date())
+                                                            val newItem = DialogueHistoryItem(
+                                                                id = "scratch_ai_pending_${System.currentTimeMillis()}",
+                                                                title = "【考点解析】",
+                                                                question = "考点解析: $chip",
+                                                                answer = "精灵姐姐正在为你细致拆解【$chip】的核心考点魔法... 🎓",
+                                                                timestamp = timeStr
+                                                            )
+                                                            viewModel.dialogueHistoryList.value = listOf(newItem) + viewModel.dialogueHistoryList.value
                                                             getLiveCodeAndCall("知识点讲解", chip)
                                                         }
                                                         .padding(horizontal = 10.dp, vertical = 4.dp),
@@ -731,16 +749,32 @@ fun AiAssistPanel(
                                     }
                                 }
                                 "创意引导" -> {
-                                    val liveTheme = creativePromptInput.text
-                                    if (liveTheme.isNotBlank()) {
-                                        // viewModel.currentDraftName.value = liveTheme
-                                    }
-                                    getLiveCodeAndCall("创意引导", liveTheme)
+                                    val liveTheme = creativePromptInput.text.trim()
                                     creativePromptInput = TextFieldValue("")
+                                    val timeStr = java.text.SimpleDateFormat("HH:mm:ss", java.util.Locale.getDefault()).format(java.util.Date())
+                                    val newItem = DialogueHistoryItem(
+                                        id = "scratch_ai_pending_${System.currentTimeMillis()}",
+                                        title = "【创意引导】",
+                                        question = "创意探索: $liveTheme",
+                                        answer = "精灵姐姐正在为你构思【$liveTheme】主题的精彩创意魔法... ✨",
+                                        timestamp = timeStr
+                                    )
+                                    viewModel.dialogueHistoryList.value = listOf(newItem) + viewModel.dialogueHistoryList.value
+                                    getLiveCodeAndCall("创意引导", liveTheme)
                                 }
                                 "考点讲解" -> {
-                                    getLiveCodeAndCall("知识点讲解", kbPromptInput.text.ifBlank { "变量" })
+                                    val topic = kbPromptInput.text.ifBlank { "变量与广播" }.trim()
                                     kbPromptInput = TextFieldValue("")
+                                    val timeStr = java.text.SimpleDateFormat("HH:mm:ss", java.util.Locale.getDefault()).format(java.util.Date())
+                                    val newItem = DialogueHistoryItem(
+                                        id = "scratch_ai_pending_${System.currentTimeMillis()}",
+                                        title = "【考点解析】",
+                                        question = "考点解析: $topic",
+                                        answer = "精灵姐姐正在为你细致拆解【$topic】的核心考点魔法... 🎓",
+                                        timestamp = timeStr
+                                    )
+                                    viewModel.dialogueHistoryList.value = listOf(newItem) + viewModel.dialogueHistoryList.value
+                                    getLiveCodeAndCall("知识点讲解", topic)
                                 }
                             }
                         }
