@@ -6,71 +6,321 @@
 <title>星梭 Scratch 智学积木工作台</title>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-html, body { width:100%; height:100%; min-height:100%; overflow:hidden; font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background:#0f172a; color:#1e293b; }
-body { display:flex; flex-direction:column; }
+html, body {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  width: 100%; height: 100%;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background: #f8fafc;
+  color: #1e293b;
+  display: flex;
+  flex-direction: column;
+}
 
 /* 顶栏工作条 */
-.top-nav { background:#1e293b; color:#f8fafc; padding:8px 16px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid #334155; flex-shrink:0; }
-.top-title { font-size:14px; font-weight:700; display:flex; align-items:center; gap:8px; color:#38bdf8; }
-.top-actions { display:flex; gap:8px; }
-.nav-btn { border:none; padding:6px 12px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:4px; transition:transform 0.1s, opacity 0.2s; }
-.nav-btn:active { transform:scale(0.96); opacity:0.9; }
-.btn-green { background:#22c55e; color:#fff; }
-.btn-red { background:#ef4444; color:#fff; }
-.btn-outline { background:#334155; color:#cbd5e1; border:1px solid #475569; }
+.top-nav {
+  height: 44px;
+  background: #1e293b;
+  color: #f8fafc;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #334155;
+  flex-shrink: 0;
+  z-index: 10;
+}
+.top-title {
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #38bdf8;
+}
+.top-actions {
+  display: flex;
+  gap: 6px;
+}
+.nav-btn {
+  border: none;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: transform 0.1s, opacity 0.2s;
+}
+.nav-btn:active { transform: scale(0.96); opacity: 0.9; }
+.btn-green { background: #22c55e; color: #fff; }
+.btn-red { background: #ef4444; color: #fff; }
+.btn-outline { background: #334155; color: #cbd5e1; border: 1px solid #475569; }
 
 /* 主工作区三栏布局：分类导航 + 积木候选区 + 脚本画布 + 舞台预览 */
-.main-layout { display:flex; flex:1; height:calc(100% - 48px); min-height:0; overflow:hidden; background:#f8fafc; }
+.main-layout {
+  display: flex;
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  overflow: hidden;
+  background: #f8fafc;
+}
 
 /* 1. 侧边分类栏 */
-.cat-sidebar { width:72px; background:#f1f5f9; border-right:1px solid #e2e8f0; display:flex; flex-direction:column; gap:4px; padding:8px 4px; flex-shrink:0; overflow-y:auto; }
-.cat-btn { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:8px 4px; border-radius:10px; font-size:11px; font-weight:600; cursor:pointer; color:#64748b; gap:4px; transition:all 0.15s ease; border:none; background:transparent; width:100%; }
-.cat-btn:hover, .cat-btn.active { background:#fff; color:#0f172a; box-shadow:0 2px 4px rgba(0,0,0,0.06); }
-.cat-dot { width:14px; height:14px; border-radius:50%; box-shadow:0 1px 3px rgba(0,0,0,0.15); }
+.cat-sidebar {
+  width: 68px;
+  background: #f1f5f9;
+  border-right: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 6px 3px;
+  flex-shrink: 0;
+  overflow-y: auto;
+}
+.cat-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 2px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  color: #64748b;
+  gap: 3px;
+  transition: all 0.15s ease;
+  border: none;
+  background: transparent;
+  width: 100%;
+}
+.cat-btn:hover, .cat-btn.active {
+  background: #fff;
+  color: #0f172a;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+}
+.cat-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+}
 
 /* 2. 积木候选库面板 */
-.palette-pane { width:160px; background:#ffffff; border-right:1px solid #e2e8f0; overflow-y:auto; padding:10px 8px; display:flex; flex-direction:column; gap:8px; flex-shrink:0; }
-.palette-header { font-size:11px; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.5px; padding-bottom:4px; border-bottom:1px solid #f1f5f9; }
+.palette-pane {
+  width: 150px;
+  background: #ffffff;
+  border-right: 1px solid #e2e8f0;
+  overflow-y: auto;
+  padding: 8px 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.palette-header {
+  font-size: 11px;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid #f1f5f9;
+}
 
 /* 积木外观样式 */
-.scratch-block { display:inline-flex; align-items:center; flex-wrap:wrap; padding:8px 12px; border-radius:8px; color:#fff; font-size:12px; font-weight:600; min-height:34px; position:relative; gap:6px; cursor:pointer; box-shadow:0 2px 4px rgba(0,0,0,0.12); user-select:none; transition:transform 0.1s, box-shadow 0.15s; line-height:1.3; }
-.scratch-block:active { transform:scale(0.97); }
-.scratch-block .param-pill { background:rgba(0,0,0,0.18); padding:2px 7px; border-radius:10px; font-size:11px; border:1px solid rgba(255,255,255,0.25); color:#fff; font-weight:700; }
+.scratch-block {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 6px 10px;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 11.5px;
+  font-weight: 600;
+  min-height: 32px;
+  position: relative;
+  gap: 5px;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.12);
+  user-select: none;
+  transition: transform 0.1s, box-shadow 0.15s;
+  line-height: 1.3;
+}
+.scratch-block:active { transform: scale(0.97); }
+.scratch-block .param-pill {
+  background: rgba(0,0,0,0.18);
+  padding: 2px 6px;
+  border-radius: 8px;
+  font-size: 10.5px;
+  border: 1px solid rgba(255,255,255,0.25);
+  color: #fff;
+  font-weight: 700;
+}
 
-.cat-motion { background:#4C97FF; }
-.cat-looks { background:#9966FF; }
-.cat-sound { background:#CF63CF; }
-.cat-events { background:#FFBF00; color:#452800 !important; }
-.cat-control { background:#FFAB19; }
-.cat-sensing { background:#5CB1D6; }
-.cat-operators { background:#59C059; }
-.cat-data { background:#FF8C1A; }
+.cat-motion { background: #4C97FF; }
+.cat-looks { background: #9966FF; }
+.cat-sound { background: #CF63CF; }
+.cat-events { background: #FFBF00; color: #452800 !important; }
+.cat-control { background: #FFAB19; }
+.cat-sensing { background: #5CB1D6; }
+.cat-operators { background: #59C059; }
+.cat-data { background: #FF8C1A; }
 
 /* 3. 脚本积木工作区画布 */
-.workspace-pane { flex:1; background:#f8fafc; overflow-y:auto; padding:16px; position:relative; display:flex; flex-direction:column; min-width:200px; }
-.workspace-title-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; font-size:13px; color:#475569; font-weight:700; }
-.badge { background:#e0f2fe; color:#0284c7; font-size:11px; padding:3px 8px; border-radius:12px; font-weight:700; }
-.canvas-container { background:#ffffff; border:2px dashed #cbd5e1; border-radius:12px; min-height:280px; padding:16px; display:flex; flex-direction:column; gap:8px; box-shadow:inset 0 2px 4px rgba(0,0,0,0.02); }
-.empty-canvas { display:flex; flex-direction:column; align-items:center; justify-content:center; color:#94a3b8; font-size:13px; min-height:220px; text-align:center; gap:8px; line-height:1.6; }
+.workspace-pane {
+  flex: 1;
+  background: #f8fafc;
+  overflow-y: auto;
+  padding: 12px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 180px;
+}
+.workspace-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 12px;
+  color: #475569;
+  font-weight: 700;
+}
+.badge {
+  background: #e0f2fe;
+  color: #0284c7;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 700;
+}
+.canvas-container {
+  background: #ffffff;
+  border: 2px dashed #cbd5e1;
+  border-radius: 10px;
+  flex: 1;
+  min-height: 200px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow-y: auto;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+}
+.empty-canvas {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+  font-size: 12px;
+  height: 100%;
+  min-height: 160px;
+  text-align: center;
+  gap: 6px;
+  line-height: 1.5;
+}
 
-.block-row { display:flex; align-items:center; justify-content:space-between; width:100%; border-radius:8px; }
-.del-btn { opacity:0.7; font-size:14px; cursor:pointer; padding:2px 6px; border-radius:4px; transition:opacity 0.15s; }
-.del-btn:hover { opacity:1; background:rgba(0,0,0,0.2); }
+.block-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  border-radius: 6px;
+}
+.del-btn {
+  opacity: 0.7;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: opacity 0.15s;
+}
+.del-btn:hover { opacity: 1; background: rgba(0,0,0,0.2); }
 
 /* 4. 右侧舞台预览面板 */
-.stage-pane { width:220px; background:#ffffff; border-left:1px solid #e2e8f0; display:flex; flex-direction:column; padding:12px; gap:10px; flex-shrink:0; }
-.stage-screen-box { width:100%; height:160px; background:linear-gradient(to bottom, #f0fdf4, #e0f2fe); border:2px solid #cbd5e1; border-radius:10px; position:relative; overflow:hidden; display:flex; align-items:center; justify-content:center; }
-.cat-character { width:48px; height:48px; position:absolute; transition:all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); filter:drop-shadow(0 2px 4px rgba(0,0,0,0.15)); }
-.speech-bubble { position:absolute; top:12px; left:12px; background:#fff; border:2px solid #0284c7; border-radius:10px; padding:4px 8px; font-size:11px; font-weight:700; color:#0369a1; display:none; max-width:160px; word-break:break-all; box-shadow:0 2px 8px rgba(0,0,0,0.15); z-index:10; }
-.speech-bubble::after { content:''; position:absolute; bottom:-6px; left:16px; border-width:6px 6px 0; border-style:solid; border-color:#0284c7 transparent; display:block; width:0; }
+.stage-pane {
+  width: 200px;
+  background: #ffffff;
+  border-left: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.stage-screen-box {
+  width: 100%;
+  height: 140px;
+  background: linear-gradient(to bottom, #f0fdf4, #e0f2fe);
+  border: 2px solid #cbd5e1;
+  border-radius: 8px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.cat-character {
+  width: 44px;
+  height: 44px;
+  position: absolute;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
+}
+.speech-bubble {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: #fff;
+  border: 2px solid #0284c7;
+  border-radius: 8px;
+  padding: 3px 6px;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #0369a1;
+  display: none;
+  max-width: 150px;
+  word-break: break-all;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  z-index: 10;
+}
+.speech-bubble::after {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 12px;
+  border-width: 5px 5px 0;
+  border-style: solid;
+  border-color: #0284c7 transparent;
+  display: block;
+  width: 0;
+}
 
-.log-box { flex:1; background:#0f172a; color:#38bdf8; font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size:10px; padding:8px; border-radius:8px; overflow-y:auto; line-height:1.4; max-height:140px; }
+.log-box {
+  flex: 1;
+  background: #0f172a;
+  color: #38bdf8;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 9.5px;
+  padding: 6px;
+  border-radius: 6px;
+  overflow-y: auto;
+  line-height: 1.3;
+  max-height: 120px;
+}
 
 @media (max-width: 600px) {
-  .stage-pane { width:150px; }
-  .palette-pane { width:120px; }
-  .cat-sidebar { width:60px; }
-  .top-title { font-size:12px; }
+  .stage-pane { width: 140px; }
+  .palette-pane { width: 110px; }
+  .cat-sidebar { width: 56px; }
+  .top-title { font-size: 11px; }
 }
 </style>
 </head>
@@ -79,11 +329,11 @@ body { display:flex; flex-direction:column; }
 <!-- 顶栏快捷操作 -->
 <div class="top-nav">
   <div class="top-title">
-    <span>🧩 离线轻量极速 Scratch 工作台</span>
+    <span>🧩 离线极速 Scratch 积木工作台</span>
   </div>
   <div class="top-actions">
-    <button class="nav-btn btn-green" onclick="runScratchBlocks()">🟢 运行脚本</button>
-    <button class="nav-btn btn-red" onclick="stopScratchBlocks()">🛑 重置舞台</button>
+    <button class="nav-btn btn-green" onclick="runScratchBlocks()">🟢 运行</button>
+    <button class="nav-btn btn-red" onclick="stopScratchBlocks()">🛑 重置</button>
     <button class="nav-btn btn-outline" onclick="clearWorkspace()">🧹 清空</button>
   </div>
 </div>
@@ -131,7 +381,7 @@ body { display:flex; flex-direction:column; }
     </div>
     <div class="canvas-container" id="canvasStack">
       <div class="empty-canvas" id="emptyTip">
-        <span style="font-size:24px;">👈</span>
+        <span style="font-size:20px;">👈</span>
         <span>点击左侧分类库添加积木<br>或从顶栏菜单“载入当前作品积木”一键恢复</span>
       </div>
     </div>
@@ -139,17 +389,17 @@ body { display:flex; flex-direction:column; }
 
   <!-- 4. 舞台预览 -->
   <div class="stage-pane">
-    <div style="font-size:12px;font-weight:700;color:#334155;">🖼️ 舞台实时运行效果</div>
+    <div style="font-size:11px;font-weight:700;color:#334155;">🖼️ 舞台运行效果</div>
     <div class="stage-screen-box">
       <div class="speech-bubble" id="sayBubble">你好！星梭！✨</div>
-      <svg class="cat-character" id="catSprite" viewBox="0 0 100 100" style="left:80px; top:55px;">
+      <svg class="cat-character" id="catSprite" viewBox="0 0 100 100" style="left:70px; top:45px;">
         <path d="M20,30 L30,10 L45,25 L55,25 L70,10 L80,30 C90,45 85,70 50,85 C15,70 10,45 20,30 Z" fill="#FFAB19" stroke="#E67E22" stroke-width="2"/>
         <circle cx="35" cy="40" r="6" fill="#fff"/><circle cx="35" cy="40" r="3" fill="#1e293b"/>
         <circle cx="65" cy="40" r="6" fill="#fff"/><circle cx="65" cy="40" r="3" fill="#1e293b"/>
         <path d="M45,55 Q50,62 55,55" stroke="#1e293b" stroke-width="2" fill="none"/>
       </svg>
     </div>
-    <div style="font-size:11px;font-weight:700;color:#64748b;">📜 运行日志</div>
+    <div style="font-size:10px;font-weight:700;color:#64748b;">📜 运行日志</div>
     <div class="log-box" id="stageLog">【系统】离线轻量积木工作区已就绪...</div>
   </div>
 </div>
@@ -250,7 +500,7 @@ const OP_TRANSLATE_MAP = {
 };
 
 let activeBlocks = [];
-let catX = 80, catY = 55, isVisible = true;
+let catX = 70, catY = 45, isVisible = true;
 
 function logMessage(msg) {
   const logEl = document.getElementById('stageLog');
@@ -298,9 +548,8 @@ function addBlock(opcode, encodedLabel) {
 }
 
 window.addBlockFromAndroid = function(opcode, label) {
-  const displayLabel = label || opcode;
-  const cls = getCategoryClassByOpcode(opcode);
-  activeBlocks.push({ id: 'block_' + Date.now(), opcode: opcode, label: `<span class="${cls}">${displayLabel}</span>` });
+  const displayLabel = label || OP_TRANSLATE_MAP[opcode] || opcode;
+  activeBlocks.push({ id: 'block_' + Date.now(), opcode: opcode, label: displayLabel });
   updateWorkspaceUI();
   logMessage('🪄 AI魔法插入积木: ' + opcode);
   notifyAndroidCodeChange();
@@ -328,15 +577,16 @@ function updateWorkspaceUI() {
 
   if (!stackEl) return;
   if (activeBlocks.length === 0) {
-    stackEl.innerHTML = `<div class="empty-canvas"><span style="font-size:24px;">👈</span><span>点击左侧分类库添加积木<br>或从顶栏菜单“载入当前作品积木”一键恢复</span></div>`;
+    stackEl.innerHTML = `<div class="empty-canvas" id="emptyTip"><span style="font-size:20px;">👈</span><span>点击左侧分类库添加积木<br>或从顶栏菜单“载入当前作品积木”一键恢复</span></div>`;
     return;
   }
 
   let html = '';
   activeBlocks.forEach((b, idx) => {
     const cls = getCategoryClassByOpcode(b.opcode);
+    const displayHtml = b.label || OP_TRANSLATE_MAP[b.opcode] || b.opcode;
     html += `<div class="scratch-block ${cls} block-row">
-      <span>${b.label}</span>
+      <span>${displayHtml}</span>
       <span class="del-btn" onclick="event.stopPropagation();removeBlock(${idx})">✕</span>
     </div>`;
   });
@@ -358,7 +608,7 @@ function runScratchBlocks() {
     setTimeout(() => {
       if (b.opcode.includes('movesteps') || b.opcode.includes('changexby')) {
         catX += 15;
-        if (catX > 160) catX = 20;
+        if (catX > 140) catX = 15;
         if (catSvg) catSvg.style.left = catX + 'px';
         logMessage('▶ 角色移动 -> x:' + catX);
       } else if (b.opcode.includes('say')) {
@@ -378,12 +628,12 @@ function runScratchBlocks() {
         logMessage('▶ 执行: ' + b.opcode);
       }
     }, delay);
-    delay += 500;
+    delay += 400;
   });
 }
 
 function stopScratchBlocks() {
-  catX = 80; catY = 55;
+  catX = 70; catY = 45;
   const catSvg = document.getElementById('catSprite');
   if (catSvg) {
     catSvg.style.left = catX + 'px';
@@ -450,9 +700,8 @@ window.loadProject = function(jsonInput) {
             t.blocks.forEach(b => {
               const op = (typeof b === 'string') ? b : (b.opcode || '');
               if (op) {
-                const cls = getCategoryClassByOpcode(op);
                 const zhLabel = OP_TRANSLATE_MAP[op] || op;
-                activeBlocks.push({ id: 'block_' + Math.random().toString(36).substr(2, 9), opcode: op, label: `<span class="${cls}">${zhLabel}</span>` });
+                activeBlocks.push({ id: 'block_' + Math.random().toString(36).substr(2, 9), opcode: op, label: zhLabel });
               }
             });
           } else if (typeof t.blocks === 'object') {
@@ -460,17 +709,26 @@ window.loadProject = function(jsonInput) {
               const b = t.blocks[id];
               if (b && typeof b === 'object' && b.opcode) {
                 const op = b.opcode;
-                const cls = getCategoryClassByOpcode(op);
                 const zhLabel = OP_TRANSLATE_MAP[op] || op;
-                activeBlocks.push({ id: id, opcode: op, label: `<span class="${cls}">${zhLabel}</span>` });
+                activeBlocks.push({ id: id, opcode: op, label: zhLabel });
               }
             }
           }
         }
       });
+    } else if (Array.isArray(obj)) {
+      obj.forEach(b => {
+        const op = (typeof b === 'string') ? b : (b.opcode || '');
+        if (op) {
+          const zhLabel = OP_TRANSLATE_MAP[op] || op;
+          activeBlocks.push({ id: 'block_' + Math.random().toString(36).substr(2, 9), opcode: op, label: zhLabel });
+        }
+      });
     }
+    
     updateWorkspaceUI();
     logMessage('✅ 导入积木成功，共计 ' + activeBlocks.length + ' 个积木代码块');
+    notifyAndroidCodeChange();
   } catch(e) {
     logMessage('❌ 解析作业 JSON 异常: ' + e.message);
   }
@@ -491,8 +749,19 @@ window.onload = function() {
   }
 
   if (!tryFetchAndLoad()) {
+    // 默认预置一套初始积木，让学生一进入就能立刻看到清晰、美观的 Scratch 编程画布
+    if (activeBlocks.length === 0) {
+      activeBlocks = [
+        { id: 'b_init_1', opcode: 'event_whenflagclicked', label: '当 🟢 被点击' },
+        { id: 'b_init_2', opcode: 'motion_gotoxy', label: '移到 x:<span class="param-pill">0</span> y:<span class="param-pill">0</span>' },
+        { id: 'b_init_3', opcode: 'looks_sayforsecs', label: '说 <span class="param-pill">Hello Scratch!</span> <span class="param-pill">2</span> 秒' },
+        { id: 'b_init_4', opcode: 'motion_movesteps', label: '移动 <span class="param-pill">10</span> 步' }
+      ];
+      updateWorkspaceUI();
+    }
     setTimeout(tryFetchAndLoad, 200);
     setTimeout(tryFetchAndLoad, 600);
+    setTimeout(tryFetchAndLoad, 1500);
   }
 };
 </script>

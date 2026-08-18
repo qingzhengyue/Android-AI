@@ -1053,25 +1053,47 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
             Log.d("AIFlow", "[3.5/7] Prompt装配完成: funcType=$funcType, prompt总长度=${prompt.length}字符, 代码部分长度=${code?.length ?: 0}")
 
-            // 3. 异步获取 Gemini 响应并填充记录
-            Log.d("AIFlow", "[4/7] 开始调用Gemini API (funcType=$funcType, prompt长度=${prompt.length})...")
+            // 3. 异步获取多通道 AI 响应并填充记录
+            Log.d("AIFlow", "[4/7] 开始多通道调用 AI 助手 (funcType=$funcType, prompt长度=${prompt.length})...")
             val aiResponse = try {
-                // 安全超时: 整个API调用最多等45秒
-                kotlinx.coroutines.withTimeout(45000L) {
-                    callGeminiWithTimeoutAndRetry(prompt)
+                val dsResult = try { deepSeekRepository.getAiTutorResponse(userQuery = prompt) } catch (e: Exception) { "" }
+                if (dsResult.isNotBlank() && !dsResult.startsWith("【小精灵稍作休息") && !dsResult.startsWith("【网络连接超时")) {
+                    dsResult
+                } else {
+                    val cerebrasResult = try { cerebrasRepository.getAiTutorResponse(userQuery = prompt) } catch (e: Exception) { "" }
+                    if (cerebrasResult.isNotBlank() && !cerebrasResult.startsWith("【小精灵稍作休息") && !cerebrasResult.startsWith("【网络连接超时")) {
+                        cerebrasResult
+                    } else {
+                        val geminiResult = try { geminiRepository.getAiTutorResponse(userQuery = prompt) } catch (e: Exception) { "" }
+                        if (geminiResult.isNotBlank() && !geminiResult.startsWith("【小精灵稍作休息") && !geminiResult.startsWith("【网络连接超时")) {
+                            geminiResult
+                        } else {
+                            GeminiClient.generateContent(prompt, isNetworkAvailable())
+                        }
+                    }
                 }
-            } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
-                Log.e("AIFlow", "Gemini调用总超时(45s): ${e.message}")
-                "【连接超时啦 ⏰】精灵姐姐刚才可能开小差去采花了，没有在规定时间内赶回来。别着急，我们可以【点击重试】或者重新发送一次哦！"
-            } catch (e: kotlinx.coroutines.CancellationException) {
-                Log.w("AIFlow", "Gemini调用被取消(协程取消): ${e.message}")
-                throw e // 重新抛出CancellationException以让finally正常执行
             } catch (e: Exception) {
-                Log.e("AIFlow", "Gemini调用异常: ${e.javaClass.simpleName}: ${e.message}", e)
-                "【服务器忙碌中 ☁️】太空信号有点不稳定，精灵姐姐暂时没有收到你的魔法代码。别着急，让网络飞一会儿，咱们过 10 秒钟再点一下重试吧！"
+                Log.e("AIFlow", "AI调用降级到离线求解器: ${e.message}")
+                GeminiClient.generateContent(prompt, false)
             }
-            Log.d("AIFlow", "[5/7] Gemini响应已收到, response长度=${aiResponse.length}")
+            Log.d("AIFlow", "[5/7] AI响应已就绪, response长度=${aiResponse.length}")
             _aiResult.value = aiResponse
+
+            val timeStr = java.text.SimpleDateFormat("HH:mm:ss", java.util.Locale.getDefault()).format(java.util.Date())
+            val questionLabel = when (funcType) {
+                "创意引导" -> "创意探索: ${param.ifBlank { currentDraftName.value.ifBlank { "自由创作" } }}"
+                "知识点讲解", "考点讲解" -> "考点解析: ${param.ifBlank { "Scratch 核心考点" }}"
+                "语法纠错" -> "积木语法与逻辑体检"
+                else -> funcType
+            }
+            val historyItem = DialogueHistoryItem(
+                id = "scratch_ai_${System.currentTimeMillis()}",
+                title = "【$funcType】",
+                question = questionLabel,
+                answer = aiResponse,
+                timestamp = timeStr
+            )
+            dialogueHistoryList.value = listOf(historyItem) + dialogueHistoryList.value
 
             val isFailed = aiResponse.startsWith("【连接超时") || aiResponse.startsWith("【服务器忙碌")
 
@@ -1102,9 +1124,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     classId = classId,
                     assistType = funcType,
                     assistTypeInt = assistTypeIntVal,
-                    requestContent = if (funcType == "创意引导") "主题: ${currentDraftName.value.ifEmpty { "自由拓展" }}" else "对应草稿: ${currentDraftName.value}",
+                    requestContent = questionLabel,
                     aiResult = aiResponse,
-                    draftId = null
+                    draftId = null,
+                    sessionId = "scratch_session_${studentId}"
                 )
             )
             Log.d("AIFlow", "[6/7] AI辅助记录已保存, 即将设置aiLoading=false")

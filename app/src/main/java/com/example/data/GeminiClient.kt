@@ -15,9 +15,9 @@ object GeminiClient {
     private const val BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
 
     private val client = OkHttpClient.Builder()
-        .connectTimeout(60, TimeUnit.SECONDS)
-        .readTimeout(60, TimeUnit.SECONDS)
-        .writeTimeout(60, TimeUnit.SECONDS)
+        .connectTimeout(8, TimeUnit.SECONDS)
+        .readTimeout(10, TimeUnit.SECONDS)
+        .writeTimeout(8, TimeUnit.SECONDS)
         .build()
 
     private val mediaType = "application/json; charset=utf-8".toMediaType()
@@ -37,7 +37,7 @@ object GeminiClient {
         val isQwen = apiKey.startsWith("sk-") && !isCSK // 默认通义千问
         val isOpenAICompatible = isQwen || isSparkMaaS || isCSK
         var attempts = 0
-        val maxAttempts = 3
+        val maxAttempts = 1
         var lastErrCode = 0
         var lastErrMsg = ""
 
@@ -180,6 +180,69 @@ object GeminiClient {
         val q = cleanQuestion.lowercase()
 
         return when {
+            // =========================================================================
+            // 0. 智能精灵三大核心功能 (语法纠错 / 创意引导 / 考点与知识点讲解)
+            // =========================================================================
+            prompt.contains("语法纠错") || prompt.contains("语法错误") || prompt.contains("语法分析") || q.contains("语法纠错") || q.contains("检测语法") -> {
+                val hasFlag = prompt.contains("whenflagclicked") || prompt.contains("event_whenflagclicked")
+                val hasMove = prompt.contains("motion_") || prompt.contains("move")
+                val hasLooks = prompt.contains("looks_") || prompt.contains("say")
+                
+                "🐱【 智能精灵姐姐 · 积木语法与逻辑体检报告 】✨\n\n" +
+                (if (hasFlag) "🌟 **超级表扬**：太棒啦！你的代码已经正确放置了【当 🟢 被点击】启动积木，程序有了清晰的起点！\n\n" else "🌟 **起点提示**：建议在最顶层放一块黄色【事件】里的【当 🟢 被点击】积木，作为整个魔法脚本的启动指令哦！\n\n") +
+                "【错误提示】: " + (if (hasMove || hasLooks) "当前积木结构基本完整，但注意角色在连续移动或切换造型时，如果没有加入适当的【等待 0.2 秒】或【如果碰到边缘就反弹】，可能会飞出舞台视野或动作切换过快哦！" else "画布中的积木较少或缺少循环控制，角色可能只执行一次动作就停下啦。") + "\n\n" +
+                "【修正建议】: \n" +
+                "① 从黄色【控制】分类中拖出【重复执行】积木，包裹住移动或外观积木；\n" +
+                "② 在蓝色【运动】分类中找到【碰到边缘就反弹】并拼入循环底部；\n" +
+                "③ 如果需要角色说出有趣台词，可以在紫色【外观】中拖出【说 Hello! 2 秒】拼在启动积木下方！🐾"
+            }
+
+            prompt.contains("创意引导") || prompt.contains("创作主题") || prompt.contains("自由拓展") || q.contains("创意引导") || q.contains("创意拓展") -> {
+                "🎨【 智能精灵姐姐 · 3大超酷编程拓展灵感 】🚀\n\n" +
+                "哇！看到你目前的创作积木，精灵姐姐为你准备了 3 个好玩又吸睛的魔法拓展方案：\n\n" +
+                "🌟 **魔法方案 1：【金币得分与荣誉勋章】**\n" +
+                "• **玩法**：为舞台添加一个小金币角色，小猫碰到金币后得分 +1 并播放清脆音效！\n" +
+                "• **拼法**：在深橙色【变量】新建变量【得分】；在控制分类拖出【如果 <碰到 角色?> 那么 [将 得分 增加 1, 播放声音 喵]】。\n\n" +
+                "🌟 **魔法方案 2：【动感光效与变色小猫】**\n" +
+                "• **玩法**：让角色在移动时像霓虹灯一样不断变换色彩特效！\n" +
+                "• **拼法**：在紫色【外观】拖出【将 颜色 特效增加 25】，放入移动循环中。\n\n" +
+                "🌟 **魔法方案 3：【键盘飞行员双人对战】**\n" +
+                "• **玩法**：用键盘方向键控制小猫在舞台四处自由探险！\n" +
+                "• **拼法**：黄色【当按下 方向键】 ➔ 蓝色【面向 90 方向】 ➔ 蓝色【移动 15 步】！✨"
+            }
+
+            prompt.contains("知识点讲解") || prompt.contains("考点讲解") || prompt.contains("核心考点") || q.contains("考点讲解") || q.contains("知识点讲解") -> {
+                val isBroadcast = q.contains("广播") || prompt.contains("广播")
+                val isVariable = q.contains("变量") || prompt.contains("变量")
+                val isLoop = q.contains("循环") || prompt.contains("循环")
+                
+                if (isBroadcast) {
+                    "📢【 核心考点解析：Scratch 广播与消息机制 】✨\n\n" +
+                    "1. 💡 **什么是广播（Broadcast）？**\n" +
+                    "   • 广播就像角色之间拿着“无线对讲机”互相喊话！比如裁判喊“比赛开始”，运动员才一起往前跑。\n\n" +
+                    "2. 🧩 **核心积木与拼搭步骤**：\n" +
+                    "   • **发送方（广播消息）**：黄色【事件】➔ 拖出【广播 [消息1]】；\n" +
+                    "   • **接收方（响应行动）**：黄色【事件】➔ 拖出【当接收到 [消息1]】，在下方吸附要执行的动作（如【显示】或【移动 20 步】）！\n\n" +
+                    "3. 🌟 **避坑小贴士**：广播名字最好取有意义的中文（如“游戏开始”、“关卡升级”），这样角色再多也不会混淆哦！🚀"
+                } else if (isVariable) {
+                    "📦【 核心考点解析：Scratch 变量魔法盒 】✨\n\n" +
+                    "1. 💡 **什么是变量（Variable）？**\n" +
+                    "   • 变量就像一个“贴着名字的魔法小盒子”，盒子里可以装数字、文字，随时查看或修改！\n\n" +
+                    "2. 🧩 **三步上手拼搭**：\n" +
+                    "   • ① 在左侧深橙色【变量】分类点击【建立一个变量】，命名为【得分】；\n" +
+                    "   • ② 绿旗启动时，拖出【将 [得分] 设为 0】进行初始化；\n" +
+                    "   • ③ 吃到道具或答对题目时，执行【将 [得分] 增加 1】！\n\n" +
+                    "3. 🌟 **常见考点**：记得每次游戏重新开始前，都要把得分“归零”哦！🐾"
+                } else {
+                    "💡【 核心考点解析：Scratch 循环与条件判断 】✨\n\n" +
+                    "1. 🔄 **循环结构（永远不知疲倦的小马达）**：\n" +
+                    "   • 黄色【控制】分类里的【重复执行】可以让动作一直运行；【重复执行 10 次】则用于跑固定步数。\n\n" +
+                    "2. 🔀 **条件判断（聪明的哨兵）**：\n" +
+                    "   • 【如果 <条件> 那么】积木只有在六边形条件成立时，才会执行肚子里面的代码！\n\n" +
+                    "3. 🧩 **经典组合**：将【如果 <碰到 边缘?> 那么】放入【重复执行】中，就是游戏角色巡逻的核心算法啦！🎉"
+                }
+            }
+
             // =========================================================================
             // 1. 面向对象编程 (OOP) / 类与对象 / 封装 / 继承 / 多态 (解决用户明确反馈的痛点)
             // =========================================================================

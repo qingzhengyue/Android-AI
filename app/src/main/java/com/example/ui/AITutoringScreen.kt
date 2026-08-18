@@ -162,7 +162,14 @@ fun AITutoringScreen(viewModel: MainViewModel) {
         }
 
         filtered.groupBy { record ->
-            if (record.sessionId.isNotBlank()) record.sessionId else "legacy_${record.callId}"
+            val isScratchRecord = record.assistType != "在线对答" && record.assistType != "AI 辅导"
+            if (record.sessionId.isNotBlank()) {
+                record.sessionId
+            } else if (isScratchRecord) {
+                "scratch_session_${record.studentId}"
+            } else {
+                "legacy_${record.callId}"
+            }
         }.map { (sid, recordsInGroup) ->
             val sorted = recordsInGroup.sortedBy { it.callTime }
             SessionGroup(
@@ -170,7 +177,7 @@ fun AITutoringScreen(viewModel: MainViewModel) {
                 records = sorted,
                 firstRecord = sorted.first(),
                 latestTime = sorted.last().callTime,
-                isScratch = sorted.first().assistType != "在线对答" && sorted.first().assistType != "AI 辅导"
+                isScratch = sorted.any { it.assistType != "在线对答" && it.assistType != "AI 辅导" || it.sessionId.startsWith("scratch_") }
             )
         }.sortedByDescending { it.latestTime }
     }
@@ -179,7 +186,14 @@ fun AITutoringScreen(viewModel: MainViewModel) {
     val currentTargetSid = selectedSessionId ?: activeSessionId
     val displayRecords = remember(history, currentTargetSid) {
         history.filter { record ->
-            val recordSid = if (record.sessionId.isNotBlank()) record.sessionId else "legacy_${record.callId}"
+            val isScratchRecord = record.assistType != "在线对答" && record.assistType != "AI 辅导"
+            val recordSid = if (record.sessionId.isNotBlank()) {
+                record.sessionId
+            } else if (isScratchRecord) {
+                "scratch_session_${record.studentId}"
+            } else {
+                "legacy_${record.callId}"
+            }
             recordSid == currentTargetSid
         }.sortedBy { it.callTime }
     }
@@ -376,11 +390,16 @@ fun AITutoringScreen(viewModel: MainViewModel) {
             },
             containerColor = SurfaceBg
         ) { innerPadding ->
+            val latestScratchSession = sessionGroups.firstOrNull { it.isScratch }
             if (displayRecords.isEmpty() && !isLoading) {
                 ElegantEmptyState(
                     onPromptClick = { prompt ->
                         val targetSid = selectedSessionId ?: activeSessionId
                         viewModel.callAiCustomQuestion(prompt, currentMode, targetSessionId = targetSid) { _ -> }
+                    },
+                    recentScratchSession = latestScratchSession,
+                    onSelectSession = { sid ->
+                        selectedSessionId = sid
                     },
                     modifier = Modifier.padding(innerPadding)
                 )
@@ -631,6 +650,8 @@ fun DrawerHistoryListItem(
 @Composable
 fun ElegantEmptyState(
     onPromptClick: (String) -> Unit,
+    recentScratchSession: SessionGroup? = null,
+    onSelectSession: ((String) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     Box(
@@ -648,15 +669,15 @@ fun ElegantEmptyState(
         ) {
             Column(
                 modifier = Modifier
-                    .padding(horizontal = 24.dp, vertical = 28.dp)
+                    .padding(horizontal = 24.dp, vertical = 24.dp)
                     .fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 // 顶部图标柔光卡片
                 Box(
                     modifier = Modifier
-                        .size(64.dp)
-                        .clip(RoundedCornerShape(20.dp))
+                        .size(56.dp)
+                        .clip(RoundedCornerShape(18.dp))
                         .background(
                             brush = Brush.linearGradient(
                                 colors = listOf(
@@ -671,31 +692,69 @@ fun ElegantEmptyState(
                         imageVector = Icons.Rounded.AutoAwesome,
                         contentDescription = "AI 智能精灵",
                         tint = PrimaryIndigo,
-                        modifier = Modifier.size(32.dp)
+                        modifier = Modifier.size(28.dp)
                     )
                 }
 
-                Spacer(modifier = Modifier.height(18.dp))
+                Spacer(modifier = Modifier.height(14.dp))
 
                 Text(
                     text = "开启 Scratch AI 探秘之旅",
-                    fontSize = 18.sp,
+                    fontSize = 17.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF111827)
                 )
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(6.dp))
 
                 Text(
                     text = "我是你的专属编程小助手。遇到积木报错、逻辑卡壳还是创意设计？随时问我！",
-                    fontSize = 13.sp,
+                    fontSize = 12.5.sp,
                     color = Color(0xFF6B7280),
-                    lineHeight = 20.sp,
+                    lineHeight = 18.sp,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.padding(horizontal = 8.dp)
                 )
 
-                Spacer(modifier = Modifier.height(22.dp))
+                if (recentScratchSession != null && onSelectSession != null) {
+                    Spacer(modifier = Modifier.height(14.dp))
+                    Surface(
+                        onClick = { onSelectSession(recentScratchSession.sessionId) },
+                        shape = RoundedCornerShape(16.dp),
+                        color = Color(0xFFFFFBEB),
+                        border = BorderStroke(1.dp, Color(0xFFFDE68A)),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(text = "🧩", fontSize = 18.sp)
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "Scratch 智能精灵答疑历史 (${recentScratchSession.records.size}条)",
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF92400E)
+                                )
+                                Text(
+                                    text = "点击立即查看 Scratch 编程中的全部问答与分析",
+                                    fontSize = 11.sp,
+                                    color = Color(0xFFB45309)
+                                )
+                            }
+                            Icon(
+                                imageVector = Icons.Default.ChevronRight,
+                                contentDescription = "查看",
+                                tint = Color(0xFFD97706),
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(18.dp))
 
                 // 启发式快捷提问胶囊
                 Column(

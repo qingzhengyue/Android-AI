@@ -3,208 +3,107 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>星梭 Scratch 智学积木工作台</title>
+<title>星梭 Scratch 积木查看器</title>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-html, body { width:100%; height:100%; min-height:100%; overflow:hidden; font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background:#0f172a; color:#1e293b; }
-body { display:flex; flex-direction:column; }
-
-/* 顶栏工作条 */
-.top-nav { background:#1e293b; color:#f8fafc; padding:8px 16px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid #334155; flex-shrink:0; }
-.top-title { font-size:14px; font-weight:700; display:flex; align-items:center; gap:8px; color:#38bdf8; }
-.top-actions { display:flex; gap:8px; }
-.nav-btn { border:none; padding:6px 12px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:4px; transition:transform 0.1s, opacity 0.2s; }
-.nav-btn:active { transform:scale(0.96); opacity:0.9; }
-.btn-green { background:#22c55e; color:#fff; }
-.btn-red { background:#ef4444; color:#fff; }
-.btn-outline { background:#334155; color:#cbd5e1; border:1px solid #475569; }
-
-/* 主工作区三栏布局：分类导航 + 积木候选区 + 脚本画布 + 舞台预览 */
-.main-layout { display:flex; flex:1; height:calc(100% - 48px); min-height:0; overflow:hidden; background:#f8fafc; }
-
-/* 1. 侧边分类栏 */
-.cat-sidebar { width:72px; background:#f1f5f9; border-right:1px solid #e2e8f0; display:flex; flex-direction:column; gap:4px; padding:8px 4px; flex-shrink:0; overflow-y:auto; }
-.cat-btn { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:8px 4px; border-radius:10px; font-size:11px; font-weight:600; cursor:pointer; color:#64748b; gap:4px; transition:all 0.15s ease; border:none; background:transparent; width:100%; }
-.cat-btn:hover, .cat-btn.active { background:#fff; color:#0f172a; box-shadow:0 2px 4px rgba(0,0,0,0.06); }
-.cat-dot { width:14px; height:14px; border-radius:50%; box-shadow:0 1px 3px rgba(0,0,0,0.15); }
-
-/* 2. 积木候选库面板 */
-.palette-pane { width:160px; background:#ffffff; border-right:1px solid #e2e8f0; overflow-y:auto; padding:10px 8px; display:flex; flex-direction:column; gap:8px; flex-shrink:0; }
-.palette-header { font-size:11px; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.5px; padding-bottom:4px; border-bottom:1px solid #f1f5f9; }
-
-/* 积木外观样式 */
-.scratch-block { display:inline-flex; align-items:center; flex-wrap:wrap; padding:8px 12px; border-radius:8px; color:#fff; font-size:12px; font-weight:600; min-height:34px; position:relative; gap:6px; cursor:pointer; box-shadow:0 2px 4px rgba(0,0,0,0.12); user-select:none; transition:transform 0.1s, box-shadow 0.15s; line-height:1.3; }
-.scratch-block:active { transform:scale(0.97); }
-.scratch-block .param-pill { background:rgba(0,0,0,0.18); padding:2px 7px; border-radius:10px; font-size:11px; border:1px solid rgba(255,255,255,0.25); color:#fff; font-weight:700; }
-
-.cat-motion { background:#4C97FF; }
-.cat-looks { background:#9966FF; }
-.cat-sound { background:#CF63CF; }
-.cat-events { background:#FFBF00; color:#452800 !important; }
-.cat-control { background:#FFAB19; }
-.cat-sensing { background:#5CB1D6; }
-.cat-operators { background:#59C059; }
-.cat-data { background:#FF8C1A; }
-
-/* 3. 脚本积木工作区画布 */
-.workspace-pane { flex:1; background:#f8fafc; overflow-y:auto; padding:16px; position:relative; display:flex; flex-direction:column; min-width:200px; }
-.workspace-title-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; font-size:13px; color:#475569; font-weight:700; }
-.badge { background:#e0f2fe; color:#0284c7; font-size:11px; padding:3px 8px; border-radius:12px; font-weight:700; }
-.canvas-container { background:#ffffff; border:2px dashed #cbd5e1; border-radius:12px; min-height:280px; padding:16px; display:flex; flex-direction:column; gap:8px; box-shadow:inset 0 2px 4px rgba(0,0,0,0.02); }
-.empty-canvas { display:flex; flex-direction:column; align-items:center; justify-content:center; color:#94a3b8; font-size:13px; min-height:220px; text-align:center; gap:8px; line-height:1.6; }
-
-.block-row { display:flex; align-items:center; justify-content:space-between; width:100%; border-radius:8px; }
-.del-btn { opacity:0.7; font-size:14px; cursor:pointer; padding:2px 6px; border-radius:4px; transition:opacity 0.15s; }
-.del-btn:hover { opacity:1; background:rgba(0,0,0,0.2); }
-
-/* 4. 右侧舞台预览面板 */
-.stage-pane { width:220px; background:#ffffff; border-left:1px solid #e2e8f0; display:flex; flex-direction:column; padding:12px; gap:10px; flex-shrink:0; }
-.stage-screen-box { width:100%; height:160px; background:linear-gradient(to bottom, #f0fdf4, #e0f2fe); border:2px solid #cbd5e1; border-radius:10px; position:relative; overflow:hidden; display:flex; align-items:center; justify-content:center; }
-.cat-character { width:48px; height:48px; position:absolute; transition:all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); filter:drop-shadow(0 2px 4px rgba(0,0,0,0.15)); }
-.speech-bubble { position:absolute; top:12px; left:12px; background:#fff; border:2px solid #0284c7; border-radius:10px; padding:4px 8px; font-size:11px; font-weight:700; color:#0369a1; display:none; max-width:160px; word-break:break-all; box-shadow:0 2px 8px rgba(0,0,0,0.15); z-index:10; }
-.speech-bubble::after { content:''; position:absolute; bottom:-6px; left:16px; border-width:6px 6px 0; border-style:solid; border-color:#0284c7 transparent; display:block; width:0; }
-
-.log-box { flex:1; background:#0f172a; color:#38bdf8; font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size:10px; padding:8px; border-radius:8px; overflow-y:auto; line-height:1.4; max-height:140px; }
-
-@media (max-width: 600px) {
-  .stage-pane { width:150px; }
-  .palette-pane { width:120px; }
-  .cat-sidebar { width:60px; }
-  .top-title { font-size:12px; }
+html, body {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  width: 100%; height: 100%;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background: #f8fafc;
+  color: #1e293b;
+  display: flex;
+  flex-direction: column;
 }
+
+.top-nav {
+  height: 40px;
+  background: #1e293b;
+  color: #f8fafc;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #334155;
+  flex-shrink: 0;
+}
+.top-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #38bdf8;
+}
+.main-layout {
+  display: flex;
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  overflow: hidden;
+  background: #f8fafc;
+}
+.workspace-pane {
+  flex: 1;
+  background: #f8fafc;
+  overflow-y: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+}
+.badge {
+  background: #e0f2fe;
+  color: #0284c7;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 700;
+}
+.canvas-container {
+  background: #ffffff;
+  border: 2px dashed #cbd5e1;
+  border-radius: 10px;
+  flex: 1;
+  min-height: 200px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow-y: auto;
+}
+.scratch-block {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 11.5px;
+  font-weight: 600;
+  min-height: 32px;
+  gap: 5px;
+}
+.cat-motion { background: #4C97FF; }
+.cat-looks { background: #9966FF; }
+.cat-sound { background: #CF63CF; }
+.cat-events { background: #FFBF00; color: #452800 !important; }
+.cat-control { background: #FFAB19; }
+.cat-sensing { background: #5CB1D6; }
+.cat-operators { background: #59C059; }
+.cat-data { background: #FF8C1A; }
 </style>
 </head>
 <body>
-
-<!-- 顶栏快捷操作 -->
 <div class="top-nav">
-  <div class="top-title">
-    <span>🧩 离线轻量极速 Scratch 工作台</span>
-  </div>
-  <div class="top-actions">
-    <button class="nav-btn btn-green" onclick="runScratchBlocks()">🟢 运行脚本</button>
-    <button class="nav-btn btn-red" onclick="stopScratchBlocks()">🛑 重置舞台</button>
-    <button class="nav-btn btn-outline" onclick="clearWorkspace()">🧹 清空</button>
-  </div>
+  <div class="top-title"><span>🧩 Scratch 积木查看器</span></div>
+  <span class="badge" id="blockCountText">0 个积木</span>
 </div>
-
-<!-- 主界面三栏布局 -->
 <div class="main-layout">
-  <!-- 1. 分类栏 -->
-  <div class="cat-sidebar">
-    <button class="cat-btn active" onclick="switchCategory('motion', this)">
-      <div class="cat-dot" style="background:#4C97FF;"></div>运动
-    </button>
-    <button class="cat-btn" onclick="switchCategory('looks', this)">
-      <div class="cat-dot" style="background:#9966FF;"></div>外观
-    </button>
-    <button class="cat-btn" onclick="switchCategory('sound', this)">
-      <div class="cat-dot" style="background:#CF63CF;"></div>声音
-    </button>
-    <button class="cat-btn" onclick="switchCategory('events', this)">
-      <div class="cat-dot" style="background:#FFBF00;"></div>事件
-    </button>
-    <button class="cat-btn" onclick="switchCategory('control', this)">
-      <div class="cat-dot" style="background:#FFAB19;"></div>控制
-    </button>
-    <button class="cat-btn" onclick="switchCategory('sensing', this)">
-      <div class="cat-dot" style="background:#5CB1D6;"></div>侦测
-    </button>
-    <button class="cat-btn" onclick="switchCategory('operators', this)">
-      <div class="cat-dot" style="background:#59C059;"></div>运算
-    </button>
-    <button class="cat-btn" onclick="switchCategory('data', this)">
-      <div class="cat-dot" style="background:#FF8C1A;"></div>变量
-    </button>
-  </div>
-
-  <!-- 2. 积木候选区 -->
-  <div class="palette-pane" id="palettePanel">
-    <!-- JS 动态渲染 -->
-  </div>
-
-  <!-- 3. 积木画布 -->
   <div class="workspace-pane">
-    <div class="workspace-title-row">
-      <span>🐱 角色 1 (Sprite1) 脚本代码区</span>
-      <span class="badge" id="blockCountText">0 个积木</span>
-    </div>
     <div class="canvas-container" id="canvasStack">
-      <div class="empty-canvas" id="emptyTip">
-        <span style="font-size:24px;">👈</span>
-        <span>点击左侧分类库添加积木<br>或从顶栏菜单“载入当前作品积木”一键恢复</span>
-      </div>
+      <div style="text-align:center;color:#94a3b8;padding:20px;">正在加载作品积木...</div>
     </div>
-  </div>
-
-  <!-- 4. 舞台预览 -->
-  <div class="stage-pane">
-    <div style="font-size:12px;font-weight:700;color:#334155;">🖼️ 舞台实时运行效果</div>
-    <div class="stage-screen-box">
-      <div class="speech-bubble" id="sayBubble">你好！星梭！✨</div>
-      <svg class="cat-character" id="catSprite" viewBox="0 0 100 100" style="left:80px; top:55px;">
-        <path d="M20,30 L30,10 L45,25 L55,25 L70,10 L80,30 C90,45 85,70 50,85 C15,70 10,45 20,30 Z" fill="#FFAB19" stroke="#E67E22" stroke-width="2"/>
-        <circle cx="35" cy="40" r="6" fill="#fff"/><circle cx="35" cy="40" r="3" fill="#1e293b"/>
-        <circle cx="65" cy="40" r="6" fill="#fff"/><circle cx="65" cy="40" r="3" fill="#1e293b"/>
-        <path d="M45,55 Q50,62 55,55" stroke="#1e293b" stroke-width="2" fill="none"/>
-      </svg>
-    </div>
-    <div style="font-size:11px;font-weight:700;color:#64748b;">📜 运行日志</div>
-    <div class="log-box" id="stageLog">【系统】离线轻量积木工作区已就绪...</div>
   </div>
 </div>
-
 <script>
-// 积木定义库
-const PALETTE = {
-  motion: [
-    { opcode:'motion_movesteps', label:'移动 <span class="param-pill">10</span> 步', cls:'cat-motion' },
-    { opcode:'motion_turnright', label:'右转 <span class="param-pill">15</span> 度', cls:'cat-motion' },
-    { opcode:'motion_turnleft', label:'左转 <span class="param-pill">15</span> 度', cls:'cat-motion' },
-    { opcode:'motion_gotoxy', label:'移到 x:<span class="param-pill">0</span> y:<span class="param-pill">0</span>', cls:'cat-motion' },
-    { opcode:'motion_changexby', label:'将 x 坐标增加 <span class="param-pill">10</span>', cls:'cat-motion' },
-    { opcode:'motion_changeyby', label:'将 y 坐标增加 <span class="param-pill">10</span>', cls:'cat-motion' },
-    { opcode:'motion_ifonedgebounce', label:'碰到边缘就反弹', cls:'cat-motion' }
-  ],
-  looks: [
-    { opcode:'looks_sayforsecs', label:'说 <span class="param-pill">Hello!</span> <span class="param-pill">2</span> 秒', cls:'cat-looks' },
-    { opcode:'looks_say', label:'说 <span class="param-pill">Hello!</span>', cls:'cat-looks' },
-    { opcode:'looks_thinkforsecs', label:'思考 <span class="param-pill">Hmm...</span> <span class="param-pill">2</span> 秒', cls:'cat-looks' },
-    { opcode:'looks_nextcostume', label:'下一个造型', cls:'cat-looks' },
-    { opcode:'looks_show', label:'显示', cls:'cat-looks' },
-    { opcode:'looks_hide', label:'隐藏', cls:'cat-looks' },
-    { opcode:'looks_changesizeby', label:'将大小增加 <span class="param-pill">10</span>', cls:'cat-looks' }
-  ],
-  sound: [
-    { opcode:'sound_play', label:'播放声音 <span class="param-pill">喵</span>', cls:'cat-sound' },
-    { opcode:'sound_playuntildone', label:'播放声音 <span class="param-pill">喵</span> 直到播完', cls:'cat-sound' },
-    { opcode:'sound_stopallsounds', label:'停止所有声音', cls:'cat-sound' }
-  ],
-  events: [
-    { opcode:'event_whenflagclicked', label:'当 🟢 被点击', cls:'cat-events' },
-    { opcode:'event_whenkeypressed', label:'当按下 <span class="param-pill">空格</span> 键', cls:'cat-events' },
-    { opcode:'event_whenthisspriteclicked', label:'当角色被点击', cls:'cat-events' }
-  ],
-  control: [
-    { opcode:'control_wait', label:'等待 <span class="param-pill">1</span> 秒', cls:'cat-control' },
-    { opcode:'control_repeat', label:'重复执行 <span class="param-pill">10</span> 次', cls:'cat-control' },
-    { opcode:'control_forever', label:'重复执行 [循环]', cls:'cat-control' },
-    { opcode:'control_if', label:'如果 <span class="param-pill">条件</span> 那么', cls:'cat-control' }
-  ],
-  sensing: [
-    { opcode:'sensing_touchingobject', label:'碰到 <span class="param-pill">鼠标指针</span> ?', cls:'cat-sensing' },
-    { opcode:'sensing_askandwait', label:'询问 <span class="param-pill">你叫什么名字?</span>', cls:'cat-sensing' }
-  ],
-  operators: [
-    { opcode:'operator_add', label:'<span class="param-pill">a</span> + <span class="param-pill">b</span>', cls:'cat-operators' },
-    { opcode:'operator_random', label:'在 <span class="param-pill">1</span> 到 <span class="param-pill">10</span> 随机数', cls:'cat-operators' }
-  ],
-  data: [
-    { opcode:'data_setvariableto', label:'将 <span class="param-pill">my variable</span> 设为 <span class="param-pill">0</span>', cls:'cat-data' },
-    { opcode:'data_changevariableby', label:'将 <span class="param-pill">my variable</span> 增加 <span class="param-pill">1</span>', cls:'cat-data' }
-  ]
-};
-
 const OP_TRANSLATE_MAP = {
   'motion_movesteps': '移动 10 步',
   'motion_turnright': '右转 15 度',
@@ -213,69 +112,24 @@ const OP_TRANSLATE_MAP = {
   'motion_gotoxy': '移到 x:0 y:0',
   'motion_glideto': '在 1 秒内滑行到 随机位置',
   'motion_glidesecstoxy': '在 1 秒内滑行到 x:0 y:0',
-  'motion_pointindirection': '面向 90 方向',
-  'motion_pointtowards': '面向 鼠标指针',
   'motion_changexby': '将 x 坐标增加 10',
-  'motion_setx': '将 x 坐标设为 0',
   'motion_changeyby': '将 y 坐标增加 10',
-  'motion_sety': '将 y 坐标设为 0',
   'motion_ifonedgebounce': '碰到边缘就反弹',
-  'motion_setrotationstyle': '将旋转方式设为 [左右翻转]',
   'looks_sayforsecs': '说 Hello! 2 秒',
   'looks_say': '说 Hello!',
-  'looks_thinkforsecs': '思考 Hmm... 2 秒',
-  'looks_think': '思考 Hmm...',
-  'looks_switchcostumeto': '换成 造型1 造型',
   'looks_nextcostume': '下一个造型',
-  'looks_changesizeby': '将大小增加 10',
-  'looks_setsizeto': '将大小设为 100 %',
   'looks_show': '显示',
   'looks_hide': '隐藏',
-  'sound_playuntildone': '播放声音 喵 直到播完',
   'sound_play': '播放声音 喵',
-  'sound_stopallsounds': '停止所有声音',
   'event_whenflagclicked': '当 🟢 被点击',
   'event_whenkeypressed': '当按下 空格 键',
-  'event_whenthisspriteclicked': '当角色被点击',
   'control_wait': '等待 1 秒',
   'control_repeat': '重复执行 10 次',
   'control_forever': '重复执行 [循环]',
   'control_if': '如果 <条件> 那么',
-  'sensing_touchingobject': '碰到 鼠标指针 ?',
-  'sensing_askandwait': '询问 你叫什么名字? 并等待',
-  'operator_add': 'a + b',
-  'operator_random': '在 1 到 10 间随机选数',
   'data_setvariableto': '将 变量 设为 0',
   'data_changevariableby': '将 变量 增加 1'
 };
-
-let activeBlocks = [];
-let catX = 80, catY = 55, isVisible = true;
-
-function logMessage(msg) {
-  const logEl = document.getElementById('stageLog');
-  if (logEl) {
-    logEl.innerHTML += '<br>' + msg;
-    logEl.scrollTop = logEl.scrollHeight;
-  }
-}
-
-function switchCategory(catKey, elem) {
-  document.querySelectorAll('.cat-btn').forEach(e => e.classList.remove('active'));
-  if (elem) elem.classList.add('active');
-  renderPalette(catKey);
-}
-
-function renderPalette(catKey) {
-  const panel = document.getElementById('palettePanel');
-  if (!panel) return;
-  const list = PALETTE[catKey] || [];
-  let html = `<div class="palette-header">选择积木</div>`;
-  list.forEach(b => {
-    html += `<div class="scratch-block ${b.cls}" onclick="addBlock('${b.opcode}', '${encodeURIComponent(b.label)}')">${b.label}</div>`;
-  });
-  panel.innerHTML = html;
-}
 
 function getCategoryClassByOpcode(op) {
   if (!op) return 'cat-motion';
@@ -289,144 +143,6 @@ function getCategoryClassByOpcode(op) {
   return 'cat-data';
 }
 
-function addBlock(opcode, encodedLabel) {
-  const label = decodeURIComponent(encodedLabel);
-  activeBlocks.push({ id: 'block_' + Date.now() + '_' + Math.floor(Math.random()*100), opcode: opcode, label: label });
-  updateWorkspaceUI();
-  logMessage('➕ 添加积木: ' + opcode);
-  notifyAndroidCodeChange();
-}
-
-window.addBlockFromAndroid = function(opcode, label) {
-  const displayLabel = label || opcode;
-  const cls = getCategoryClassByOpcode(opcode);
-  activeBlocks.push({ id: 'block_' + Date.now(), opcode: opcode, label: `<span class="${cls}">${displayLabel}</span>` });
-  updateWorkspaceUI();
-  logMessage('🪄 AI魔法插入积木: ' + opcode);
-  notifyAndroidCodeChange();
-  return "success";
-};
-
-function removeBlock(index) {
-  activeBlocks.splice(index, 1);
-  updateWorkspaceUI();
-  logMessage('🗑️ 移除积木');
-  notifyAndroidCodeChange();
-}
-
-function clearWorkspace() {
-  activeBlocks = [];
-  updateWorkspaceUI();
-  logMessage('🧹 画布已清空');
-  notifyAndroidCodeChange();
-}
-
-function updateWorkspaceUI() {
-  const stackEl = document.getElementById('canvasStack');
-  const countEl = document.getElementById('blockCountText');
-  if (countEl) countEl.innerText = activeBlocks.length + ' 个积木';
-
-  if (!stackEl) return;
-  if (activeBlocks.length === 0) {
-    stackEl.innerHTML = `<div class="empty-canvas"><span style="font-size:24px;">👈</span><span>点击左侧分类库添加积木<br>或从顶栏菜单“载入当前作品积木”一键恢复</span></div>`;
-    return;
-  }
-
-  let html = '';
-  activeBlocks.forEach((b, idx) => {
-    const cls = getCategoryClassByOpcode(b.opcode);
-    html += `<div class="scratch-block ${cls} block-row">
-      <span>${b.label}</span>
-      <span class="del-btn" onclick="event.stopPropagation();removeBlock(${idx})">✕</span>
-    </div>`;
-  });
-  stackEl.innerHTML = html;
-}
-
-function runScratchBlocks() {
-  if (activeBlocks.length === 0) {
-    logMessage('⚠️ 画布为空，无法运行程序');
-    return;
-  }
-  logMessage('🟢 开始执行 Scratch 积木程序...');
-  
-  let delay = 0;
-  const catSvg = document.getElementById('catSprite');
-  const bubble = document.getElementById('sayBubble');
-
-  activeBlocks.forEach(b => {
-    setTimeout(() => {
-      if (b.opcode.includes('movesteps') || b.opcode.includes('changexby')) {
-        catX += 15;
-        if (catX > 160) catX = 20;
-        if (catSvg) catSvg.style.left = catX + 'px';
-        logMessage('▶ 角色移动 -> x:' + catX);
-      } else if (b.opcode.includes('say')) {
-        if (bubble) {
-          bubble.innerText = '喵！星梭正在运行！🐱';
-          bubble.style.display = 'block';
-          setTimeout(() => { bubble.style.display = 'none'; }, 1800);
-        }
-        logMessage('▶ 说话: 喵！星梭正在运行！');
-      } else if (b.opcode.includes('hide')) {
-        if (catSvg) catSvg.style.opacity = '0';
-        logMessage('▶ 隐藏角色');
-      } else if (b.opcode.includes('show')) {
-        if (catSvg) catSvg.style.opacity = '1';
-        logMessage('▶ 显示角色');
-      } else {
-        logMessage('▶ 执行: ' + b.opcode);
-      }
-    }, delay);
-    delay += 500;
-  });
-}
-
-function stopScratchBlocks() {
-  catX = 80; catY = 55;
-  const catSvg = document.getElementById('catSprite');
-  if (catSvg) {
-    catSvg.style.left = catX + 'px';
-    catSvg.style.top = catY + 'px';
-    catSvg.style.opacity = '1';
-  }
-  const bubble = document.getElementById('sayBubble');
-  if (bubble) bubble.style.display = 'none';
-  logMessage('🛑 重置舞台完成');
-}
-
-function notifyAndroidCodeChange() {
-  if (window.AndroidWorkspace && window.AndroidWorkspace.onCodeChanged) {
-    window.AndroidWorkspace.onCodeChanged();
-  }
-  if (window.ScratchJsInterface && window.ScratchJsInterface.onCodeChanged) {
-    window.ScratchJsInterface.onCodeChanged();
-  }
-}
-
-window.getProjectJson = function() {
-  const blocksMap = {};
-  activeBlocks.forEach((b, idx) => {
-    blocksMap[b.id] = {
-      opcode: b.opcode,
-      next: activeBlocks[idx+1] ? activeBlocks[idx+1].id : null,
-      parent: activeBlocks[idx-1] ? activeBlocks[idx-1].id : null,
-      inputs: {},
-      fields: {},
-      topLevel: idx === 0
-    };
-  });
-
-  const projectObj = {
-    targets: [
-      { isStage: true, name: "Stage", variables: {}, lists: {}, broadcasts: {}, blocks: {} },
-      { isStage: false, name: "Sprite1", variables: {}, lists: {}, broadcasts: {}, blocks: blocksMap }
-    ],
-    meta: { semver: "3.0.0", vm: "0.2.0", agent: "AndroidStarShuttle" }
-  };
-  return JSON.stringify(projectObj);
-};
-
 window.loadProject = function(jsonInput) {
   try {
     if (!jsonInput) return;
@@ -434,65 +150,52 @@ window.loadProject = function(jsonInput) {
     if (typeof jsonInput === 'string') {
       const trimmed = jsonInput.trim();
       if (!trimmed || trimmed === "{}") return;
-      try {
-        obj = JSON.parse(trimmed);
-      } catch(e) {
-        console.warn("Direct parse failed", e);
-        return;
-      }
+      try { obj = JSON.parse(trimmed); } catch(e) { return; }
     }
-    
-    activeBlocks = [];
+    const blocks = [];
     if (obj && obj.targets && Array.isArray(obj.targets)) {
       obj.targets.forEach(t => {
         if (t && t.blocks) {
           if (Array.isArray(t.blocks)) {
             t.blocks.forEach(b => {
               const op = (typeof b === 'string') ? b : (b.opcode || '');
-              if (op) {
-                const cls = getCategoryClassByOpcode(op);
-                const zhLabel = OP_TRANSLATE_MAP[op] || op;
-                activeBlocks.push({ id: 'block_' + Math.random().toString(36).substr(2, 9), opcode: op, label: `<span class="${cls}">${zhLabel}</span>` });
-              }
+              if (op) blocks.push({ opcode: op, label: OP_TRANSLATE_MAP[op] || op });
             });
           } else if (typeof t.blocks === 'object') {
             for (let id in t.blocks) {
               const b = t.blocks[id];
               if (b && typeof b === 'object' && b.opcode) {
                 const op = b.opcode;
-                const cls = getCategoryClassByOpcode(op);
-                const zhLabel = OP_TRANSLATE_MAP[op] || op;
-                activeBlocks.push({ id: id, opcode: op, label: `<span class="${cls}">${zhLabel}</span>` });
+                blocks.push({ opcode: op, label: OP_TRANSLATE_MAP[op] || op });
               }
             }
           }
         }
       });
     }
-    updateWorkspaceUI();
-    logMessage('✅ 导入积木成功，共计 ' + activeBlocks.length + ' 个积木代码块');
-  } catch(e) {
-    logMessage('❌ 解析作业 JSON 异常: ' + e.message);
-  }
+    const stackEl = document.getElementById('canvasStack');
+    const countEl = document.getElementById('blockCountText');
+    if (countEl) countEl.innerText = blocks.length + ' 个积木';
+    if (!stackEl) return;
+    if (blocks.length === 0) {
+      stackEl.innerHTML = '<div style="text-align:center;color:#94a3b8;padding:20px;">作品暂无积木代码</div>';
+      return;
+    }
+    let html = '';
+    blocks.forEach(b => {
+      const cls = getCategoryClassByOpcode(b.opcode);
+      html += `<div class="scratch-block ${cls}"><span>${b.label}</span></div>`;
+    });
+    stackEl.innerHTML = html;
+  } catch(e) {}
 };
 
 window.onload = function() {
-  renderPalette('motion');
-  
-  function tryFetchAndLoad() {
-    if (window.AndroidProjectProvider && window.AndroidProjectProvider.fetchProjectJson) {
-      const json = window.AndroidProjectProvider.fetchProjectJson();
-      if (json && json !== "{}" && json.length > 2) {
-        window.loadProject(json);
-        return true;
-      }
+  if (window.AndroidProjectProvider && window.AndroidProjectProvider.fetchProjectJson) {
+    const json = window.AndroidProjectProvider.fetchProjectJson();
+    if (json && json !== "{}" && json.length > 2) {
+      window.loadProject(json);
     }
-    return false;
-  }
-
-  if (!tryFetchAndLoad()) {
-    setTimeout(tryFetchAndLoad, 200);
-    setTimeout(tryFetchAndLoad, 600);
   }
 };
 </script>
