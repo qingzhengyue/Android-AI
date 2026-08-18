@@ -623,32 +623,54 @@ html, body {
   max-height: 110px;
 }
 
-/* 模态弹窗与参数修改器 (横屏与移动端全面适配 - 杜绝折叠) */
-.modal-mask {
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  width: 100vw; height: 100vh;
-  background: rgba(0,0,0,0.65);
-  display: flex;
+/* 模态弹窗与参数修改器 (全屏自适应布局，彻底杜绝折叠截断) */
+#modalContainer {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background: rgba(15, 23, 42, 0.72) !important;
+  z-index: 99999 !important;
+  display: none;
   align-items: center;
   justify-content: center;
-  z-index: 9999;
-  padding: 10px;
-  backdrop-filter: blur(2px);
+  padding: 12px;
+  box-sizing: border-box;
 }
+#modalContainer.active {
+  display: flex !important;
+}
+
 .modal-dialog {
   background: #ffffff;
   border-radius: 12px;
-  width: 90vw;
+  width: 95%;
   max-width: 500px;
   max-height: 88vh;
-  padding: 12px 14px;
-  box-shadow: 0 16px 40px rgba(0,0,0,0.4);
+  box-shadow: 0 20px 48px rgba(0,0,0,0.5);
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
+  box-sizing: border-box;
+  overflow: hidden;
+  border: 1.5px solid #cbd5e1;
+  animation: modalFadeIn 0.18s ease-out;
+}
+@keyframes modalFadeIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.modal-header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+  flex-shrink: 0;
 }
 .modal-title {
   font-size: 13px;
@@ -657,35 +679,66 @@ html, body {
   display: flex;
   align-items: center;
   gap: 6px;
-  flex-shrink: 0;
 }
-.modal-input {
-  width: 100%;
-  padding: 6px 9px;
-  border: 1.5px solid #cbd5e1;
-  border-radius: 6px;
-  font-size: 11.5px;
-  outline: none;
-  background: #fff;
+.modal-scroll-body {
+  padding: 12px 14px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  flex: 1;
+  min-height: 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
-.modal-input:focus { border-color: #3b82f6; }
-.modal-actions {
+.modal-footer-bar {
+  padding: 8px 14px;
+  background: #f8fafc;
+  border-top: 1px solid #e2e8f0;
   display: flex;
   justify-content: flex-end;
   gap: 8px;
-  margin-top: 6px;
   flex-shrink: 0;
 }
+
+.modal-input {
+  width: 100%;
+  padding: 7px 10px;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 12px;
+  outline: none;
+  background: #fff;
+  color: #1e293b;
+}
+.modal-input:focus { border-color: #3b82f6; }
+
 .modal-btn {
-  padding: 5px 12px;
+  padding: 6px 14px;
   border-radius: 6px;
   font-size: 11.5px;
   font-weight: 700;
   cursor: pointer;
   border: none;
+  transition: opacity 0.15s, transform 0.1s;
 }
-.modal-btn-cancel { background: #f1f5f9; color: #475569; }
-.modal-btn-confirm { background: #3b82f6; color: #fff; }
+.modal-btn:active { transform: scale(0.96); opacity: 0.9; }
+.modal-btn-cancel { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
+.modal-btn-confirm { background: #3b82f6; color: #fff; box-shadow: 0 2px 6px rgba(59,130,246,0.3); }
+
+/* 拖拽浮动镜像与高亮 */
+.touch-drag-ghost {
+  position: fixed !important;
+  pointer-events: none !important;
+  z-index: 999999 !important;
+  box-shadow: 0 12px 28px rgba(0,0,0,0.45) !important;
+  transform: translate(-50%, -50%) scale(1.08) !important;
+  opacity: 0.92 !important;
+  margin: 0 !important;
+}
+.drag-over-canvas {
+  border-color: #22c55e !important;
+  background: #f0fdf4 !important;
+}
 
 @media (max-width: 600px) {
   .stage-pane { width: 130px; }
@@ -1030,7 +1083,7 @@ function renderPalette(catKey) {
         { opcode:'data_hidevariable', label:`隐藏变量 <span class="param-pill" data-key="varName">${primaryVar}</span> 🙈`, cls:'cat-data', params:{ varName: primaryVar } }
       ];
       dataBlocks.forEach((b, idx) => {
-        html += `<div class="scratch-block ${b.cls}" draggable="true" ondragstart="handlePaletteDragStart(event, 'data', ${idx})" onclick="addBlockFromPalette('data', ${idx})">${b.label}</div>`;
+        html += `<div class="scratch-block ${b.cls}" data-category="data" data-index="${idx}" draggable="true" ondragstart="handlePaletteDragStart(event, 'data', ${idx})" onclick="addBlockFromPalette('data', ${idx})">${b.label}</div>`;
       });
     } else {
       html += `<div style="font-size:10.5px;color:#94a3b8;padding:8px 0;text-align:center;">暂无变量<br>点击上方按钮新建</div>`;
@@ -1042,12 +1095,223 @@ function renderPalette(catKey) {
   const list = PALETTE_DEFINITIONS[catKey] || [];
   let html = `<div class="palette-header"><span>选择积木 (可点击或拖拽)</span></div>`;
   list.forEach((b, idx) => {
-    html += `<div class="scratch-block ${b.cls}" draggable="true" ondragstart="handlePaletteDragStart(event, '${catKey}', ${idx})" onclick="addBlockFromPalette('${catKey}', ${idx})">${b.label}</div>`;
+    html += `<div class="scratch-block ${b.cls}" data-category="${catKey}" data-index="${idx}" draggable="true" ondragstart="handlePaletteDragStart(event, '${catKey}', ${idx})" onclick="addBlockFromPalette('${catKey}', ${idx})">${b.label}</div>`;
   });
   panel.innerHTML = html;
 }
 
-// 拖拽积木处理逻辑
+// 触摸拖拽与全局拖拽数据
+let touchDragData = null;
+let touchDragGhost = null;
+let touchStartX = 0, touchStartY = 0;
+let isTouchDragging = false;
+
+function initTouchDragSupport() {
+  const panel = document.getElementById('palettePanel');
+  if (!panel) return;
+
+  panel.addEventListener('touchstart', handlePaletteTouchStart, { passive: false });
+  document.addEventListener('touchmove', handlePaletteTouchMove, { passive: false });
+  document.addEventListener('touchend', handlePaletteTouchEnd, { passive: false });
+  document.addEventListener('touchcancel', handlePaletteTouchEnd, { passive: false });
+}
+
+function handlePaletteTouchStart(e) {
+  const targetBlock = e.target.closest('.scratch-block');
+  if (!targetBlock || !targetBlock.hasAttribute('data-category')) return;
+  
+  const touch = e.touches[0];
+  touchStartX = touch.clientX;
+  touchStartY = touch.clientY;
+  isTouchDragging = false;
+  
+  const catKey = targetBlock.getAttribute('data-category');
+  const idx = parseInt(targetBlock.getAttribute('data-index'), 10);
+  
+  let template;
+  if (catKey === 'data') {
+    const varNames = Object.keys(projectVariables);
+    const primaryVar = varNames[0] || '得分';
+    const dataBlocks = [
+      { opcode:'data_setvariableto', label:`将 <span class="param-pill" data-key="varName">${primaryVar}</span> 设为 <span class="param-pill" data-key="value">0</span> 📦`, cls:'cat-data', params:{ varName: primaryVar, value: 0 } },
+      { opcode:'data_changevariableby', label:`将 <span class="param-pill" data-key="varName">${primaryVar}</span> 增加 <span class="param-pill" data-key="value">1</span> 🏆`, cls:'cat-data', params:{ varName: primaryVar, value: 1 } },
+      { opcode:'data_showvariable', label:`显示变量 <span class="param-pill" data-key="varName">${primaryVar}</span> 👁️`, cls:'cat-data', params:{ varName: primaryVar } },
+      { opcode:'data_hidevariable', label:`隐藏变量 <span class="param-pill" data-key="varName">${primaryVar}</span> 🙈`, cls:'cat-data', params:{ varName: primaryVar } }
+    ];
+    template = dataBlocks[idx];
+  } else {
+    template = PALETTE_DEFINITIONS[catKey] ? PALETTE_DEFINITIONS[catKey][idx] : null;
+  }
+  
+  if (template) {
+    touchDragData = {
+      category: catKey,
+      template: template,
+      sourceElem: targetBlock
+    };
+    currentDraggedBlock = touchDragData;
+  }
+}
+
+function handlePaletteTouchMove(e) {
+  if (!touchDragData) return;
+  const touch = e.touches[0];
+  const dx = touch.clientX - touchStartX;
+  const dy = touch.clientY - touchStartY;
+  
+  if (!isTouchDragging && (Math.abs(dx) > 6 || Math.abs(dy) > 6)) {
+    isTouchDragging = true;
+    if (!touchDragGhost) {
+      touchDragGhost = document.createElement('div');
+      touchDragGhost.className = `scratch-block ${touchDragData.template.cls || 'cat-motion'} touch-drag-ghost`;
+      touchDragGhost.innerHTML = touchDragData.template.label;
+      document.body.appendChild(touchDragGhost);
+    }
+  }
+  
+  if (isTouchDragging && touchDragGhost) {
+    if (e.cancelable) e.preventDefault();
+    touchDragGhost.style.left = touch.clientX + 'px';
+    touchDragGhost.style.top = touch.clientY + 'px';
+    
+    touchDragGhost.style.display = 'none';
+    const elemBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+    touchDragGhost.style.display = 'flex';
+    
+    document.querySelectorAll('.drag-over-cond, .drag-over-container, .drag-over-canvas').forEach(el => {
+      el.classList.remove('drag-over-cond', 'drag-over-container', 'drag-over-canvas');
+    });
+    
+    if (elemBelow) {
+      const condSlot = elemBelow.closest('[data-condition-slot]');
+      if (condSlot) {
+        condSlot.classList.add('drag-over-cond');
+        return;
+      }
+      
+      const containerBody = elemBelow.closest('[data-container-body]');
+      if (containerBody) {
+        containerBody.classList.add('drag-over-container');
+        return;
+      }
+      
+      const canvas = elemBelow.closest('#canvasStack, .workspace-pane');
+      if (canvas) {
+        const stack = document.getElementById('canvasStack');
+        if (stack) stack.classList.add('drag-over-canvas');
+      }
+    }
+  }
+}
+
+function handlePaletteTouchEnd(e) {
+  if (!touchDragData) return;
+  
+  if (isTouchDragging) {
+    const touch = e.changedTouches ? e.changedTouches[0] : null;
+    if (touch) {
+      if (touchDragGhost) touchDragGhost.style.display = 'none';
+      const elemBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+      
+      if (elemBelow) {
+        const condSlot = elemBelow.closest('[data-condition-slot]');
+        if (condSlot) {
+          const blockId = condSlot.getAttribute('data-block-id');
+          const newCond = getConditionStringFromTemplate(touchDragData.template);
+          saveBlockParamDirect(blockId, 'condition', newCond);
+          logMessage(`⚡ 触摸拖拽嵌套运算条件成功: 【${newCond}】`);
+        } else {
+          const containerBody = elemBelow.closest('[data-container-body]');
+          if (containerBody) {
+            const containerId = containerBody.getAttribute('data-container-id');
+            const template = touchDragData.template;
+            if (template.opcode === 'event_whenflagclicked') {
+              alert('“当 🟢 被点击”是程序总入口，不能放入循环体内部哦！');
+            } else {
+              const parent = findBlockById(containerId);
+              if (parent) {
+                if (!parent.children) parent.children = [];
+                parent.children.push({
+                  id: 'child_' + Date.now() + '_' + Math.floor(Math.random()*100),
+                  opcode: template.opcode,
+                  label: template.label,
+                  params: JSON.parse(JSON.stringify(template.params || {})),
+                  isContainer: !!template.isContainer,
+                  children: template.children ? JSON.parse(JSON.stringify(template.children)) : []
+                });
+                updateWorkspaceUI();
+                logMessage(`📥 触摸拖拽放入循环体: ${OP_TRANSLATE_MAP[template.opcode] || template.opcode}`);
+                notifyAndroidCodeChange();
+              }
+            }
+          } else {
+            const canvas = elemBelow.closest('#canvasStack, .workspace-pane');
+            if (canvas) {
+              const template = touchDragData.template;
+              const newBlock = {
+                id: 'block_' + Date.now() + '_' + Math.floor(Math.random()*100),
+                opcode: template.opcode,
+                label: template.label,
+                params: JSON.parse(JSON.stringify(template.params || {})),
+                isContainer: !!template.isContainer,
+                children: template.children ? JSON.parse(JSON.stringify(template.children)) : []
+              };
+              activeBlocks.push(newBlock);
+              updateWorkspaceUI();
+              logMessage('➕ 拖拽添加积木: ' + (OP_TRANSLATE_MAP[newBlock.opcode] || newBlock.opcode));
+              notifyAndroidCodeChange();
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  if (touchDragGhost && touchDragGhost.parentNode) {
+    touchDragGhost.parentNode.removeChild(touchDragGhost);
+  }
+  touchDragGhost = null;
+  touchDragData = null;
+  isTouchDragging = false;
+  currentDraggedBlock = null;
+  
+  document.querySelectorAll('.drag-over-cond, .drag-over-container, .drag-over-canvas').forEach(el => {
+    el.classList.remove('drag-over-cond', 'drag-over-container', 'drag-over-canvas');
+  });
+}
+
+function getConditionStringFromTemplate(t) {
+  if (!t) return 'x < 10';
+  const op = t.opcode;
+  const p = t.params || {};
+  if (op === 'operator_lt') {
+    const v = p.varName || 'x';
+    const val = p.val !== undefined ? p.val : 10;
+    return `${v} < ${val}`;
+  } else if (op === 'operator_gt') {
+    const v = p.varName || 'x';
+    const val = p.val !== undefined ? p.val : 5;
+    return `${v} > ${val}`;
+  } else if (op === 'operator_equals') {
+    const v = p.varName || '得分';
+    const val = p.val !== undefined ? p.val : 100;
+    return `${v} = ${val}`;
+  } else if (op === 'operator_random') {
+    return `随机数(1~10) > 5`;
+  } else if (op === 'operator_add') {
+    return `${p.a || 5} + ${p.b || 10} > 10`;
+  } else if (op === 'sensing_touchingobject') {
+    return `碰到舞台边缘`;
+  } else if (op === 'sensing_keypressed') {
+    return `按下空格键`;
+  } else if (op === 'sensing_askandwait') {
+    return `回答 = 正确`;
+  } else {
+    return (t.label || op).replace(/<[^>]*>/g, '').trim();
+  }
+}
+
+// 桌面 HTML5 拖拽处理逻辑
 function handlePaletteDragStart(event, catKey, idx) {
   let template;
   if (catKey === 'data') {
@@ -1147,61 +1411,51 @@ function handleConditionDrop(event, blockId) {
 
   if (!currentDraggedBlock || !currentDraggedBlock.template) return;
   const t = currentDraggedBlock.template;
-  let newCond = '';
-
-  if (t.opcode === 'operator_gt') {
-    const v = (t.params && t.params.varName) || 'x';
-    const val = (t.params && t.params.val) !== undefined ? t.params.val : 5;
-    newCond = `${v} > ${val}`;
-  } else if (t.opcode === 'operator_lt') {
-    const v = (t.params && t.params.varName) || '得分';
-    const val = (t.params && t.params.val) !== undefined ? t.params.val : 10;
-    newCond = `${v} < ${val}`;
-  } else if (t.opcode === 'operator_equals') {
-    const v = (t.params && t.params.varName) || '得分';
-    const val = (t.params && t.params.val) !== undefined ? t.params.val : 100;
-    newCond = `${v} = ${val}`;
-  } else if (t.opcode === 'operator_random') {
-    newCond = `随机数(1~10) > 5`;
-  } else if (t.opcode === 'sensing_touchingobject') {
-    newCond = `碰到舞台边缘`;
-  } else if (t.opcode === 'sensing_keypressed') {
-    newCond = `按下空格键`;
-  } else {
-    newCond = `${t.label || t.opcode}`;
-  }
+  const newCond = getConditionStringFromTemplate(t);
 
   saveBlockParamDirect(blockId, 'condition', newCond);
   logMessage(`⚡ 成功将【${newCond}】运算积木嵌套为条件判断！`);
   currentDraggedBlock = null;
 }
 
-function openNewVariableDialog() {
+function openModal(dialogHtml) {
   const container = document.getElementById('modalContainer');
-  container.style.display = 'block';
-  container.innerHTML = `
-    <div class="modal-mask" onclick="closeModal()">
-      <div class="modal-dialog" style="max-width:320px;" onclick="event.stopPropagation()">
-        <div class="modal-title">📦 建立一个新变量</div>
-        <div style="font-size:11px;color:#64748b;">请输入变量名称（如 x, y, 得分, 生命值, 计数器）:</div>
-        <input type="text" id="newVarInput" class="modal-input" placeholder="输入变量名称，如: x 或 得分" autofocus>
-        <div class="modal-actions">
-          <button class="modal-btn modal-btn-cancel" onclick="closeModal()">取消</button>
-          <button class="modal-btn modal-btn-confirm" onclick="confirmNewVariable()">确定创建</button>
-        </div>
-      </div>
-    </div>
-  `;
-  setTimeout(() => {
-    const input = document.getElementById('newVarInput');
-    if (input) input.focus();
-  }, 100);
+  if (!container) return;
+  container.innerHTML = dialogHtml;
+  container.classList.add('active');
+  container.style.display = 'flex';
 }
 
 function closeModal() {
   const container = document.getElementById('modalContainer');
+  if (!container) return;
+  container.classList.remove('active');
   container.style.display = 'none';
   container.innerHTML = '';
+}
+
+function openNewVariableDialog() {
+  const html = `
+    <div class="modal-dialog" style="max-width:340px;" onclick="event.stopPropagation()">
+      <div class="modal-header-bar">
+        <div class="modal-title">📦 建立一个新变量</div>
+        <span class="del-btn" onclick="closeModal()" style="font-size:16px;">✕</span>
+      </div>
+      <div class="modal-scroll-body">
+        <div style="font-size:11px;color:#64748b;">请输入变量名称（如 x, y, 得分, 生命值, 计数器）:</div>
+        <input type="text" id="newVarInput" class="modal-input" placeholder="输入变量名称，如: x 或 得分" autofocus>
+      </div>
+      <div class="modal-footer-bar">
+        <button class="modal-btn modal-btn-cancel" onclick="closeModal()">取消</button>
+        <button class="modal-btn modal-btn-confirm" onclick="confirmNewVariable()">确定创建</button>
+      </div>
+    </div>
+  `;
+  openModal(html);
+  setTimeout(() => {
+    const input = document.getElementById('newVarInput');
+    if (input) input.focus();
+  }, 100);
 }
 
 function confirmNewVariable() {
@@ -1281,7 +1535,7 @@ function addBlockFromPalette(catKey, idx) {
   notifyAndroidCodeChange();
 }
 
-// 循环体内部 1-Click 极速添加功能 (快捷按钮) - 基于 containerId 绝对唯一绑定
+// 循环体内部 1-Click 极速添加功能 (快捷按钮)
 function addQuickChild(containerId, opcode) {
   const parent = findBlockById(containerId);
   if (!parent) return;
@@ -1308,13 +1562,10 @@ function addQuickChild(containerId, opcode) {
   }
 }
 
-// 全分类“添加积木到循环体”弹窗 - 基于 containerId 解决多循环结构冲突
+// 全分类“添加积木到循环体”弹窗
 function addChildBlockToContainer(containerId, selectedCategory = 'motion') {
   const parent = findBlockById(containerId);
   if (!parent || !parent.isContainer) return;
-
-  const container = document.getElementById('modalContainer');
-  container.style.display = 'block';
 
   const categories = [
     { key: 'motion', name: '运动', color: '#4C97FF' },
@@ -1358,21 +1609,25 @@ function addChildBlockToContainer(containerId, selectedCategory = 'motion') {
     `;
   });
 
-  container.innerHTML = `
-    <div class="modal-mask" onclick="closeModal()">
-      <div class="modal-dialog" onclick="event.stopPropagation()">
+  const dialogHtml = `
+    <div class="modal-dialog" onclick="event.stopPropagation()">
+      <div class="modal-header-bar">
         <div class="modal-title">🔄 添加积木到循环体 / 分支内部</div>
-        <div style="font-size:11px;color:#64748b;flex-shrink:0;">点击下方任一积木，即可将其嵌套放入内部：</div>
+        <span class="del-btn" onclick="closeModal()" style="font-size:16px;">✕</span>
+      </div>
+      <div class="modal-scroll-body">
+        <div style="font-size:11px;color:#64748b;">点击下方任一积木放入循环体（支持从左侧直接拖拽）：</div>
         ${catTabsHtml}
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px;max-height:220px;overflow-y:auto;padding:2px;flex:1;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:2px;">
           ${listHtml}
         </div>
-        <div class="modal-actions">
-          <button class="modal-btn modal-btn-cancel" onclick="closeModal()">关闭</button>
-        </div>
+      </div>
+      <div class="modal-footer-bar">
+        <button class="modal-btn modal-btn-cancel" onclick="closeModal()">关闭</button>
       </div>
     </div>
   `;
+  openModal(dialogHtml);
 }
 
 function confirmAddChildDynamic(containerId, category, candidateIdx) {
@@ -1443,9 +1698,6 @@ function clearWorkspace() {
 
 // 运算与条件深度配置弹窗 (支持嵌套运算积木，如 x < 10, 得分 > 5, 碰到边缘等)
 function openConditionCustomizer(blockId, currentCondition) {
-  const container = document.getElementById('modalContainer');
-  container.style.display = 'block';
-
   const varNames = Object.keys(projectVariables);
   if (!varNames.includes('x')) varNames.push('x');
   if (!varNames.includes('得分')) varNames.push('得分');
@@ -1455,56 +1707,60 @@ function openConditionCustomizer(blockId, currentCondition) {
     varOptionsHtml += `<option value="${v}">${v}</option>`;
   });
 
-  container.innerHTML = `
-    <div class="modal-mask" onclick="closeModal()">
-      <div class="modal-dialog" style="max-width:380px;" onclick="event.stopPropagation()">
+  const dialogHtml = `
+    <div class="modal-dialog" style="max-width:440px;" onclick="event.stopPropagation()">
+      <div class="modal-header-bar">
         <div class="modal-title">⚡ 嵌套条件与运算积木</div>
-        <div style="font-size:11px;color:#64748b;flex-shrink:0;">通过嵌套“运算”或“侦测”积木修改如果条件：</div>
+        <span class="del-btn" onclick="closeModal()" style="font-size:16px;">✕</span>
+      </div>
+      <div class="modal-scroll-body">
+        <div style="font-size:11px;color:#64748b;">支持点击下方积木快速嵌套，也可直接从左侧“运算”或“侦测”库拖拽积木到条件插槽：</div>
         
         <div style="background:#f0fdf4;border:1.5px solid #86efac;border-radius:8px;padding:8px;display:flex;flex-direction:column;gap:6px;">
-          <div style="font-size:11px;font-weight:800;color:#166534;">🌟 推荐嵌套运算积木 (点击即可嵌套):</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">
-            <button class="modal-btn" style="background:#dcfce7;color:#15803d;border:1px solid #86efac;font-size:11px;font-weight:700;" onclick="selectQuickCondition('${blockId}', 'x > 5')">📈 ⟨ x &gt; 5 ⟩</button>
-            <button class="modal-btn" style="background:#dcfce7;color:#15803d;border:1px solid #86efac;font-size:11px;font-weight:700;" onclick="selectQuickCondition('${blockId}', 'x < 10')">📉 ⟨ x &lt; 10 ⟩</button>
-            <button class="modal-btn" style="background:#dcfce7;color:#15803d;border:1px solid #86efac;font-size:11px;font-weight:700;" onclick="selectQuickCondition('${blockId}', '得分 > 10')">🏆 ⟨ 得分 &gt; 10 ⟩</button>
-            <button class="modal-btn" style="background:#dcfce7;color:#15803d;border:1px solid #86efac;font-size:11px;font-weight:700;" onclick="selectQuickCondition('${blockId}', '得分 = 100')">🎯 ⟨ 得分 = 100 ⟩</button>
-            <button class="modal-btn" style="background:#dcfce7;color:#15803d;border:1px solid #86efac;font-size:11px;font-weight:700;" onclick="selectQuickCondition('${blockId}', 'x = 0')">🔢 ⟨ x = 0 ⟩</button>
-            <button class="modal-btn" style="background:#dcfce7;color:#15803d;border:1px solid #86efac;font-size:11px;font-weight:700;" onclick="selectQuickCondition('${blockId}', '随机数(1~10) > 5')">🎲 ⟨ 随机数 &gt; 5 ⟩</button>
+          <div style="font-size:11px;font-weight:800;color:#166534;">🌟 点击直接嵌套常用运算积木:</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;">
+            <button type="button" class="modal-btn" style="background:#dcfce7;color:#15803d;border:1px solid #86efac;font-size:11.5px;font-weight:800;padding:6px 8px;text-align:center;" onclick="selectQuickCondition('${blockId}', 'x < 10')">📉 ⟨ x &lt; 10 ⟩</button>
+            <button type="button" class="modal-btn" style="background:#dcfce7;color:#15803d;border:1px solid #86efac;font-size:11.5px;font-weight:800;padding:6px 8px;text-align:center;" onclick="selectQuickCondition('${blockId}', 'x > 5')">📈 ⟨ x &gt; 5 ⟩</button>
+            <button type="button" class="modal-btn" style="background:#dcfce7;color:#15803d;border:1px solid #86efac;font-size:11.5px;font-weight:800;padding:6px 8px;text-align:center;" onclick="selectQuickCondition('${blockId}', '得分 < 10')">📉 ⟨ 得分 &lt; 10 ⟩</button>
+            <button type="button" class="modal-btn" style="background:#dcfce7;color:#15803d;border:1px solid #86efac;font-size:11.5px;font-weight:800;padding:6px 8px;text-align:center;" onclick="selectQuickCondition('${blockId}', '得分 > 10')">🏆 ⟨ 得分 &gt; 10 ⟩</button>
+            <button type="button" class="modal-btn" style="background:#dcfce7;color:#15803d;border:1px solid #86efac;font-size:11.5px;font-weight:800;padding:6px 8px;text-align:center;" onclick="selectQuickCondition('${blockId}', '得分 = 100')">🎯 ⟨ 得分 = 100 ⟩</button>
+            <button type="button" class="modal-btn" style="background:#dcfce7;color:#15803d;border:1px solid #86efac;font-size:11.5px;font-weight:800;padding:6px 8px;text-align:center;" onclick="selectQuickCondition('${blockId}', 'x = 0')">🔢 ⟨ x = 0 ⟩</button>
+            <button type="button" class="modal-btn" style="background:#dcfce7;color:#15803d;border:1px solid #86efac;font-size:11.5px;font-weight:800;padding:6px 8px;text-align:center;" onclick="selectQuickCondition('${blockId}', '随机数(1~10) > 5')">🎲 ⟨ 随机数 &gt; 5 ⟩</button>
           </div>
         </div>
 
         <div style="background:#f0f9ff;border:1.5px solid #bae6fd;border-radius:8px;padding:8px;display:flex;flex-direction:column;gap:6px;">
-          <div style="font-size:11px;font-weight:800;color:#0369a1;">🎯 推荐嵌套侦测积木:</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">
-            <button class="modal-btn" style="background:#e0f2fe;color:#0369a1;border:1px solid #7dd3fc;font-size:11px;font-weight:700;" onclick="selectQuickCondition('${blockId}', '碰到舞台边缘')">💥 碰到舞台边缘 ?</button>
-            <button class="modal-btn" style="background:#e0f2fe;color:#0369a1;border:1px solid #7dd3fc;font-size:11px;font-weight:700;" onclick="selectQuickCondition('${blockId}', '按下空格键')">⌨️ 按下空格键 ?</button>
+          <div style="font-size:11px;font-weight:800;color:#0369a1;">🎯 侦测条件积木:</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;">
+            <button type="button" class="modal-btn" style="background:#e0f2fe;color:#0369a1;border:1px solid #7dd3fc;font-size:11px;font-weight:700;padding:6px 8px;" onclick="selectQuickCondition('${blockId}', '碰到舞台边缘')">💥 碰到舞台边缘 ?</button>
+            <button type="button" class="modal-btn" style="background:#e0f2fe;color:#0369a1;border:1px solid #7dd3fc;font-size:11px;font-weight:700;padding:6px 8px;" onclick="selectQuickCondition('${blockId}', '按下空格键')">⌨️ 按下空格键 ?</button>
           </div>
         </div>
 
-        <div style="background:#f8fafc;border:1px solid #cbd5e1;border-radius:8px;padding:8px;display:flex;flex-direction:column;gap:6px;">
-          <div style="font-size:11px;font-weight:800;color:#0f172a;">🛠️ 自定义运算比较构建器:</div>
-          <div style="display:flex;align-items:center;gap:4px;">
+        <div style="background:#f8fafc;border:1.5px solid #cbd5e1;border-radius:8px;padding:8px;display:flex;flex-direction:column;gap:6px;">
+          <div style="font-size:11px;font-weight:800;color:#0f172a;">🛠️ 自定义变量与关系比较:</div>
+          <div style="display:flex;align-items:center;gap:5px;">
             <select id="condLeftVar" class="modal-input" style="flex:1;">
               ${varOptionsHtml}
             </select>
-            <select id="condOp" class="modal-input" style="width:72px;font-weight:700;">
-              <option value=">">&gt; (大于)</option>
+            <select id="condOp" class="modal-input" style="width:78px;font-weight:800;">
               <option value="<">&lt; (小于)</option>
+              <option value=">">&gt; (大于)</option>
               <option value="=">= (等于)</option>
-              <option value=">=">&gt;= (大于等于)</option>
               <option value="<=">&lt;= (小于等于)</option>
+              <option value=">=">&gt;= (大于等于)</option>
             </select>
-            <input type="number" id="condRightVal" class="modal-input" style="flex:1;" value="10" placeholder="比较值">
+            <input type="number" id="condRightVal" class="modal-input" style="flex:1;" value="10" placeholder="比较数值">
           </div>
         </div>
-
-        <div class="modal-actions">
-          <button class="modal-btn modal-btn-cancel" onclick="closeModal()">取消</button>
-          <button class="modal-btn modal-btn-confirm" onclick="applyCustomOperatorCondition('${blockId}')">确认应用条件</button>
-        </div>
+      </div>
+      <div class="modal-footer-bar">
+        <button class="modal-btn modal-btn-cancel" onclick="closeModal()">取消</button>
+        <button class="modal-btn modal-btn-confirm" onclick="applyCustomOperatorCondition('${blockId}')">应用条件</button>
       </div>
     </div>
   `;
+  openModal(dialogHtml);
 }
 
 function applyCustomOperatorCondition(blockId) {
@@ -1559,8 +1815,6 @@ function editBlockParam(blockId, paramKey, currentValue, optionsJson) {
   }
 
   const options = optionsJson ? JSON.parse(decodeURIComponent(optionsJson)) : null;
-  const container = document.getElementById('modalContainer');
-  container.style.display = 'block';
 
   let inputHtml = '';
   if (options && Array.isArray(options)) {
@@ -1574,19 +1828,23 @@ function editBlockParam(blockId, paramKey, currentValue, optionsJson) {
     inputHtml = `<input type="text" id="paramEditInput" class="modal-input" value="${currentValue}" autofocus>`;
   }
 
-  container.innerHTML = `
-    <div class="modal-mask" onclick="closeModal()">
-      <div class="modal-dialog" style="max-width:320px;" onclick="event.stopPropagation()">
+  const dialogHtml = `
+    <div class="modal-dialog" style="max-width:340px;" onclick="event.stopPropagation()">
+      <div class="modal-header-bar">
         <div class="modal-title">✏️ 修改积木参数 (${paramKey})</div>
+        <span class="del-btn" onclick="closeModal()" style="font-size:16px;">✕</span>
+      </div>
+      <div class="modal-scroll-body">
         <div style="font-size:11px;color:#64748b;">请输入或选择新的数值/内容：</div>
         ${inputHtml}
-        <div class="modal-actions">
-          <button class="modal-btn modal-btn-cancel" onclick="closeModal()">取消</button>
-          <button class="modal-btn modal-btn-confirm" onclick="confirmEditParam('${blockId}', '${paramKey}')">保存修改</button>
-        </div>
+      </div>
+      <div class="modal-footer-bar">
+        <button class="modal-btn modal-btn-cancel" onclick="closeModal()">取消</button>
+        <button class="modal-btn modal-btn-confirm" onclick="confirmEditParam('${blockId}', '${paramKey}')">保存修改</button>
       </div>
     </div>
   `;
+  openModal(dialogHtml);
 }
 
 function confirmEditParam(blockId, paramKey) {
@@ -1629,7 +1887,7 @@ function renderBlockHtml(b, parentIndex = null) {
           <span>${formattedLabel}</span>
           <span class="del-btn" onclick="event.stopPropagation();removeBlock('${b.id}')">✕</span>
         </div>
-        <div class="c-block-body" id="container_body_${b.id}" ondragover="handleContainerDragOver(event, '${b.id}')" ondragleave="handleContainerDragLeave(event, '${b.id}')" ondrop="handleContainerDrop(event, '${b.id}')">
+        <div class="c-block-body" id="container_body_${b.id}" data-container-body="true" data-container-id="${b.id}" ondragover="handleContainerDragOver(event, '${b.id}')" ondragleave="handleContainerDragLeave(event, '${b.id}')" ondrop="handleContainerDrop(event, '${b.id}')">
           ${childrenHtml}
           <!-- 循环体内部快捷添加工具条 -->
           <div class="c-quick-bar">
@@ -1690,13 +1948,13 @@ function formatBlockLabel(b) {
   } else if (b.opcode === 'control_forever') {
     return `重复执行 [无限循环] ♾️`;
   } else if (b.opcode === 'control_if') {
-    const condStr = p.condition || 'x > 5';
+    const condStr = p.condition || 'x < 10';
     const isSensing = condStr.includes('边缘') || condStr.includes('空格') || condStr.includes('点击');
-    return `如果 <span class="condition-slot ${isSensing ? 'sensing-cond' : ''}" ondragover="handleConditionDragOver(event)" ondragleave="handleConditionDragLeave(event)" ondrop="handleConditionDrop(event, '${blockId}')" onclick="event.stopPropagation();openConditionCustomizer('${blockId}', '${condStr}')">⟨ ${condStr} ⟩</span> 那么 ⚡`;
+    return `如果 <span class="condition-slot ${isSensing ? 'sensing-cond' : ''}" data-condition-slot="true" data-block-id="${blockId}" ondragover="handleConditionDragOver(event)" ondragleave="handleConditionDragLeave(event)" ondrop="handleConditionDrop(event, '${blockId}')" onclick="event.stopPropagation();openConditionCustomizer('${blockId}', '${condStr}')">⟨ ${condStr} ⟩</span> 那么 ⚡`;
   } else if (b.opcode === 'operator_gt') {
     return `<span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'varName', '${p.varName || 'x'}')">${p.varName || 'x'}</span> > <span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'val', '${p.val ?? 5}')">${p.val ?? 5}</span> 📈`;
   } else if (b.opcode === 'operator_lt') {
-    return `<span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'varName', '${p.varName || '得分'}')">${p.varName || '得分'}</span> < <span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'val', '${p.val ?? 10}')">${p.val ?? 10}</span> 📉`;
+    return `<span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'varName', '${p.varName || 'x'}')">${p.varName || 'x'}</span> < <span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'val', '${p.val ?? 10}')">${p.val ?? 10}</span> 📉`;
   } else if (b.opcode.startsWith('data_')) {
     const varNames = Object.keys(projectVariables);
     const varOptions = encodeURIComponent(JSON.stringify(varNames.length > 0 ? varNames : ['得分', 'x']));
@@ -2327,6 +2585,7 @@ window.loadProject = function(jsonInput) {
 
 window.onload = function() {
   renderPalette('motion');
+  initTouchDragSupport();
   
   function tryFetchAndLoad() {
     if (window.AndroidProjectProvider && window.AndroidProjectProvider.fetchProjectJson) {
