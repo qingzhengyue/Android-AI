@@ -45,7 +45,7 @@ html, body {
 }
 .nav-btn {
   border: none;
-  padding: 5px 10px;
+  padding: 5px 12px;
   border-radius: 6px;
   font-size: 12px;
   font-weight: 600;
@@ -113,7 +113,7 @@ html, body {
 
 /* 2. 积木候选库面板 */
 .palette-pane {
-  width: 150px;
+  width: 155px;
   background: #ffffff;
   border-right: 1px solid #e2e8f0;
   overflow-y: auto;
@@ -233,6 +233,11 @@ html, body {
   justify-content: space-between;
   width: 100%;
   border-radius: 6px;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.block-row.running-highlight {
+  box-shadow: 0 0 0 3px #f59e0b, 0 4px 12px rgba(245,158,11,0.4);
+  transform: scale(1.02);
 }
 .del-btn {
   opacity: 0.7;
@@ -246,7 +251,7 @@ html, body {
 
 /* 4. 右侧舞台预览面板 */
 .stage-pane {
-  width: 200px;
+  width: 210px;
   background: #ffffff;
   border-left: 1px solid #e2e8f0;
   display: flex;
@@ -263,15 +268,29 @@ html, body {
   border-radius: 8px;
   position: relative;
   overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+}
+.stage-var-hud {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  background: rgba(255, 140, 26, 0.9);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  display: none;
+  z-index: 5;
 }
 .cat-character {
   width: 44px;
   height: 44px;
   position: absolute;
-  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  left: 70px;
+  top: 45px;
+  transform-origin: center center;
+  transition: left 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), top 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), transform 0.3s ease, opacity 0.3s ease;
   filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
 }
 .speech-bubble {
@@ -312,7 +331,7 @@ html, body {
   padding: 6px;
   border-radius: 6px;
   overflow-y: auto;
-  line-height: 1.3;
+  line-height: 1.35;
   max-height: 120px;
 }
 
@@ -382,7 +401,7 @@ html, body {
     <div class="canvas-container" id="canvasStack">
       <div class="empty-canvas" id="emptyTip">
         <span style="font-size:20px;">👈</span>
-        <span>点击左侧分类库添加积木<br>或从顶栏菜单“载入当前作品积木”一键恢复</span>
+        <span>点击左侧分类库添加积木<br>点击顶栏“🟢 运行”在舞台看实时动画效果</span>
       </div>
     </div>
   </div>
@@ -390,12 +409,13 @@ html, body {
   <!-- 4. 舞台预览 -->
   <div class="stage-pane">
     <div style="font-size:11px;font-weight:700;color:#334155;">🖼️ 舞台运行效果</div>
-    <div class="stage-screen-box">
+    <div class="stage-screen-box" id="stageBox">
+      <div class="stage-var-hud" id="varHud">变量 my variable = 0</div>
       <div class="speech-bubble" id="sayBubble">你好！星梭！✨</div>
-      <svg class="cat-character" id="catSprite" viewBox="0 0 100 100" style="left:70px; top:45px;">
-        <path d="M20,30 L30,10 L45,25 L55,25 L70,10 L80,30 C90,45 85,70 50,85 C15,70 10,45 20,30 Z" fill="#FFAB19" stroke="#E67E22" stroke-width="2"/>
-        <circle cx="35" cy="40" r="6" fill="#fff"/><circle cx="35" cy="40" r="3" fill="#1e293b"/>
-        <circle cx="65" cy="40" r="6" fill="#fff"/><circle cx="65" cy="40" r="3" fill="#1e293b"/>
+      <svg class="cat-character" id="catSprite" viewBox="0 0 100 100">
+        <path id="catBody" d="M20,30 L30,10 L45,25 L55,25 L70,10 L80,30 C90,45 85,70 50,85 C15,70 10,45 20,30 Z" fill="#FFAB19" stroke="#E67E22" stroke-width="2"/>
+        <circle cx="35" cy="40" r="6" fill="#fff"/><circle id="eyeLeft" cx="35" cy="40" r="3" fill="#1e293b"/>
+        <circle cx="65" cy="40" r="6" fill="#fff"/><circle id="eyeRight" cx="65" cy="40" r="3" fill="#1e293b"/>
         <path d="M45,55 Q50,62 55,55" stroke="#1e293b" stroke-width="2" fill="none"/>
       </svg>
     </div>
@@ -409,56 +429,56 @@ html, body {
 const PALETTE = {
   motion: [
     { opcode:'motion_movesteps', label:'移动 <span class="param-pill">10</span> 步', cls:'cat-motion' },
-    { opcode:'motion_turnright', label:'右转 <span class="param-pill">15</span> 度', cls:'cat-motion' },
-    { opcode:'motion_turnleft', label:'左转 <span class="param-pill">15</span> 度', cls:'cat-motion' },
+    { opcode:'motion_turnright', label:'右转 <span class="param-pill">15</span> 度 ↷', cls:'cat-motion' },
+    { opcode:'motion_turnleft', label:'左转 <span class="param-pill">15</span> 度 ↶', cls:'cat-motion' },
     { opcode:'motion_gotoxy', label:'移到 x:<span class="param-pill">0</span> y:<span class="param-pill">0</span>', cls:'cat-motion' },
     { opcode:'motion_changexby', label:'将 x 坐标增加 <span class="param-pill">10</span>', cls:'cat-motion' },
     { opcode:'motion_changeyby', label:'将 y 坐标增加 <span class="param-pill">10</span>', cls:'cat-motion' },
-    { opcode:'motion_ifonedgebounce', label:'碰到边缘就反弹', cls:'cat-motion' }
+    { opcode:'motion_ifonedgebounce', label:'碰到边缘就反弹 💥', cls:'cat-motion' }
   ],
   looks: [
     { opcode:'looks_sayforsecs', label:'说 <span class="param-pill">Hello!</span> <span class="param-pill">2</span> 秒', cls:'cat-looks' },
     { opcode:'looks_say', label:'说 <span class="param-pill">Hello!</span>', cls:'cat-looks' },
     { opcode:'looks_thinkforsecs', label:'思考 <span class="param-pill">Hmm...</span> <span class="param-pill">2</span> 秒', cls:'cat-looks' },
-    { opcode:'looks_nextcostume', label:'下一个造型', cls:'cat-looks' },
-    { opcode:'looks_show', label:'显示', cls:'cat-looks' },
-    { opcode:'looks_hide', label:'隐藏', cls:'cat-looks' },
+    { opcode:'looks_nextcostume', label:'下一个造型 ✨', cls:'cat-looks' },
+    { opcode:'looks_show', label:'显示 👁️', cls:'cat-looks' },
+    { opcode:'looks_hide', label:'隐藏 🙈', cls:'cat-looks' },
     { opcode:'looks_changesizeby', label:'将大小增加 <span class="param-pill">10</span>', cls:'cat-looks' }
   ],
   sound: [
-    { opcode:'sound_play', label:'播放声音 <span class="param-pill">喵</span>', cls:'cat-sound' },
-    { opcode:'sound_playuntildone', label:'播放声音 <span class="param-pill">喵</span> 直到播完', cls:'cat-sound' },
-    { opcode:'sound_stopallsounds', label:'停止所有声音', cls:'cat-sound' }
+    { opcode:'sound_play', label:'播放声音 <span class="param-pill">喵 🐱</span>', cls:'cat-sound' },
+    { opcode:'sound_playuntildone', label:'播放声音 <span class="param-pill">喵 🐱</span> 直到播完', cls:'cat-sound' },
+    { opcode:'sound_stopallsounds', label:'停止所有声音 🔇', cls:'cat-sound' }
   ],
   events: [
     { opcode:'event_whenflagclicked', label:'当 🟢 被点击', cls:'cat-events' },
     { opcode:'event_whenkeypressed', label:'当按下 <span class="param-pill">空格</span> 键', cls:'cat-events' },
-    { opcode:'event_whenthisspriteclicked', label:'当角色被点击', cls:'cat-events' }
+    { opcode:'event_whenthisspriteclicked', label:'当角色被点击 👆', cls:'cat-events' }
   ],
   control: [
-    { opcode:'control_wait', label:'等待 <span class="param-pill">1</span> 秒', cls:'cat-control' },
-    { opcode:'control_repeat', label:'重复执行 <span class="param-pill">10</span> 次', cls:'cat-control' },
-    { opcode:'control_forever', label:'重复执行 [循环]', cls:'cat-control' },
-    { opcode:'control_if', label:'如果 <span class="param-pill">条件</span> 那么', cls:'cat-control' }
+    { opcode:'control_wait', label:'等待 <span class="param-pill">1</span> 秒 ⏳', cls:'cat-control' },
+    { opcode:'control_repeat', label:'重复执行 <span class="param-pill">10</span> 次 🔄', cls:'cat-control' },
+    { opcode:'control_forever', label:'重复执行 [无限循环] ♾️', cls:'cat-control' },
+    { opcode:'control_if', label:'如果 <span class="param-pill">条件</span> 那么 ⚡', cls:'cat-control' }
   ],
   sensing: [
-    { opcode:'sensing_touchingobject', label:'碰到 <span class="param-pill">鼠标指针</span> ?', cls:'cat-sensing' },
-    { opcode:'sensing_askandwait', label:'询问 <span class="param-pill">你叫什么名字?</span>', cls:'cat-sensing' }
+    { opcode:'sensing_touchingobject', label:'碰到 <span class="param-pill">舞台边缘</span> ? 🎯', cls:'cat-sensing' },
+    { opcode:'sensing_askandwait', label:'询问 <span class="param-pill">你叫什么名字?</span> 💬', cls:'cat-sensing' }
   ],
   operators: [
-    { opcode:'operator_add', label:'<span class="param-pill">a</span> + <span class="param-pill">b</span>', cls:'cat-operators' },
-    { opcode:'operator_random', label:'在 <span class="param-pill">1</span> 到 <span class="param-pill">10</span> 随机数', cls:'cat-operators' }
+    { opcode:'operator_add', label:'<span class="param-pill">a</span> + <span class="param-pill">b</span> ➕', cls:'cat-operators' },
+    { opcode:'operator_random', label:'在 <span class="param-pill">1</span> 到 <span class="param-pill">10</span> 随机数 🎲', cls:'cat-operators' }
   ],
   data: [
-    { opcode:'data_setvariableto', label:'将 <span class="param-pill">my variable</span> 设为 <span class="param-pill">0</span>', cls:'cat-data' },
-    { opcode:'data_changevariableby', label:'将 <span class="param-pill">my variable</span> 增加 <span class="param-pill">1</span>', cls:'cat-data' }
+    { opcode:'data_setvariableto', label:'将 <span class="param-pill">得分</span> 设为 <span class="param-pill">0</span> 📦', cls:'cat-data' },
+    { opcode:'data_changevariableby', label:'将 <span class="param-pill">得分</span> 增加 <span class="param-pill">1</span> 🏆', cls:'cat-data' }
   ]
 };
 
 const OP_TRANSLATE_MAP = {
   'motion_movesteps': '移动 10 步',
-  'motion_turnright': '右转 15 度',
-  'motion_turnleft': '左转 15 度',
+  'motion_turnright': '右转 15 度 ↷',
+  'motion_turnleft': '左转 15 度 ↶',
   'motion_goto': '移到 随机位置',
   'motion_gotoxy': '移到 x:0 y:0',
   'motion_glideto': '在 1 秒内滑行到 随机位置',
@@ -469,38 +489,68 @@ const OP_TRANSLATE_MAP = {
   'motion_setx': '将 x 坐标设为 0',
   'motion_changeyby': '将 y 坐标增加 10',
   'motion_sety': '将 y 坐标设为 0',
-  'motion_ifonedgebounce': '碰到边缘就反弹',
+  'motion_ifonedgebounce': '碰到边缘就反弹 💥',
   'motion_setrotationstyle': '将旋转方式设为 [左右翻转]',
   'looks_sayforsecs': '说 Hello! 2 秒',
   'looks_say': '说 Hello!',
   'looks_thinkforsecs': '思考 Hmm... 2 秒',
   'looks_think': '思考 Hmm...',
   'looks_switchcostumeto': '换成 造型1 造型',
-  'looks_nextcostume': '下一个造型',
+  'looks_nextcostume': '下一个造型 ✨',
   'looks_changesizeby': '将大小增加 10',
   'looks_setsizeto': '将大小设为 100 %',
-  'looks_show': '显示',
-  'looks_hide': '隐藏',
-  'sound_playuntildone': '播放声音 喵 直到播完',
-  'sound_play': '播放声音 喵',
-  'sound_stopallsounds': '停止所有声音',
+  'looks_show': '显示 👁️',
+  'looks_hide': '隐藏 🙈',
+  'sound_playuntildone': '播放声音 喵 🐱 直到播完',
+  'sound_play': '播放声音 喵 🐱',
+  'sound_stopallsounds': '停止所有声音 🔇',
   'event_whenflagclicked': '当 🟢 被点击',
   'event_whenkeypressed': '当按下 空格 键',
-  'event_whenthisspriteclicked': '当角色被点击',
-  'control_wait': '等待 1 秒',
-  'control_repeat': '重复执行 10 次',
-  'control_forever': '重复执行 [循环]',
-  'control_if': '如果 <条件> 那么',
-  'sensing_touchingobject': '碰到 鼠标指针 ?',
-  'sensing_askandwait': '询问 你叫什么名字? 并等待',
-  'operator_add': 'a + b',
-  'operator_random': '在 1 到 10 间随机选数',
-  'data_setvariableto': '将 变量 设为 0',
-  'data_changevariableby': '将 变量 增加 1'
+  'event_whenthisspriteclicked': '当角色被点击 👆',
+  'control_wait': '等待 1 秒 ⏳',
+  'control_repeat': '重复执行 10 次 🔄',
+  'control_forever': '重复执行 [无限循环] ♾️',
+  'control_if': '如果 <条件> 那么 ⚡',
+  'sensing_touchingobject': '碰到 舞台边缘 ? 🎯',
+  'sensing_askandwait': '询问 你叫什么名字? 并等待 💬',
+  'operator_add': 'a + b ➕',
+  'operator_random': '在 1 到 10 间随机选数 🎲',
+  'data_setvariableto': '将 得分 设为 0 📦',
+  'data_changevariableby': '将 得分 增加 1 🏆'
 };
 
 let activeBlocks = [];
-let catX = 70, catY = 45, isVisible = true;
+let catX = 70, catY = 45, catRotation = 0, catScale = 1.0, isVisible = true;
+let myVariableValue = 0;
+let isScriptRunning = false;
+let executionTimers = [];
+let audioCtx = null;
+
+function playMeowSound() {
+  try {
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sine';
+    const now = audioCtx.currentTime;
+    osc.frequency.setValueAtTime(450, now);
+    osc.frequency.exponentialRampToValueAtTime(750, now + 0.15);
+    osc.frequency.exponentialRampToValueAtTime(400, now + 0.35);
+    gain.gain.setValueAtTime(0.3, now);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start(now);
+    osc.stop(now + 0.36);
+  } catch (e) {
+    console.log("Audio not supported", e);
+  }
+}
 
 function logMessage(msg) {
   const logEl = document.getElementById('stageLog');
@@ -564,6 +614,7 @@ function removeBlock(index) {
 }
 
 function clearWorkspace() {
+  stopScratchBlocks();
   activeBlocks = [];
   updateWorkspaceUI();
   logMessage('🧹 画布已清空');
@@ -577,7 +628,7 @@ function updateWorkspaceUI() {
 
   if (!stackEl) return;
   if (activeBlocks.length === 0) {
-    stackEl.innerHTML = `<div class="empty-canvas" id="emptyTip"><span style="font-size:20px;">👈</span><span>点击左侧分类库添加积木<br>或从顶栏菜单“载入当前作品积木”一键恢复</span></div>`;
+    stackEl.innerHTML = `<div class="empty-canvas" id="emptyTip"><span style="font-size:20px;">👈</span><span>点击左侧分类库添加积木<br>点击顶栏“🟢 运行”在舞台看实时动画效果</span></div>`;
     return;
   }
 
@@ -585,7 +636,7 @@ function updateWorkspaceUI() {
   activeBlocks.forEach((b, idx) => {
     const cls = getCategoryClassByOpcode(b.opcode);
     const displayHtml = b.label || OP_TRANSLATE_MAP[b.opcode] || b.opcode;
-    html += `<div class="scratch-block ${cls} block-row">
+    html += `<div class="scratch-block ${cls} block-row" id="block_ui_${idx}">
       <span>${displayHtml}</span>
       <span class="del-btn" onclick="event.stopPropagation();removeBlock(${idx})">✕</span>
     </div>`;
@@ -593,55 +644,258 @@ function updateWorkspaceUI() {
   stackEl.innerHTML = html;
 }
 
+function applyCatTransform() {
+  const catSvg = document.getElementById('catSprite');
+  if (!catSvg) return;
+  catSvg.style.left = catX + 'px';
+  catSvg.style.top = catY + 'px';
+  catSvg.style.transform = `rotate(${catRotation}deg) scale(${catScale})`;
+  catSvg.style.opacity = isVisible ? '1' : '0';
+}
+
 function runScratchBlocks() {
   if (activeBlocks.length === 0) {
-    logMessage('⚠️ 画布为空，无法运行程序');
+    logMessage('⚠️ 画布为空，请先在左侧添加积木');
     return;
   }
+  
+  stopScratchBlocks();
+  isScriptRunning = true;
   logMessage('🟢 开始执行 Scratch 积木程序...');
   
-  let delay = 0;
   const catSvg = document.getElementById('catSprite');
   const bubble = document.getElementById('sayBubble');
+  const varHud = document.getElementById('varHud');
+  const stageBox = document.getElementById('stageBox');
 
-  activeBlocks.forEach(b => {
-    setTimeout(() => {
-      if (b.opcode.includes('movesteps') || b.opcode.includes('changexby')) {
-        catX += 15;
-        if (catX > 140) catX = 15;
-        if (catSvg) catSvg.style.left = catX + 'px';
-        logMessage('▶ 角色移动 -> x:' + catX);
-      } else if (b.opcode.includes('say')) {
+  // 构建指令流（支持循环展开与连续控制）
+  let expandedSequence = [];
+  let repeatCount = 1;
+  let hasLoop = false;
+
+  activeBlocks.forEach((b, idx) => {
+    if (b.opcode === 'control_repeat') {
+      repeatCount = 3; // 演示展开 3 次完整循环动画
+      hasLoop = true;
+    } else if (b.opcode === 'control_forever') {
+      repeatCount = 5; // 演示 5 次连续循环动画
+      hasLoop = true;
+    } else {
+      expandedSequence.push({ block: b, idx: idx });
+    }
+  });
+
+  // 如果包含循环积木，对后续积木重复展开
+  let executionList = [];
+  if (hasLoop && expandedSequence.length > 0) {
+    for (let r = 0; r < repeatCount; r++) {
+      expandedSequence.forEach(item => {
+        executionList.push({ ...item, loopIndex: r + 1 });
+      });
+    }
+  } else {
+    activeBlocks.forEach((b, idx) => {
+      executionList.push({ block: b, idx: idx });
+    });
+  }
+
+  let delay = 100;
+  executionList.forEach((item, stepIndex) => {
+    const timer = setTimeout(() => {
+      if (!isScriptRunning) return;
+
+      // 高亮正在执行的积木
+      document.querySelectorAll('.block-row').forEach(el => el.classList.remove('running-highlight'));
+      const activeEl = document.getElementById('block_ui_' + item.idx);
+      if (activeEl) {
+        activeEl.classList.add('running-highlight');
+      }
+
+      const op = item.block.opcode;
+      
+      // 1. 运动积木 (Motion)
+      if (op.includes('movesteps') || op.includes('changexby')) {
+        const rad = (catRotation * Math.PI) / 180;
+        catX += Math.cos(rad) * 15;
+        catY += Math.sin(rad) * 15;
+        if (catX > 150) catX = 20;
+        if (catX < 10) catX = 140;
+        if (catY > 95) catY = 20;
+        if (catY < 10) catY = 90;
+        applyCatTransform();
+        logMessage(`▶ [运动] 移动步长 -> 坐标(${Math.round(catX)}, ${Math.round(catY)})`);
+      } else if (op.includes('turnright')) {
+        catRotation += 15;
+        applyCatTransform();
+        logMessage(`▶ [运动] 右转15° -> 朝向 ${catRotation}° ↷`);
+      } else if (op.includes('turnleft')) {
+        catRotation -= 15;
+        applyCatTransform();
+        logMessage(`▶ [运动] 左转15° -> 朝向 ${catRotation}° ↶`);
+      } else if (op.includes('gotoxy')) {
+        catX = 70; catY = 45;
+        applyCatTransform();
+        logMessage('▶ [运动] 移到中心 (x:0, y:0)');
+      } else if (op.includes('changeyby')) {
+        catY += 12;
+        if (catY > 95) catY = 20;
+        applyCatTransform();
+        logMessage(`▶ [运动] y坐标增加 -> y:${Math.round(catY)}`);
+      } else if (op.includes('ifonedgebounce')) {
+        if (catX >= 130 || catX <= 20 || catY >= 90 || catY <= 15) {
+          catRotation += 180;
+          applyCatTransform();
+          logMessage('💥 [运动] 碰到舞台边缘！成功反弹旋转！');
+        } else {
+          logMessage('▶ [运动] 检查边缘：未碰撞');
+        }
+      }
+      
+      // 2. 外观积木 (Looks)
+      else if (op.includes('say')) {
         if (bubble) {
           bubble.innerText = '喵！星梭正在运行！🐱';
           bubble.style.display = 'block';
-          setTimeout(() => { bubble.style.display = 'none'; }, 1800);
+          setTimeout(() => { if (bubble) bubble.style.display = 'none'; }, 1800);
         }
-        logMessage('▶ 说话: 喵！星梭正在运行！');
-      } else if (b.opcode.includes('hide')) {
-        if (catSvg) catSvg.style.opacity = '0';
-        logMessage('▶ 隐藏角色');
-      } else if (b.opcode.includes('show')) {
-        if (catSvg) catSvg.style.opacity = '1';
-        logMessage('▶ 显示角色');
+        logMessage('💬 [外观] 说话: 喵！星梭正在运行！');
+      } else if (op.includes('think')) {
+        if (bubble) {
+          bubble.innerText = 'Hmm... 小极客编程真棒！🧠';
+          bubble.style.display = 'block';
+          setTimeout(() => { if (bubble) bubble.style.display = 'none'; }, 1800);
+        }
+        logMessage('💭 [外观] 思考: Hmm... 小极客编程真棒！');
+      } else if (op.includes('changesizeby')) {
+        catScale = catScale >= 1.5 ? 1.0 : catScale + 0.2;
+        applyCatTransform();
+        logMessage(`✨ [外观] 调整角色大小 -> ${Math.round(catScale * 100)}%`);
+      } else if (op.includes('nextcostume')) {
+        const catBody = document.getElementById('catBody');
+        if (catBody) {
+          const colors = ['#FFAB19', '#9966FF', '#4C97FF', '#22C55E', '#EC4899'];
+          const randColor = colors[Math.floor(Math.random() * colors.length)];
+          catBody.setAttribute('fill', randColor);
+        }
+        logMessage('✨ [外观] 切换下一个造型（换装变色）');
+      } else if (op.includes('hide')) {
+        isVisible = false;
+        applyCatTransform();
+        logMessage('🙈 [外观] 隐藏角色');
+      } else if (op.includes('show')) {
+        isVisible = true;
+        applyCatTransform();
+        logMessage('👁️ [外观] 显示角色');
+      }
+
+      // 3. 声音积木 (Sound)
+      else if (op.includes('sound')) {
+        playMeowSound();
+        logMessage('🔊 [声音] 播放音效: 喵喵叫 🐱');
+      }
+
+      // 4. 事件积木 (Events)
+      else if (op.includes('event')) {
+        logMessage('🟢 [事件] 触发启动响应');
+      }
+
+      // 5. 控制积木 (Control)
+      else if (op.includes('control_repeat') || op.includes('control_forever')) {
+        logMessage(`🔄 [控制] 执行循环体 (第 ${item.loopIndex || 1} 轮)`);
+      } else if (op.includes('control_if')) {
+        logMessage('⚡ [控制] 条件为真，进入执行分支');
+      } else if (op.includes('control_wait')) {
+        logMessage('⏳ [控制] 等待执行中...');
+      }
+
+      // 6. 侦测积木 (Sensing)
+      else if (op.includes('sensing_touchingobject')) {
+        if (stageBox) {
+          stageBox.style.borderColor = '#22c55e';
+          setTimeout(() => { if (stageBox) stageBox.style.borderColor = '#cbd5e1'; }, 600);
+        }
+        logMessage('🎯 [侦测] 目标检测成功：检测到边缘碰撞');
+      } else if (op.includes('sensing_askandwait')) {
+        if (bubble) {
+          bubble.innerText = '问：你叫什么名字？答：星梭小极客！✨';
+          bubble.style.display = 'block';
+          setTimeout(() => { if (bubble) bubble.style.display = 'none'; }, 2000);
+        }
+        logMessage('💬 [侦测] 询问互动完成');
+      }
+
+      // 7. 运算积木 (Operators)
+      else if (op.includes('operator_add')) {
+        const a = 5, b = 10;
+        const res = a + b;
+        if (bubble) {
+          bubble.innerText = `➕ 计算: ${a} + ${b} = ${res}`;
+          bubble.style.display = 'block';
+          setTimeout(() => { if (bubble) bubble.style.display = 'none'; }, 2000);
+        }
+        logMessage(`➕ [运算] 加法求和: 5 + 10 = ${res}`);
+      } else if (op.includes('operator_random')) {
+        const rand = Math.floor(Math.random() * 10) + 1;
+        if (bubble) {
+          bubble.innerText = `🎲 随机数抽取: ${rand}`;
+          bubble.style.display = 'block';
+          setTimeout(() => { if (bubble) bubble.style.display = 'none'; }, 2000);
+        }
+        logMessage(`🎲 [运算] 生成 1~10 随机数: ${rand}`);
+      }
+
+      // 8. 变量积木 (Data / Variables)
+      else if (op.includes('data_setvariableto')) {
+        myVariableValue = 0;
+        if (varHud) {
+          varHud.innerText = `📦 得分 = ${myVariableValue}`;
+          varHud.style.display = 'block';
+        }
+        logMessage('📦 [变量] 将得分设为 0');
+      } else if (op.includes('data_changevariableby')) {
+        myVariableValue += 1;
+        if (varHud) {
+          varHud.innerText = `🏆 得分 = ${myVariableValue}`;
+          varHud.style.display = 'block';
+        }
+        logMessage(`🏆 [变量] 将得分增加 1 (当前得分: ${myVariableValue})`);
       } else {
-        logMessage('▶ 执行: ' + b.opcode);
+        logMessage('▶ 执行: ' + op);
+      }
+
+      // 最后一项执行完清除高亮
+      if (stepIndex === executionList.length - 1) {
+        setTimeout(() => {
+          document.querySelectorAll('.block-row').forEach(el => el.classList.remove('running-highlight'));
+          logMessage('🎉 全部积木程序执行完成！');
+        }, 300);
       }
     }, delay);
+
+    executionTimers.push(timer);
     delay += 400;
   });
 }
 
 function stopScratchBlocks() {
-  catX = 70; catY = 45;
-  const catSvg = document.getElementById('catSprite');
-  if (catSvg) {
-    catSvg.style.left = catX + 'px';
-    catSvg.style.top = catY + 'px';
-    catSvg.style.opacity = '1';
-  }
+  isScriptRunning = false;
+  executionTimers.forEach(t => clearTimeout(t));
+  executionTimers = [];
+  document.querySelectorAll('.block-row').forEach(el => el.classList.remove('running-highlight'));
+  
+  catX = 70; catY = 45; catRotation = 0; catScale = 1.0; isVisible = true;
+  applyCatTransform();
+  
+  const catBody = document.getElementById('catBody');
+  if (catBody) catBody.setAttribute('fill', '#FFAB19');
+  
   const bubble = document.getElementById('sayBubble');
   if (bubble) bubble.style.display = 'none';
+  
+  const varHud = document.getElementById('varHud');
+  if (varHud) varHud.style.display = 'none';
+  myVariableValue = 0;
+
   logMessage('🛑 重置舞台完成');
 }
 

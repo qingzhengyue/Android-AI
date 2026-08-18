@@ -379,12 +379,41 @@ fun AiAssistPanel(
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
                                     Column(modifier = Modifier.padding(10.dp)) {
-                                        Text("💡 创意灵感库介绍", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color(0xFFC2185B))
-                                        Spacer(modifier = Modifier.height(4.dp))
+                                        Text("💡 创意灵感库 (点击一键获取巧思)", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color(0xFFC2185B))
+                                        Spacer(modifier = Modifier.height(6.dp))
+                                        Row(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .horizontalScroll(rememberScrollState()),
+                                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                        ) {
+                                            listOf("🐱 迷宫大冒险", "🏎️ 极速赛车", "🚀 太空漫游", "🎨 换装舞台", "🍎 接苹果游戏").forEach { theme ->
+                                                Box(
+                                                    modifier = Modifier
+                                                        .height(30.dp)
+                                                        .background(Color(0xFFFFEEF0), RoundedCornerShape(10.dp))
+                                                        .border(1.dp, Color(0xFFF8BBD0), RoundedCornerShape(10.dp))
+                                                        .clickable {
+                                                            creativePromptInput = TextFieldValue(theme)
+                                                            getLiveCodeAndCall("创意引导", theme)
+                                                        }
+                                                        .padding(horizontal = 10.dp, vertical = 4.dp),
+                                                    contentAlignment = Alignment.Center
+                                                ) {
+                                                    Text(
+                                                        text = theme,
+                                                        fontSize = 11.sp,
+                                                        fontWeight = FontWeight.Bold,
+                                                        color = Color(0xFFC2185B)
+                                                    )
+                                                }
+                                            }
+                                        }
+                                        Spacer(modifier = Modifier.height(6.dp))
                                         Text(
-                                            text = "不知道怎么搭积木了？没关系！在下方输入一个你喜欢的主题（如“走迷宫”、“极速赛车”），点击发送，精灵姐姐就会利用魔法，根据你目前的进度送给你三大创意巧思哦！✨",
+                                            text = "或在下方输入自定义主题，点击发送获取专属拼搭方案！✨",
                                             fontSize = 11.sp,
-                                            lineHeight = 15.sp,
+                                            lineHeight = 14.sp,
                                             color = Color.Gray
                                         )
                                     }
@@ -396,33 +425,32 @@ fun AiAssistPanel(
                                     border = BorderStroke(1.dp, Color(0xFFF8BBD0)),
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
-                                    Column(modifier = Modifier.padding(12.dp)) {
-                                        Text("🎓 知识点锦囊 (快速点击选择)", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color(0xFFC2185B))
-                                        Spacer(modifier = Modifier.height(8.dp))
+                                    Column(modifier = Modifier.padding(10.dp)) {
+                                        Text("🎓 核心考点锦囊 (点击一键解析)", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color(0xFFC2185B))
+                                        Spacer(modifier = Modifier.height(6.dp))
                                         
-                                        // 【修复】用 Row + horizontalScroll 替代 FlowRow，
-                                        // 避免 FlowRow 在 LazyColumn 内因无限高度约束导致布局测量死循环而卡死
                                         Row(
                                             modifier = Modifier
                                                 .fillMaxWidth()
                                                 .horizontalScroll(rememberScrollState()),
-                                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                            horizontalArrangement = Arrangement.spacedBy(6.dp)
                                         ) {
-                                            listOf("循环", "变量", "广播", "坐标").forEach { chip ->
+                                            listOf("🔄 循环结构", "📦 变量魔法盒", "✉️ 广播信鸽", "📐 坐标系统", "⚡ 条件分支", "👥 角色克隆").forEach { chip ->
                                                 Box(
                                                     modifier = Modifier
-                                                        .height(32.dp)
-                                                        .background(Color(0xFFFFEEF0), RoundedCornerShape(12.dp))
-                                                        .border(1.dp, Color(0xFFF8BBD0), RoundedCornerShape(12.dp))
+                                                        .height(30.dp)
+                                                        .background(Color(0xFFFFEEF0), RoundedCornerShape(10.dp))
+                                                        .border(1.dp, Color(0xFFF8BBD0), RoundedCornerShape(10.dp))
                                                         .clickable { 
                                                             kbPromptInput = TextFieldValue(chip)
+                                                            getLiveCodeAndCall("知识点讲解", chip)
                                                         }
-                                                        .padding(horizontal = 12.dp, vertical = 6.dp),
+                                                        .padding(horizontal = 10.dp, vertical = 4.dp),
                                                     contentAlignment = Alignment.Center
                                                 ) {
                                                     Text(
-                                                        text = "🏷️ $chip",
-                                                        fontSize = 12.sp,
+                                                        text = chip,
+                                                        fontSize = 11.sp,
                                                         fontWeight = FontWeight.Bold,
                                                         color = Color(0xFFC2185B)
                                                     )
@@ -482,19 +510,58 @@ fun AiAssistPanel(
                 }
 
                 // Dialogue history section header
-                item {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(Icons.Default.History, contentDescription = null, tint = Color(0xFFC2185B), modifier = Modifier.size(16.dp))
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(
-                            text = "对话历史记录 (随时点击展开/收起)",
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF880E4F)
-                        )
+                if (dialogueHistory.isNotEmpty()) {
+                    item {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(Icons.Default.History, contentDescription = null, tint = Color(0xFFC2185B), modifier = Modifier.size(16.dp))
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = "对话历史记录 (随时点击展开/收起)",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF880E4F)
+                            )
+                        }
+                    }
+                } else if (aiResult == null && !aiLoading) {
+                    item {
+                        Card(
+                            colors = CardDefaults.cardColors(containerColor = Color.White),
+                            border = BorderStroke(1.dp, Color(0xFFF8BBD0)),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(14.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.AutoAwesome,
+                                    contentDescription = null,
+                                    tint = Color(0xFFC2185B),
+                                    modifier = Modifier.size(28.dp)
+                                )
+                                Spacer(modifier = Modifier.height(6.dp))
+                                Text(
+                                    text = "我是你的专属编程精灵姐姐 👩‍💻✨",
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFFC2185B)
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = "在上方点击标签或直接在下方输入任何积木问题，精灵姐姐会手把手教你变魔法哦！",
+                                    fontSize = 11.sp,
+                                    lineHeight = 15.sp,
+                                    color = Color.DarkGray,
+                                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                                )
+                            }
+                        }
                     }
                 }
 

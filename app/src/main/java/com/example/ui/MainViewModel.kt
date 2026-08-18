@@ -9,6 +9,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.Dispatchers
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -1053,18 +1054,27 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
             Log.d("AIFlow", "[3.5/7] Prompt装配完成: funcType=$funcType, prompt总长度=${prompt.length}字符, 代码部分长度=${code?.length ?: 0}")
 
-            // 3. 异步获取多通道 AI 响应并填充记录
+            // 3. 异步获取多通道 AI 响应并填充记录 (加入快速超时保护，防止侧栏卡死)
             Log.d("AIFlow", "[4/7] 开始多通道调用 AI 助手 (funcType=$funcType, prompt长度=${prompt.length})...")
             val aiResponse = try {
-                val dsResult = try { deepSeekRepository.getAiTutorResponse(userQuery = prompt) } catch (e: Exception) { "" }
+                val dsResult = try { 
+                    withTimeoutOrNull(2500L) { deepSeekRepository.getAiTutorResponse(userQuery = prompt) } ?: "" 
+                } catch (e: Exception) { "" }
+                
                 if (dsResult.isNotBlank() && !dsResult.startsWith("【小精灵稍作休息") && !dsResult.startsWith("【网络连接超时")) {
                     dsResult
                 } else {
-                    val cerebrasResult = try { cerebrasRepository.getAiTutorResponse(userQuery = prompt) } catch (e: Exception) { "" }
+                    val cerebrasResult = try { 
+                        withTimeoutOrNull(2000L) { cerebrasRepository.getAiTutorResponse(userQuery = prompt) } ?: "" 
+                    } catch (e: Exception) { "" }
+                    
                     if (cerebrasResult.isNotBlank() && !cerebrasResult.startsWith("【小精灵稍作休息") && !cerebrasResult.startsWith("【网络连接超时")) {
                         cerebrasResult
                     } else {
-                        val geminiResult = try { geminiRepository.getAiTutorResponse(userQuery = prompt) } catch (e: Exception) { "" }
+                        val geminiResult = try { 
+                            withTimeoutOrNull(2000L) { geminiRepository.getAiTutorResponse(userQuery = prompt) } ?: "" 
+                        } catch (e: Exception) { "" }
+                        
                         if (geminiResult.isNotBlank() && !geminiResult.startsWith("【小精灵稍作休息") && !geminiResult.startsWith("【网络连接超时")) {
                             geminiResult
                         } else {
@@ -1204,15 +1214,29 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     response = "【功能提示 💡】老师暂未开启 AI 在线答疑功能噢，先自己开动脑筋想一想吧！"
                 } else {
                     response = try {
-                        val dsResult = deepSeekRepository.getAiTutorResponse(userQuery = question)
+                        val dsResult = try {
+                            withTimeoutOrNull(2500L) { deepSeekRepository.getAiTutorResponse(userQuery = question) } ?: ""
+                        } catch (e: Exception) { "" }
+
                         if (dsResult.isNotBlank() && !dsResult.startsWith("【小精灵稍作休息") && !dsResult.startsWith("【网络连接超时")) {
                             dsResult
                         } else {
-                            val cerebrasResult = cerebrasRepository.getAiTutorResponse(userQuery = question)
+                            val cerebrasResult = try {
+                                withTimeoutOrNull(2000L) { cerebrasRepository.getAiTutorResponse(userQuery = question) } ?: ""
+                            } catch (e: Exception) { "" }
+
                             if (cerebrasResult.isNotBlank() && !cerebrasResult.startsWith("【小精灵稍作休息") && !cerebrasResult.startsWith("【网络连接超时")) {
                                 cerebrasResult
                             } else {
-                                geminiRepository.getAiTutorResponse(userQuery = question)
+                                val geminiResult = try {
+                                    withTimeoutOrNull(2000L) { geminiRepository.getAiTutorResponse(userQuery = question) } ?: ""
+                                } catch (e: Exception) { "" }
+
+                                if (geminiResult.isNotBlank() && !geminiResult.startsWith("【小精灵稍作休息") && !geminiResult.startsWith("【网络连接超时")) {
+                                    geminiResult
+                                } else {
+                                    geminiRepository.getAiTutorResponse(userQuery = question)
+                                }
                             }
                         }
                     } catch (e: Exception) {

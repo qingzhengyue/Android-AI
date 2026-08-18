@@ -68,7 +68,7 @@ fun InteractiveScratchProgrammingScreen(viewModel: MainViewModel, onBackToHall: 
     val context = androidx.compose.ui.platform.LocalContext.current
     val configuration = androidx.compose.ui.platform.LocalConfiguration.current
     val isTablet = configuration.screenWidthDp > 600
-    val drawerWidth = if (isTablet) 240.dp else configuration.screenWidthDp.dp
+    val drawerWidth = if (isTablet) 300.dp.coerceAtMost((configuration.screenWidthDp * 0.42f).dp) else (configuration.screenWidthDp * 0.85f).dp
 
     val draftCode by viewModel.currentDraftCode.collectAsState()
     val draftName by viewModel.currentDraftName.collectAsState()
