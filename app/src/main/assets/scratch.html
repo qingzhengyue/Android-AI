@@ -20,10 +20,10 @@ html, body {
 
 /* 顶栏工作条 */
 .top-nav {
-  height: 44px;
+  height: 42px;
   background: #1e293b;
   color: #f8fafc;
-  padding: 0 12px;
+  padding: 0 10px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -32,7 +32,7 @@ html, body {
   z-index: 10;
 }
 .top-title {
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -45,9 +45,9 @@ html, body {
 }
 .nav-btn {
   border: none;
-  padding: 5px 12px;
+  padding: 5px 11px;
   border-radius: 6px;
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 600;
   cursor: pointer;
   display: inline-flex;
@@ -56,11 +56,11 @@ html, body {
   transition: transform 0.1s, opacity 0.2s;
 }
 .nav-btn:active { transform: scale(0.96); opacity: 0.9; }
-.btn-green { background: #22c55e; color: #fff; }
-.btn-red { background: #ef4444; color: #fff; }
+.btn-green { background: #22c55e; color: #fff; box-shadow: 0 2px 6px rgba(34,197,94,0.3); }
+.btn-red { background: #ef4444; color: #fff; box-shadow: 0 2px 6px rgba(239,68,68,0.3); }
 .btn-outline { background: #334155; color: #cbd5e1; border: 1px solid #475569; }
 
-/* 主工作区布局：分类导航 + 积木候选区 + 脚本画布 + 舞台预览 */
+/* 主工作区布局 */
 .main-layout {
   display: flex;
   flex: 1;
@@ -72,13 +72,13 @@ html, body {
 
 /* 1. 侧边分类栏 */
 .cat-sidebar {
-  width: 68px;
+  width: 62px;
   background: #f1f5f9;
   border-right: 1px solid #e2e8f0;
   display: flex;
   flex-direction: column;
   gap: 3px;
-  padding: 6px 3px;
+  padding: 5px 2px;
   flex-shrink: 0;
   overflow-y: auto;
 }
@@ -87,10 +87,10 @@ html, body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 6px 2px;
+  padding: 5px 2px;
   border-radius: 8px;
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 10.5px;
+  font-weight: 700;
   cursor: pointer;
   color: #64748b;
   gap: 3px;
@@ -105,31 +105,31 @@ html, body {
   box-shadow: 0 2px 4px rgba(0,0,0,0.06);
 }
 .cat-dot {
-  width: 12px;
-  height: 12px;
+  width: 11px;
+  height: 11px;
   border-radius: 50%;
   box-shadow: 0 1px 3px rgba(0,0,0,0.15);
 }
 
 /* 2. 积木候选库面板 */
 .palette-pane {
-  width: 175px;
+  width: 170px;
   background: #ffffff;
   border-right: 1px solid #e2e8f0;
   overflow-y: auto;
-  padding: 8px 6px;
+  padding: 6px;
   display: flex;
   flex-direction: column;
   gap: 6px;
   flex-shrink: 0;
 }
 .palette-header {
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 700;
   color: #94a3b8;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  padding-bottom: 4px;
+  padding-bottom: 3px;
   border-bottom: 1px solid #f1f5f9;
   display: flex;
   justify-content: space-between;
@@ -139,7 +139,7 @@ html, body {
   background: #ff8c1a;
   color: #fff;
   border: none;
-  padding: 6px 10px;
+  padding: 5px 8px;
   border-radius: 6px;
   font-size: 11px;
   font-weight: 700;
@@ -149,7 +149,7 @@ html, body {
   justify-content: center;
   gap: 4px;
   box-shadow: 0 2px 4px rgba(255,140,26,0.3);
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 .new-var-btn:active { transform: scale(0.96); }
 
@@ -158,27 +158,27 @@ html, body {
   display: inline-flex;
   align-items: center;
   flex-wrap: wrap;
-  padding: 6px 10px;
+  padding: 6px 9px;
   border-radius: 6px;
   color: #fff;
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 600;
-  min-height: 32px;
+  min-height: 30px;
   position: relative;
-  gap: 5px;
+  gap: 4px;
   cursor: pointer;
   box-shadow: 0 2px 4px rgba(0,0,0,0.12);
   user-select: none;
-  transition: transform 0.1s, box-shadow 0.15s, border-color 0.15s;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
   line-height: 1.3;
 }
 .scratch-block:active { transform: scale(0.97); }
 
 .param-pill {
   background: rgba(0,0,0,0.25);
-  padding: 2px 7px;
+  padding: 1px 6px;
   border-radius: 10px;
-  font-size: 10.5px;
+  font-size: 10px;
   border: 1px solid rgba(255,255,255,0.4);
   color: #fff;
   font-weight: 700;
@@ -189,9 +189,9 @@ html, body {
   transition: all 0.15s;
 }
 .param-pill:hover {
-  background: rgba(0,0,0,0.4);
+  background: rgba(0,0,0,0.45);
   border-color: #fff;
-  box-shadow: 0 0 4px rgba(255,255,255,0.5);
+  box-shadow: 0 0 4px rgba(255,255,255,0.6);
 }
 
 .cat-motion { background: #4C97FF; }
@@ -208,7 +208,7 @@ html, body {
   flex: 1;
   background: #f8fafc;
   overflow-y: auto;
-  padding: 8px 12px 12px 12px;
+  padding: 6px 10px 10px 10px;
   position: relative;
   display: flex;
   flex-direction: column;
@@ -218,31 +218,31 @@ html, body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 6px;
-  font-size: 12px;
+  margin-bottom: 5px;
+  font-size: 11.5px;
   color: #475569;
   font-weight: 700;
 }
 .badge {
   background: #e0f2fe;
   color: #0284c7;
-  font-size: 11px;
-  padding: 2px 8px;
+  font-size: 10.5px;
+  padding: 2px 7px;
   border-radius: 10px;
   font-weight: 700;
 }
 
-/* 编程农场风格：实时执行步进跟踪条 (Step Execution Pointer Bar) */
+/* 实时步进跟踪条 */
 .step-tracker-bar {
   background: #fff;
   border: 1.5px solid #e2e8f0;
   border-radius: 8px;
-  padding: 5px 10px;
-  margin-bottom: 8px;
+  padding: 4px 8px;
+  margin-bottom: 6px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 700;
   color: #334155;
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
@@ -251,7 +251,7 @@ html, body {
   background: #fef3c7;
   border-color: #f59e0b;
   color: #92400e;
-  animation: pulseBg 1.5s infinite;
+  animation: pulseBg 1.2s infinite;
 }
 @keyframes pulseBg {
   0%, 100% { background-color: #fef3c7; }
@@ -264,10 +264,10 @@ html, body {
   border-radius: 10px;
   flex: 1;
   min-height: 220px;
-  padding: 12px;
+  padding: 10px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 7px;
   overflow-y: auto;
   box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
 }
@@ -277,11 +277,11 @@ html, body {
   align-items: center;
   justify-content: center;
   color: #94a3b8;
-  font-size: 12px;
+  font-size: 11.5px;
   height: 100%;
-  min-height: 160px;
+  min-height: 150px;
   text-align: center;
-  gap: 6px;
+  gap: 5px;
   line-height: 1.5;
 }
 
@@ -291,54 +291,96 @@ html, body {
   justify-content: space-between;
   width: 100%;
   border-radius: 6px;
-  transition: all 0.2s ease;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease, border 0.2s ease;
 }
-.block-row.running-highlight {
-  box-shadow: 0 0 0 3px #f59e0b, 0 4px 12px rgba(245,158,11,0.5);
-  transform: scale(1.02);
-  border: 2px solid #fff;
-  z-index: 5;
+
+/* 核心放大与高亮特效 (当程序运行到某个积木时) */
+.running-highlight {
+  box-shadow: 0 0 0 4px #22c55e, 0 0 22px rgba(34, 197, 94, 0.95) !important;
+  transform: scale(1.05) !important;
+  border: 2px solid #fff !important;
+  z-index: 20 !important;
+  animation: blockRunningGlow 0.6s infinite alternate !important;
 }
-.del-btn {
-  opacity: 0.7;
-  font-size: 13px;
-  cursor: pointer;
+.running-highlight-child {
+  box-shadow: 0 0 0 3.5px #f59e0b, 0 0 20px rgba(245, 158, 11, 0.95) !important;
+  transform: scale(1.05) !important;
+  border: 2px solid #fff !important;
+  z-index: 20 !important;
+  animation: childRunningGlow 0.6s infinite alternate !important;
+}
+.running-container-active {
+  border-color: #22c55e !important;
+  box-shadow: 0 0 0 3px #22c55e, 0 4px 16px rgba(34, 197, 94, 0.35) !important;
+}
+
+@keyframes blockRunningGlow {
+  0% { box-shadow: 0 0 0 3px #22c55e, 0 0 10px rgba(34, 197, 94, 0.6); }
+  100% { box-shadow: 0 0 0 5px #00E676, 0 0 24px rgba(0, 230, 118, 0.95); }
+}
+@keyframes childRunningGlow {
+  0% { box-shadow: 0 0 0 3px #f59e0b, 0 0 10px rgba(245, 158, 11, 0.6); }
+  100% { box-shadow: 0 0 0 5px #ef4444, 0 0 22px rgba(239, 68, 68, 0.95); }
+}
+
+.executing-badge {
+  background: #22c55e;
+  color: #fff;
+  font-size: 9.5px;
+  font-weight: 800;
   padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  animation: badgePulse 0.6s infinite alternate;
+}
+@keyframes badgePulse {
+  0% { transform: scale(0.95); opacity: 0.9; }
+  100% { transform: scale(1.06); opacity: 1; }
+}
+
+.del-btn {
+  opacity: 0.75;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 2px 5px;
   border-radius: 4px;
   transition: opacity 0.15s;
 }
-.del-btn:hover { opacity: 1; background: rgba(0,0,0,0.25); }
+.del-btn:hover { opacity: 1; background: rgba(0,0,0,0.3); }
 
-/* C-Block (循环与条件结构体容器) 专有结构样式 (强化嵌套视觉层次) */
+/* =================================================== */
+/* C-Block 嵌套分支结构与明显缩进 (专业 Scratch 凹槽形态) */
+/* =================================================== */
 .c-block-container {
   width: 100%;
   display: flex;
   flex-direction: column;
   border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.12);
-  border: 2px solid rgba(255,171,25,0.6);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  border: 2px solid #d97706;
   transition: all 0.2s ease;
   background: #fff;
-}
-.c-block-container.running-container-active {
-  border-color: #f59e0b;
-  box-shadow: 0 0 0 2px #f59e0b, 0 4px 12px rgba(245,158,11,0.25);
 }
 .c-block-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 7px 10px;
+  padding: 6px 10px;
   color: #fff;
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 700;
   border-top-left-radius: 6px;
   border-top-right-radius: 6px;
 }
+/* 核心缩进区：采用加粗脊柱条 (20px left spine) + 内部缩进 */
 .c-block-body {
-  background: #fffbeb;
-  border-left: 18px solid #FFAB19;
+  background: #fffdf5;
+  border-left: 20px solid #FFAB19;
   padding: 8px 8px 8px 12px;
   display: flex;
   flex-direction: column;
@@ -352,97 +394,110 @@ html, body {
   left: -14px;
   top: 0;
   bottom: 0;
-  width: 2px;
-  background: rgba(255,255,255,0.5);
+  width: 3px;
+  background: rgba(255,255,255,0.6);
 }
+
 .c-block-body-empty {
-  font-size: 11px;
+  font-size: 10.5px;
   color: #b45309;
   background: #fef3c7;
   border: 1px dashed #f59e0b;
   border-radius: 6px;
-  padding: 6px 10px;
+  padding: 5px 8px;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
 }
-.c-body-add-btn {
-  background: #fff;
-  border: 1.5px dashed #d97706;
-  color: #b45309;
-  font-size: 11px;
-  font-weight: 700;
-  border-radius: 6px;
-  padding: 5px 10px;
-  cursor: pointer;
-  width: fit-content;
-  display: inline-flex;
+
+/* 循环体内部快捷添加芯片条 (1键直接放入循环体) */
+.c-quick-bar {
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 4px;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-  transition: all 0.15s;
+  padding-top: 4px;
+  border-top: 1px dashed #fed7aa;
+  margin-top: 2px;
 }
-.c-body-add-btn:hover { background: #fef3c7; border-color: #b45309; }
-.c-body-add-btn:active { transform: scale(0.97); }
+.quick-chip-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: #b45309;
+  margin-right: 2px;
+}
+.c-quick-chip {
+  border: none;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 7px;
+  border-radius: 5px;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.12);
+  transition: transform 0.1s;
+}
+.c-quick-chip:active { transform: scale(0.95); }
+.c-more-btn {
+  background: #fff !important;
+  color: #b45309 !important;
+  border: 1px solid #d97706 !important;
+}
 
 .c-block-footer {
-  height: 16px;
+  height: 18px;
   background: #FFAB19;
   border-bottom-left-radius: 6px;
   border-bottom-right-radius: 6px;
   display: flex;
   align-items: center;
   padding-left: 10px;
-  color: rgba(255,255,255,0.9);
-  font-size: 9px;
+  color: rgba(255,255,255,0.95);
+  font-size: 9.5px;
   font-weight: 700;
   letter-spacing: 0.5px;
 }
 
-/* 循环体内部子积木高亮样式 (编程农场步进效果) */
+/* 循环体内部子积木外观 (带阶梯缩进与连接记号) */
 .child-block-item {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
   border-radius: 6px;
-  transition: all 0.2s ease;
+  margin-left: 2px;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
 }
-.child-block-item.running-highlight-child {
-  box-shadow: 0 0 0 3px #ef4444, 0 4px 14px rgba(239,68,68,0.6) !important;
-  transform: scale(1.03);
-  border: 2px solid #fff !important;
-  z-index: 10;
-  animation: childPulse 0.8s infinite alternate;
+.child-indent-notch {
+  color: rgba(255,255,255,0.8);
+  font-weight: 900;
+  font-size: 11px;
+  margin-right: 4px;
 }
-@keyframes childPulse {
-  0% { box-shadow: 0 0 0 3px #f59e0b, 0 4px 10px rgba(245,158,11,0.5); }
-  100% { box-shadow: 0 0 0 4px #ef4444, 0 6px 16px rgba(239,68,68,0.7); }
-}
-
 .step-number-tag {
   background: rgba(0,0,0,0.3);
   border-radius: 4px;
-  padding: 1px 5px;
-  font-size: 9.5px;
+  padding: 1px 4px;
+  font-size: 9px;
   font-weight: 800;
   margin-right: 4px;
 }
 
 /* 4. 右侧舞台预览面板 */
 .stage-pane {
-  width: 210px;
+  width: 200px;
   background: #ffffff;
   border-left: 1px solid #e2e8f0;
   display: flex;
   flex-direction: column;
-  padding: 10px;
-  gap: 8px;
+  padding: 8px;
+  gap: 6px;
   flex-shrink: 0;
 }
 .stage-screen-box {
   width: 100%;
-  height: 140px;
+  height: 130px;
   background: linear-gradient(to bottom, #f0fdf4, #e0f2fe);
   border: 2px solid #cbd5e1;
   border-radius: 8px;
@@ -461,35 +516,35 @@ html, body {
 .stage-var-badge {
   background: rgba(255, 140, 26, 0.95);
   color: #fff;
-  font-size: 9.5px;
+  font-size: 9px;
   font-weight: 700;
-  padding: 2px 6px;
+  padding: 1px 5px;
   border-radius: 4px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.2);
 }
 .cat-character {
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   position: absolute;
-  left: 70px;
-  top: 45px;
+  left: 65px;
+  top: 40px;
   transform-origin: center center;
   transition: left 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), top 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), transform 0.25s ease, opacity 0.25s ease;
   filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
 }
 .speech-bubble {
   position: absolute;
-  top: 8px;
-  left: 8px;
+  top: 6px;
+  left: 6px;
   background: #fff;
   border: 2px solid #0284c7;
   border-radius: 8px;
   padding: 3px 6px;
-  font-size: 10.5px;
+  font-size: 10px;
   font-weight: 700;
   color: #0369a1;
   display: none;
-  max-width: 150px;
+  max-width: 140px;
   word-break: break-all;
   box-shadow: 0 2px 8px rgba(0,0,0,0.15);
   z-index: 10;
@@ -511,38 +566,40 @@ html, body {
   background: #0f172a;
   color: #38bdf8;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 9.5px;
-  padding: 6px;
+  font-size: 9px;
+  padding: 5px;
   border-radius: 6px;
   overflow-y: auto;
   line-height: 1.35;
-  max-height: 120px;
+  max-height: 110px;
 }
 
-/* 模态弹窗与参数修改器 */
+/* 模态弹窗与参数修改器 (横屏与移动端全面适配) */
 .modal-mask {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.55);
+  background: rgba(0,0,0,0.6);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 100;
-  padding: 16px;
+  padding: 12px;
 }
 .modal-dialog {
   background: #fff;
   border-radius: 12px;
-  width: 100%;
-  max-width: 340px;
-  padding: 16px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  width: 92vw;
+  max-width: 480px;
+  max-height: 88vh;
+  padding: 14px;
+  box-shadow: 0 12px 36px rgba(0,0,0,0.35);
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
+  overflow: hidden;
 }
 .modal-title {
-  font-size: 14px;
+  font-size: 13.5px;
   font-weight: 700;
   color: #1e293b;
   display: flex;
@@ -551,10 +608,10 @@ html, body {
 }
 .modal-input {
   width: 100%;
-  padding: 8px 10px;
+  padding: 7px 9px;
   border: 1.5px solid #cbd5e1;
   border-radius: 6px;
-  font-size: 13px;
+  font-size: 12px;
   outline: none;
 }
 .modal-input:focus { border-color: #3b82f6; }
@@ -562,11 +619,12 @@ html, body {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
+  margin-top: 4px;
 }
 .modal-btn {
-  padding: 6px 14px;
+  padding: 5px 12px;
   border-radius: 6px;
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 600;
   cursor: pointer;
   border: none;
@@ -575,9 +633,9 @@ html, body {
 .modal-btn-confirm { background: #3b82f6; color: #fff; }
 
 @media (max-width: 600px) {
-  .stage-pane { width: 140px; }
-  .palette-pane { width: 110px; }
-  .cat-sidebar { width: 56px; }
+  .stage-pane { width: 130px; }
+  .palette-pane { width: 105px; }
+  .cat-sidebar { width: 52px; }
   .top-title { font-size: 11px; }
 }
 </style>
@@ -638,23 +696,23 @@ html, body {
       <span class="badge" id="blockCountText">0 个积木</span>
     </div>
 
-    <!-- 编程农场式实时执行步进跟踪条 -->
+    <!-- 实时执行步进跟踪条 -->
     <div class="step-tracker-bar" id="stepTrackerBar">
-      <span id="stepTrackerText">🎯 就绪：点击上方“🟢 运行”按步执行积木</span>
-      <span id="stepProgressTag" style="font-size:10.5px;color:#64748b;">待启动</span>
+      <span id="stepTrackerText">🎯 就绪：点击上方“🟢 运行”开始步进执行</span>
+      <span id="stepProgressTag" style="font-size:10px;color:#64748b;">待启动</span>
     </div>
 
     <div class="canvas-container" id="canvasStack">
       <div class="empty-canvas" id="emptyTip">
-        <span style="font-size:20px;">👈</span>
-        <span>点击左侧分类库添加积木<br>支持循环体嵌套与条件判断 (如 x > 5)，点击“🟢 运行”体验生动的步进执行</span>
+        <span style="font-size:18px;">👈</span>
+        <span>点击左侧分类库添加积木<br>支持循环体嵌套与条件判断 (如 x > 5)，点击“🟢 运行”体验生动的放大高亮步进执行</span>
       </div>
     </div>
   </div>
 
   <!-- 4. 舞台预览 -->
   <div class="stage-pane">
-    <div style="font-size:11px;font-weight:700;color:#334155;">🖼️ 舞台运行效果</div>
+    <div style="font-size:10.5px;font-weight:700;color:#334155;">🖼️ 舞台运行效果</div>
     <div class="stage-screen-box" id="stageBox">
       <div class="stage-var-container" id="stageVarContainer">
         <!-- 变量动态 HUD -->
@@ -667,7 +725,7 @@ html, body {
         <path d="M45,55 Q50,62 55,55" stroke="#1e293b" stroke-width="2" fill="none"/>
       </svg>
     </div>
-    <div style="font-size:10px;font-weight:700;color:#64748b;">📜 运行日志</div>
+    <div style="font-size:9.5px;font-weight:700;color:#64748b;">📜 运行日志</div>
     <div class="log-box" id="stageLog">【系统】Scratch 3.0 智学引擎就绪...</div>
   </div>
 </div>
@@ -686,7 +744,75 @@ let visibleVariables = {
   "x": true
 };
 
-// 预定义积木模板
+// 全中文、精准映射的 Scratch 3.0 Opcode 映射字典 (绝对杜绝任何英文 Opcode 泄露)
+const OP_TRANSLATE_MAP = {
+  'motion_movesteps': '移动 10 步',
+  'motion_turnright': '右转 15 度 ↷',
+  'motion_turnleft': '左转 15 度 ↶',
+  'motion_gotoxy': '移到 x:0 y:0',
+  'motion_glidesecstoxy': '在 1 秒内滑行到 x:0 y:0 ✈️',
+  'motion_glideto': '在 1 秒内滑行到 随机位置 ✈️',
+  'motion_changexby': '将 x 坐标增加 10',
+  'motion_setx': '将 x 坐标设为 0',
+  'motion_changeyby': '将 y 坐标增加 10',
+  'motion_sety': '将 y 坐标设为 0',
+  'motion_ifonedgebounce': '碰到边缘就反弹 💥',
+  'motion_setrotationstyle': '设置旋转方式 [左右翻转] 🔄',
+  'motion_pointindirection': '面向 90 方向',
+  'motion_pointtowards': '面向 鼠标指针 🧭',
+  
+  'looks_sayforsecs': '说 Hello! 2 秒',
+  'looks_say': '说 Hello!',
+  'looks_thinkforsecs': '思考 Hmm... 2 秒',
+  'looks_think': '思考 Hmm...',
+  'looks_nextcostume': '下一个造型 ✨',
+  'looks_switchcostumeto': '换成造型 造型1 👗',
+  'looks_changesizeby': '将大小增加 10',
+  'looks_setsizeto': '将大小设为 100%',
+  'looks_show': '显示 👁️',
+  'looks_hide': '隐藏 🙈',
+  
+  'sound_play': '播放声音 喵 🐱',
+  'sound_playuntildone': '播放声音 喵 🐱 直到播完',
+  'sound_stopallsounds': '停止所有声音 🔇',
+  
+  'event_whenflagclicked': '当 🟢 被点击',
+  'event_whenkeypressed': '当按下 空格 键',
+  'event_whenthisspriteclicked': '当角色被点击 👆',
+  'event_broadcast': '广播 消息1 📢',
+  'event_whenbroadcastreceived': '当收到 消息1 📢',
+  
+  'control_wait': '等待 1 秒 ⏳',
+  'control_repeat': '重复执行 10 次 🔄',
+  'control_forever': '重复执行 [无限循环] ♾️',
+  'control_if': '如果 <条件> 那么 ⚡',
+  'control_if_else': '如果 <条件> 那么...否则...',
+  'control_wait_until': '等待直到 <条件> ⏳',
+  'control_repeat_until': '重复执行直到 <条件> 🔄',
+  'control_stop': '停止 全部脚本 🛑',
+  
+  'sensing_touchingobject': '碰到 舞台边缘 ? 🎯',
+  'sensing_keypressed': '按下 空格 键 ? ⌨️',
+  'sensing_askandwait': '询问 并等待 💬',
+  'sensing_timer': '计时器 ⏱️',
+  'sensing_resettimer': '重置计时器 ⏱️',
+  
+  'operator_gt': 'x > 5 📈',
+  'operator_lt': '得分 < 10 📉',
+  'operator_equals': '得分 = 100 ⚖️',
+  'operator_add': 'a + b ➕',
+  'operator_subtract': 'a - b ➖',
+  'operator_multiply': 'a * b ✖️',
+  'operator_divide': 'a / b ➗',
+  'operator_random': '在 1 到 10 间随机选数 🎲',
+  
+  'data_setvariableto': '将 变量 设为 0 📦',
+  'data_changevariableby': '将 变量 增加 1 🏆',
+  'data_showvariable': '显示变量 👁️',
+  'data_hidevariable': '隐藏变量 🙈'
+};
+
+// 预定义积木模板 (涵盖所有日常常用分类)
 const PALETTE_DEFINITIONS = {
   motion: [
     { opcode:'motion_movesteps', label:'移动 <span class="param-pill" data-key="steps">10</span> 步', cls:'cat-motion', params:{ steps: 10 } },
@@ -696,6 +822,7 @@ const PALETTE_DEFINITIONS = {
     { opcode:'motion_changexby', label:'将 x 坐标增加 <span class="param-pill" data-key="dx">10</span>', cls:'cat-motion', params:{ dx: 10 } },
     { opcode:'motion_changeyby', label:'将 y 坐标增加 <span class="param-pill" data-key="dy">10</span>', cls:'cat-motion', params:{ dy: 10 } },
     { opcode:'motion_ifonedgebounce', label:'碰到边缘就反弹 💥', cls:'cat-motion', params:{} },
+    { opcode:'motion_setrotationstyle', label:'设置旋转方式 <span class="param-pill" data-key="style">左右翻转</span> 🔄', cls:'cat-motion', params:{ style: '左右翻转' } },
     { opcode:'motion_pointindirection', label:'面向 <span class="param-pill" data-key="dir">90</span> 方向', cls:'cat-motion', params:{ dir: 90 } }
   ],
   looks: [
@@ -735,48 +862,11 @@ const PALETTE_DEFINITIONS = {
     { opcode:'operator_add', label:'<span class="param-pill" data-key="a">5</span> + <span class="param-pill" data-key="b">10</span> ➕', cls:'cat-operators', params:{ a: 5, b: 10 } },
     { opcode:'operator_random', label:'在 <span class="param-pill" data-key="from">1</span> 到 <span class="param-pill" data-key="to">10</span> 随机数 🎲', cls:'cat-operators', params:{ from: 1, to: 10 } }
   ],
-  data: [] // 动态生成变量积木
-};
-
-const OP_TRANSLATE_MAP = {
-  'motion_movesteps': '移动 10 步',
-  'motion_turnright': '右转 15 度 ↷',
-  'motion_turnleft': '左转 15 度 ↶',
-  'motion_gotoxy': '移到 x:0 y:0',
-  'motion_changexby': '将 x 坐标增加 10',
-  'motion_changeyby': '将 y 坐标增加 10',
-  'motion_ifonedgebounce': '碰到边缘就反弹 💥',
-  'motion_pointindirection': '面向 90 方向',
-  'looks_sayforsecs': '说 Hello! 2 秒',
-  'looks_say': '说 Hello!',
-  'looks_thinkforsecs': '思考 Hmm... 2 秒',
-  'looks_nextcostume': '下一个造型 ✨',
-  'looks_changesizeby': '将大小增加 10',
-  'looks_show': '显示 👁️',
-  'looks_hide': '隐藏 🙈',
-  'sound_play': '播放声音 喵 🐱',
-  'sound_playuntildone': '播放声音 喵 🐱 直到播完',
-  'sound_stopallsounds': '停止所有声音 🔇',
-  'event_whenflagclicked': '当 🟢 被点击',
-  'event_whenkeypressed': '当按下 空格 键',
-  'event_whenthisspriteclicked': '当角色被点击 👆',
-  'control_wait': '等待 1 秒 ⏳',
-  'control_repeat': '重复执行 10 次 🔄',
-  'control_forever': '重复执行 [无限循环] ♾️',
-  'control_if': '如果 <条件> 那么 ⚡',
-  'sensing_touchingobject': '碰到 舞台边缘 ? 🎯',
-  'sensing_askandwait': '询问 并等待 💬',
-  'operator_gt': 'x > 5 📈',
-  'operator_lt': '得分 < 10 📉',
-  'operator_equals': '得分 = 100 ⚖️',
-  'operator_add': 'a + b ➕',
-  'operator_random': '在 1 到 10 间随机选数 🎲',
-  'data_setvariableto': '将 变量 设为 0 📦',
-  'data_changevariableby': '将 变量 增加 1 🏆'
+  data: [] // 动态生成
 };
 
 let activeBlocks = [];
-let catX = 70, catY = 45, catRotation = 0, catScale = 1.0, isVisible = true;
+let catX = 65, catY = 40, catRotation = 0, catScale = 1.0, isVisible = true;
 let isScriptRunning = false;
 let audioCtx = null;
 let currentCatCategory = 'motion';
@@ -835,16 +925,15 @@ function renderPalette(catKey) {
   if (!panel) return;
 
   if (catKey === 'data') {
-    // 变量管理面板
     let html = `<div class="palette-header"><span>变量管理</span></div>`;
     html += `<button class="new-var-btn" onclick="openNewVariableDialog()">➕ 建立一个变量</button>`;
     
     const varNames = Object.keys(projectVariables);
     if (varNames.length > 0) {
-      html += `<div style="font-size:10px;font-weight:700;color:#64748b;margin:4px 0;">已建变量 (勾选在舞台显示):</div>`;
+      html += `<div style="font-size:9.5px;font-weight:700;color:#64748b;margin:3px 0;">已建变量 (勾选显示):</div>`;
       varNames.forEach(vName => {
         const isChecked = visibleVariables[vName] ? 'checked' : '';
-        html += `<div style="display:flex;align-items:center;gap:4px;font-size:11px;background:#fff7ed;padding:3px 6px;border-radius:4px;border:1px solid #fed7aa;margin-bottom:3px;">
+        html += `<div style="display:flex;align-items:center;gap:4px;font-size:10.5px;background:#fff7ed;padding:2px 5px;border-radius:4px;border:1px solid #fed7aa;margin-bottom:3px;">
           <input type="checkbox" ${isChecked} onchange="toggleVariableVisibility('${vName}', this.checked)">
           <span style="font-weight:700;color:#ea580c;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">📦 ${vName}</span>
         </div>`;
@@ -861,7 +950,7 @@ function renderPalette(catKey) {
         html += `<div class="scratch-block ${b.cls}" onclick="addBlockFromPalette('data', ${idx})">${b.label}</div>`;
       });
     } else {
-      html += `<div style="font-size:11px;color:#94a3b8;padding:8px 0;text-align:center;">暂无变量<br>点击上方按钮新建</div>`;
+      html += `<div style="font-size:10.5px;color:#94a3b8;padding:8px 0;text-align:center;">暂无变量<br>点击上方按钮新建</div>`;
     }
     panel.innerHTML = html;
     return;
@@ -880,9 +969,9 @@ function openNewVariableDialog() {
   container.style.display = 'block';
   container.innerHTML = `
     <div class="modal-mask" onclick="closeModal()">
-      <div class="modal-dialog" onclick="event.stopPropagation()">
+      <div class="modal-dialog" style="max-width:320px;" onclick="event.stopPropagation()">
         <div class="modal-title">📦 建立一个新变量</div>
-        <div style="font-size:11.5px;color:#64748b;">请输入变量名称（如 x, y, 得分, 生命值, 计数器）:</div>
+        <div style="font-size:11px;color:#64748b;">请输入变量名称（如 x, y, 得分, 生命值, 计数器）:</div>
         <input type="text" id="newVarInput" class="modal-input" placeholder="输入变量名称，如: x 或 得分" autofocus>
         <div class="modal-actions">
           <button class="modal-btn modal-btn-cancel" onclick="closeModal()">取消</button>
@@ -980,7 +1069,34 @@ function addBlockFromPalette(catKey, idx) {
   notifyAndroidCodeChange();
 }
 
-// 丰富多分类的“添加积木到循环体”弹窗 (解决循环体添加积木功能)
+// 循环体内部 1-Click 极速添加功能 (快捷按钮)
+function addQuickChild(parentIndex, opcode) {
+  const parent = activeBlocks[parentIndex];
+  if (!parent) return;
+  if (!parent.children) parent.children = [];
+
+  let newChild = null;
+  if (opcode === 'motion_movesteps') {
+    newChild = { id: 'c_' + Date.now(), opcode: 'motion_movesteps', params: { steps: 10 } };
+  } else if (opcode === 'motion_turnright') {
+    newChild = { id: 'c_' + Date.now(), opcode: 'motion_turnright', params: { degrees: 15 } };
+  } else if (opcode === 'motion_ifonedgebounce') {
+    newChild = { id: 'c_' + Date.now(), opcode: 'motion_ifonedgebounce', params: {} };
+  } else if (opcode === 'looks_nextcostume') {
+    newChild = { id: 'c_' + Date.now(), opcode: 'looks_nextcostume', params: {} };
+  } else if (opcode === 'control_wait') {
+    newChild = { id: 'c_' + Date.now(), opcode: 'control_wait', params: { duration: 0.2 } };
+  }
+
+  if (newChild) {
+    parent.children.push(newChild);
+    updateWorkspaceUI();
+    logMessage('📥 快速放入循环体: ' + (OP_TRANSLATE_MAP[opcode] || opcode));
+    notifyAndroidCodeChange();
+  }
+}
+
+// 全分类“添加积木到循环体”弹窗 (横屏自适应网格)
 function addChildBlockToContainer(parentIndex, selectedCategory = 'motion') {
   const parent = activeBlocks[parentIndex];
   if (!parent || !parent.isContainer) return;
@@ -998,11 +1114,11 @@ function addChildBlockToContainer(parentIndex, selectedCategory = 'motion') {
     { key: 'data', name: '变量', color: '#FF8C1A' }
   ];
 
-  let catTabsHtml = `<div style="display:flex;gap:4px;overflow-x:auto;padding-bottom:6px;border-bottom:1px solid #e2e8f0;">`;
+  let catTabsHtml = `<div style="display:flex;gap:4px;overflow-x:auto;padding-bottom:5px;border-bottom:1px solid #e2e8f0;flex-shrink:0;">`;
   categories.forEach(c => {
     const isAct = c.key === selectedCategory;
     catTabsHtml += `
-      <button style="padding:4px 8px;border-radius:6px;border:none;background:${isAct ? c.color : '#f1f5f9'};color:${isAct ? '#fff' : '#64748b'};font-size:11px;font-weight:700;cursor:pointer;" onclick="addChildBlockToContainer(${parentIndex}, '${c.key}')">
+      <button style="padding:4px 9px;border-radius:6px;border:none;background:${isAct ? c.color : '#f1f5f9'};color:${isAct ? '#fff' : '#64748b'};font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0;" onclick="addChildBlockToContainer(${parentIndex}, '${c.key}')">
         ${c.name}
       </button>
     `;
@@ -1024,7 +1140,7 @@ function addChildBlockToContainer(parentIndex, selectedCategory = 'motion') {
   let listHtml = '';
   blockList.forEach((c, cIdx) => {
     listHtml += `
-      <div class="scratch-block ${c.cls}" style="margin-bottom:6px;width:100%;justify-content:center;" onclick="confirmAddChildDynamic(${parentIndex}, '${selectedCategory}', ${cIdx})">
+      <div class="scratch-block ${c.cls}" style="margin-bottom:4px;width:100%;font-size:11px;" onclick="confirmAddChildDynamic(${parentIndex}, '${selectedCategory}', ${cIdx})">
         ${c.label}
       </div>
     `;
@@ -1032,14 +1148,14 @@ function addChildBlockToContainer(parentIndex, selectedCategory = 'motion') {
 
   container.innerHTML = `
     <div class="modal-mask" onclick="closeModal()">
-      <div class="modal-dialog" style="max-height:85vh;overflow-y:auto;max-width:360px;" onclick="event.stopPropagation()">
+      <div class="modal-dialog" onclick="event.stopPropagation()">
         <div class="modal-title">🔄 添加积木到循环体 / 分支内部</div>
-        <div style="font-size:11px;color:#64748b;">选择分类并点击积木，即可放入内部重复执行：</div>
+        <div style="font-size:11px;color:#64748b;">点击下方任一积木，即可将其嵌套放入内部：</div>
         ${catTabsHtml}
-        <div style="display:flex;flex-direction:column;gap:5px;margin-top:8px;max-height:220px;overflow-y:auto;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px;max-height:220px;overflow-y:auto;padding:2px;">
           ${listHtml}
         </div>
-        <div class="modal-actions" style="margin-top:8px;">
+        <div class="modal-actions">
           <button class="modal-btn modal-btn-cancel" onclick="closeModal()">关闭</button>
         </div>
       </div>
@@ -1123,12 +1239,12 @@ function openConditionCustomizer(blockId, currentCondition) {
 
   container.innerHTML = `
     <div class="modal-mask" onclick="closeModal()">
-      <div class="modal-dialog" style="max-width:350px;" onclick="event.stopPropagation()">
+      <div class="modal-dialog" style="max-width:340px;" onclick="event.stopPropagation()">
         <div class="modal-title">⚡ 自定义条件 (结合“运算”积木)</div>
-        <div style="font-size:11.5px;color:#64748b;">构建如【x > 5】或【得分 > 10】等运算条件：</div>
+        <div style="font-size:11px;color:#64748b;">构建如【x > 5】或【得分 > 10】等运算表达式：</div>
         
-        <div style="background:#f8fafc;border:1px solid #cbd5e1;border-radius:8px;padding:10px;display:flex;flex-direction:column;gap:8px;">
-          <div style="font-size:11px;font-weight:700;color:#0f172a;">📊 运算关系表达式:</div>
+        <div style="background:#f8fafc;border:1px solid #cbd5e1;border-radius:8px;padding:8px;display:flex;flex-direction:column;gap:6px;">
+          <div style="font-size:10.5px;font-weight:700;color:#0f172a;">📊 运算关系表达式:</div>
           <div style="display:flex;align-items:center;gap:4px;">
             <select id="condLeftVar" class="modal-input" style="flex:1;">
               ${varOptionsHtml}
@@ -1145,15 +1261,15 @@ function openConditionCustomizer(blockId, currentCondition) {
           </div>
         </div>
 
-        <div style="font-size:11px;font-weight:700;color:#64748b;">或者选择经典侦测条件：</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;">
-          <button class="modal-btn modal-btn-cancel" style="font-size:11px;" onclick="selectQuickCondition('${blockId}', '碰到舞台边缘')">🎯 碰到舞台边缘</button>
-          <button class="modal-btn modal-btn-cancel" style="font-size:11px;" onclick="selectQuickCondition('${blockId}', '按下空格键')">⌨️ 按下空格键</button>
-          <button class="modal-btn modal-btn-cancel" style="font-size:11px;" onclick="selectQuickCondition('${blockId}', '角色被点击')">👆 角色被点击</button>
-          <button class="modal-btn modal-btn-cancel" style="font-size:11px;" onclick="selectQuickCondition('${blockId}', 'x > 5')">📈 x > 5</button>
+        <div style="font-size:10.5px;font-weight:700;color:#64748b;">或者选择快捷侦测条件：</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">
+          <button class="modal-btn modal-btn-cancel" style="font-size:10.5px;" onclick="selectQuickCondition('${blockId}', '碰到舞台边缘')">🎯 碰到舞台边缘</button>
+          <button class="modal-btn modal-btn-cancel" style="font-size:10.5px;" onclick="selectQuickCondition('${blockId}', '按下空格键')">⌨️ 按下空格键</button>
+          <button class="modal-btn modal-btn-cancel" style="font-size:10.5px;" onclick="selectQuickCondition('${blockId}', '角色被点击')">👆 角色被点击</button>
+          <button class="modal-btn modal-btn-cancel" style="font-size:10.5px;" onclick="selectQuickCondition('${blockId}', 'x > 5')">📈 x > 5</button>
         </div>
 
-        <div class="modal-actions" style="margin-top:6px;">
+        <div class="modal-actions" style="margin-top:4px;">
           <button class="modal-btn modal-btn-cancel" onclick="closeModal()">取消</button>
           <button class="modal-btn modal-btn-confirm" onclick="applyCustomOperatorCondition('${blockId}')">确认设定条件</button>
         </div>
@@ -1168,7 +1284,6 @@ function applyCustomOperatorCondition(blockId) {
   const right = document.getElementById('condRightVal').value || '0';
   const condStr = `${left} ${op} ${right}`;
   
-  // 保证变量在项目中注册
   if (left && !projectVariables.hasOwnProperty(left) && left !== '自定义') {
     projectVariables[left] = 0;
     visibleVariables[left] = true;
@@ -1232,7 +1347,7 @@ function editBlockParam(blockId, paramKey, currentValue, optionsJson) {
 
   container.innerHTML = `
     <div class="modal-mask" onclick="closeModal()">
-      <div class="modal-dialog" onclick="event.stopPropagation()">
+      <div class="modal-dialog" style="max-width:320px;" onclick="event.stopPropagation()">
         <div class="modal-title">✏️ 修改积木参数 (${paramKey})</div>
         <div style="font-size:11px;color:#64748b;">请输入或选择新的数值/内容：</div>
         ${inputHtml}
@@ -1257,39 +1372,7 @@ function renderBlockHtml(b, parentIndex = null) {
   const blockId = b.id;
   const p = b.params || {};
 
-  let formattedLabel = b.label || OP_TRANSLATE_MAP[b.opcode] || b.opcode;
-
-  if (b.opcode === 'motion_movesteps') {
-    formattedLabel = `移动 <span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'steps', '${p.steps ?? 10}')">${p.steps ?? 10}</span> 步`;
-  } else if (b.opcode === 'motion_turnright') {
-    formattedLabel = `右转 <span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'degrees', '${p.degrees ?? 15}')">${p.degrees ?? 15}</span> 度 ↷`;
-  } else if (b.opcode === 'motion_turnleft') {
-    formattedLabel = `左转 <span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'degrees', '${p.degrees ?? 15}')">${p.degrees ?? 15}</span> 度 ↶`;
-  } else if (b.opcode === 'motion_gotoxy') {
-    formattedLabel = `移到 x:<span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'x', '${p.x ?? 0}')">${p.x ?? 0}</span> y:<span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'y', '${p.y ?? 0}')">${p.y ?? 0}</span>`;
-  } else if (b.opcode === 'looks_sayforsecs') {
-    formattedLabel = `说 <span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'message', '${p.message || 'Hello!'}')">${p.message || 'Hello!'}</span> <span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'secs', '${p.secs ?? 2}')">${p.secs ?? 2}</span> 秒`;
-  } else if (b.opcode === 'looks_say') {
-    formattedLabel = `说 <span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'message', '${p.message || 'Hello!'}')">${p.message || 'Hello!'}</span>`;
-  } else if (b.opcode === 'control_wait') {
-    formattedLabel = `等待 <span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'duration', '${p.duration ?? 1}')">${p.duration ?? 1}</span> 秒 ⏳`;
-  } else if (b.opcode === 'control_repeat') {
-    formattedLabel = `重复执行 <span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'times', '${p.times ?? 10}')">${p.times ?? 10}</span> 次 🔄`;
-  } else if (b.opcode === 'control_if') {
-    formattedLabel = `如果 <span class="param-pill" onclick="event.stopPropagation();openConditionCustomizer('${blockId}', '${p.condition || 'x > 5'}')">${p.condition || 'x > 5'}</span> 那么 ⚡`;
-  } else if (b.opcode === 'operator_gt') {
-    formattedLabel = `<span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'varName', '${p.varName || 'x'}')">${p.varName || 'x'}</span> > <span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'val', '${p.val ?? 5}')">${p.val ?? 5}</span> 📈`;
-  } else if (b.opcode === 'operator_lt') {
-    formattedLabel = `<span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'varName', '${p.varName || '得分'}')">${p.varName || '得分'}</span> < <span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'val', '${p.val ?? 10}')">${p.val ?? 10}</span> 📉`;
-  } else if (b.opcode.startsWith('data_')) {
-    const varNames = Object.keys(projectVariables);
-    const varOptions = encodeURIComponent(JSON.stringify(varNames.length > 0 ? varNames : ['得分', 'x']));
-    if (b.opcode === 'data_setvariableto') {
-      formattedLabel = `将 <span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'varName', '${p.varName || '得分'}', '${varOptions}')">${p.varName || '得分'}</span> 设为 <span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'value', '${p.value ?? 0}')">${p.value ?? 0}</span> 📦`;
-    } else if (b.opcode === 'data_changevariableby') {
-      formattedLabel = `将 <span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'varName', '${p.varName || '得分'}', '${varOptions}')">${p.varName || '得分'}</span> 增加 <span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'value', '${p.value ?? 1}')">${p.value ?? 1}</span> 🏆`;
-    }
-  }
+  let formattedLabel = formatBlockLabel(b);
 
   // 1. 如果是 C-Block (循环体或条件判断容器)
   if (b.isContainer) {
@@ -1299,6 +1382,7 @@ function renderBlockHtml(b, parentIndex = null) {
         childrenHtml += `
           <div class="scratch-block ${getCategoryClassByOpcode(cBlock.opcode)} child-block-item" id="block_ui_${cBlock.id}">
             <div style="display:flex;align-items:center;">
+              <span class="child-indent-notch">↳</span>
               <span class="step-number-tag">${cIdx + 1}</span>
               <span>${renderBlockInnerHtml(cBlock)}</span>
             </div>
@@ -1307,7 +1391,7 @@ function renderBlockHtml(b, parentIndex = null) {
         `;
       });
     } else {
-      childrenHtml = `<div class="c-block-body-empty"><span>👉 循环体为空，点击下方按钮添加内部动作积木</span></div>`;
+      childrenHtml = `<div class="c-block-body-empty"><span>👉 循环体为空，点击下方快捷按钮放入内部动作积木</span></div>`;
     }
 
     return `
@@ -1318,11 +1402,18 @@ function renderBlockHtml(b, parentIndex = null) {
         </div>
         <div class="c-block-body">
           ${childrenHtml}
-          <button class="c-body-add-btn" onclick="event.stopPropagation();addChildBlockToContainer(${parentIndex})">
-            ➕ 向此循环体添加内部积木
-          </button>
+          <!-- 循环体内部快捷添加工具条 -->
+          <div class="c-quick-bar">
+            <span class="quick-chip-label">快捷放入:</span>
+            <button class="c-quick-chip cat-motion" onclick="event.stopPropagation();addQuickChild(${parentIndex}, 'motion_movesteps')">＋移动10步</button>
+            <button class="c-quick-chip cat-motion" onclick="event.stopPropagation();addQuickChild(${parentIndex}, 'motion_turnright')">＋右转15°</button>
+            <button class="c-quick-chip cat-motion" onclick="event.stopPropagation();addQuickChild(${parentIndex}, 'motion_ifonedgebounce')">＋边缘反弹</button>
+            <button class="c-quick-chip cat-looks" onclick="event.stopPropagation();addQuickChild(${parentIndex}, 'looks_nextcostume')">＋换造型</button>
+            <button class="c-quick-chip cat-control" onclick="event.stopPropagation();addQuickChild(${parentIndex}, 'control_wait')">＋等待0.2s</button>
+            <button class="c-quick-chip c-more-btn" onclick="event.stopPropagation();addChildBlockToContainer(${parentIndex})">➕ 更多积木库...</button>
+          </div>
         </div>
-        <div class="c-block-footer">↺ 循环体闭合 (执行完毕后回到顶部)</div>
+        <div class="c-block-footer">↺ 循环体闭合 (执行完毕后回到顶部重复)</div>
       </div>
     `;
   }
@@ -1336,37 +1427,60 @@ function renderBlockHtml(b, parentIndex = null) {
   `;
 }
 
-function renderBlockInnerHtml(b) {
-  const p = b.params || {};
+function formatBlockLabel(b) {
   const blockId = b.id;
+  const p = b.params || {};
+
   if (b.opcode === 'motion_movesteps') {
     return `移动 <span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'steps', '${p.steps ?? 10}')">${p.steps ?? 10}</span> 步`;
-  }
-  if (b.opcode === 'motion_turnright') {
+  } else if (b.opcode === 'motion_turnright') {
     return `右转 <span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'degrees', '${p.degrees ?? 15}')">${p.degrees ?? 15}</span> 度 ↷`;
-  }
-  if (b.opcode === 'motion_turnleft') {
+  } else if (b.opcode === 'motion_turnleft') {
     return `左转 <span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'degrees', '${p.degrees ?? 15}')">${p.degrees ?? 15}</span> 度 ↶`;
-  }
-  if (b.opcode === 'motion_ifonedgebounce') {
+  } else if (b.opcode === 'motion_gotoxy') {
+    return `移到 x:<span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'x', '${p.x ?? 0}')">${p.x ?? 0}</span> y:<span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'y', '${p.y ?? 0}')">${p.y ?? 0}</span>`;
+  } else if (b.opcode === 'motion_changexby') {
+    return `将 x 坐标增加 <span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'dx', '${p.dx ?? 10}')">${p.dx ?? 10}</span>`;
+  } else if (b.opcode === 'motion_changeyby') {
+    return `将 y 坐标增加 <span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'dy', '${p.dy ?? 10}')">${p.dy ?? 10}</span>`;
+  } else if (b.opcode === 'motion_ifonedgebounce') {
     return `碰到边缘就反弹 💥`;
-  }
-  if (b.opcode === 'looks_nextcostume') {
+  } else if (b.opcode === 'motion_setrotationstyle') {
+    const opts = encodeURIComponent(JSON.stringify(['左右翻转', '不可旋转', '任意旋转']));
+    return `设置旋转方式 <span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'style', '${p.style || '左右翻转'}', '${opts}')">${p.style || '左右翻转'}</span> 🔄`;
+  } else if (b.opcode === 'looks_sayforsecs') {
+    return `说 <span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'message', '${p.message || 'Hello!'}')">${p.message || 'Hello!'}</span> <span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'secs', '${p.secs ?? 2}')">${p.secs ?? 2}</span> 秒`;
+  } else if (b.opcode === 'looks_say') {
+    return `说 <span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'message', '${p.message || 'Hello!'}')">${p.message || 'Hello!'}</span>`;
+  } else if (b.opcode === 'looks_nextcostume') {
     return `下一个造型 ✨`;
+  } else if (b.opcode === 'control_wait') {
+    return `等待 <span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'duration', '${p.duration ?? 1}')">${p.duration ?? 1}</span> 秒 ⏳`;
+  } else if (b.opcode === 'control_repeat') {
+    return `重复执行 <span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'times', '${p.times ?? 10}')">${p.times ?? 10}</span> 次 🔄`;
+  } else if (b.opcode === 'control_forever') {
+    return `重复执行 [无限循环] ♾️`;
+  } else if (b.opcode === 'control_if') {
+    return `如果 <span class="param-pill" onclick="event.stopPropagation();openConditionCustomizer('${blockId}', '${p.condition || 'x > 5'}')">${p.condition || 'x > 5'}</span> 那么 ⚡`;
+  } else if (b.opcode === 'operator_gt') {
+    return `<span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'varName', '${p.varName || 'x'}')">${p.varName || 'x'}</span> > <span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'val', '${p.val ?? 5}')">${p.val ?? 5}</span> 📈`;
+  } else if (b.opcode === 'operator_lt') {
+    return `<span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'varName', '${p.varName || '得分'}')">${p.varName || '得分'}</span> < <span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'val', '${p.val ?? 10}')">${p.val ?? 10}</span> 📉`;
+  } else if (b.opcode.startsWith('data_')) {
+    const varNames = Object.keys(projectVariables);
+    const varOptions = encodeURIComponent(JSON.stringify(varNames.length > 0 ? varNames : ['得分', 'x']));
+    if (b.opcode === 'data_setvariableto') {
+      return `将 <span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'varName', '${p.varName || '得分'}', '${varOptions}')">${p.varName || '得分'}</span> 设为 <span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'value', '${p.value ?? 0}')">${p.value ?? 0}</span> 📦`;
+    } else if (b.opcode === 'data_changevariableby') {
+      return `将 <span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'varName', '${p.varName || '得分'}', '${varOptions}')">${p.varName || '得分'}</span> 增加 <span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'value', '${p.value ?? 1}')">${p.value ?? 1}</span> 🏆`;
+    }
   }
-  if (b.opcode === 'looks_changesizeby') {
-    return `将大小增加 <span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'dsize', '${p.dsize ?? 10}')">${p.dsize ?? 10}</span>`;
-  }
-  if (b.opcode === 'sound_play') {
-    return `播放声音 <span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'sound', '${p.sound || '喵 🐱'}')">${p.sound || '喵 🐱'}</span>`;
-  }
-  if (b.opcode === 'control_wait') {
-    return `等待 <span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'duration', '${p.duration ?? 0.2}')">${p.duration ?? 0.2}</span> 秒 ⏳`;
-  }
-  if (b.opcode === 'data_changevariableby') {
-    return `将 <span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'varName', '${p.varName || '得分'}')">${p.varName || '得分'}</span> 增加 <span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'value', '${p.value ?? 1}')">${p.value ?? 1}</span> 🏆`;
-  }
+
   return b.label || OP_TRANSLATE_MAP[b.opcode] || b.opcode;
+}
+
+function renderBlockInnerHtml(b) {
+  return formatBlockLabel(b);
 }
 
 function updateWorkspaceUI() {
@@ -1383,7 +1497,7 @@ function updateWorkspaceUI() {
 
   if (!stackEl) return;
   if (activeBlocks.length === 0) {
-    stackEl.innerHTML = `<div class="empty-canvas" id="emptyTip"><span style="font-size:20px;">👈</span><span>点击左侧分类库添加积木<br>支持循环体嵌套与条件判断 (如 x > 5)，点击“🟢 运行”体验生动的步进执行</span></div>`;
+    stackEl.innerHTML = `<div class="empty-canvas" id="emptyTip"><span style="font-size:18px;">👈</span><span>点击左侧分类库添加积木<br>支持循环体嵌套与条件判断 (如 x > 5)，点击“🟢 运行”体验生动的放大高亮步进执行</span></div>`;
     return;
   }
 
@@ -1415,10 +1529,10 @@ function executeSingleBlock(b) {
     const rad = (catRotation * Math.PI) / 180;
     catX += Math.cos(rad) * steps;
     catY += Math.sin(rad) * steps;
-    if (catX > 150) catX = 15;
-    if (catX < 10) catX = 145;
-    if (catY > 95) catY = 15;
-    if (catY < 10) catY = 90;
+    if (catX > 145) catX = 15;
+    if (catX < 10) catX = 140;
+    if (catY > 90) catY = 15;
+    if (catY < 10) catY = 85;
     applyCatTransform();
     logMessage(`▶ [运动] 移动 ${steps} 步 -> 坐标(${Math.round(catX)}, ${Math.round(catY)})`);
   } else if (op === 'motion_turnright') {
@@ -1432,8 +1546,8 @@ function executeSingleBlock(b) {
     applyCatTransform();
     logMessage(`▶ [运动] 左转 ${deg}° -> 当前朝向 ${catRotation}° ↶`);
   } else if (op === 'motion_gotoxy') {
-    catX = 70 + (Number(p.x) || 0);
-    catY = 45 - (Number(p.y) || 0);
+    catX = 65 + (Number(p.x) || 0);
+    catY = 40 - (Number(p.y) || 0);
     applyCatTransform();
     logMessage(`▶ [运动] 移到坐标 (x:${p.x||0}, y:${p.y||0})`);
   } else if (op === 'motion_changexby') {
@@ -1445,13 +1559,16 @@ function executeSingleBlock(b) {
     applyCatTransform();
     logMessage(`▶ [运动] 将 y 坐标增加 ${p.dy || 10}`);
   } else if (op === 'motion_ifonedgebounce') {
-    if (catX >= 125 || catX <= 20 || catY >= 85 || catY <= 15) {
+    if (catX >= 120 || catX <= 20 || catY >= 80 || catY <= 15) {
       catRotation += 180;
       applyCatTransform();
       logMessage('💥 [运动] 碰到舞台边缘！成功反弹旋转 180°！');
     } else {
       logMessage('▶ [运动] 检查边缘：未发生碰撞');
     }
+  } else if (op === 'motion_setrotationstyle') {
+    const style = p.style || '左右翻转';
+    logMessage(`🔄 [运动] 设置旋转方式为: 【${style}】`);
   } else if (op === 'motion_pointindirection') {
     catRotation = Number(p.dir) || 90;
     applyCatTransform();
@@ -1555,22 +1672,18 @@ function executeSingleBlock(b) {
   }
 }
 
-// 智能条件评估器 (支持 x > 5, 得分 > 10, 碰到边缘, 包含比较等)
+// 智能条件评估器
 function evaluateCondition(condStr) {
   if (!condStr) return true;
   const s = condStr.trim();
   
   if (s.includes('边缘')) {
-    return (catX >= 120 || catX <= 25 || catY >= 80 || catY <= 20);
+    return (catX >= 115 || catX <= 20 || catY >= 75 || catY <= 15);
   }
-  if (s.includes('空格')) {
-    return true; // 模拟按键响应
-  }
-  if (s.includes('点击')) {
+  if (s.includes('空格') || s.includes('点击')) {
     return true;
   }
 
-  // 关系运算解析: 如 "x > 5", "得分 >= 10", "x = 5", "生命值 < 1"
   const opMatch = s.match(/(.+?)\s*(>=|<=|>|<|=|==|!=)\s*(.+)/);
   if (opMatch) {
     const leftRaw = opMatch[1].trim();
@@ -1595,7 +1708,7 @@ function evaluateCondition(condStr) {
   return true;
 }
 
-// 编程农场风格核心执行调度器 (精准步进高亮与无限循环)
+// 放大高亮与步进执行调度器
 async function runScratchBlocks() {
   if (activeBlocks.length === 0) {
     logMessage('⚠️ 画布为空，请先在左侧添加积木');
@@ -1611,10 +1724,25 @@ async function runScratchBlocks() {
   function clearAllHighlights() {
     document.querySelectorAll('.block-row, .c-block-container, .child-block-item').forEach(el => {
       el.classList.remove('running-highlight', 'running-highlight-child', 'running-container-active');
+      const badge = el.querySelector('.executing-badge');
+      if (badge) badge.remove();
     });
   }
 
-  // 异步步进调度器
+  function applyHighlightWithZoom(targetEl, isChild = false) {
+    if (!targetEl) return;
+    if (isChild) {
+      targetEl.classList.add('running-highlight-child');
+    } else {
+      targetEl.classList.add('running-highlight');
+    }
+    const badge = document.createElement('span');
+    badge.className = 'executing-badge';
+    badge.innerText = '👉 执行中';
+    targetEl.appendChild(badge);
+    targetEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
   async function executeStep(block, blockIndex, totalBlocks) {
     if (!isScriptRunning) return;
 
@@ -1622,21 +1750,20 @@ async function runScratchBlocks() {
     const uiEl = document.getElementById('block_ui_' + block.id);
     if (uiEl) {
       if (block.isContainer) uiEl.classList.add('running-container-active');
-      else uiEl.classList.add('running-highlight');
+      else applyHighlightWithZoom(uiEl, false);
     }
 
     const opName = OP_TRANSLATE_MAP[block.opcode] || block.opcode;
 
-    // 1. 如果是重复执行 (control_repeat)
+    // 1. 重复执行
     if (block.opcode === 'control_repeat') {
       const times = Number(block.params.times) || 10;
       setStepTracker(`🔄 正在进入重复执行循环 (${times} 次)`, `步骤 ${blockIndex+1}/${totalBlocks}`);
       logMessage(`🔄 [控制] 进入重复执行 (${times} 次) 循环体`);
-      const children = block.children || [];
-      if (children.length === 0) {
-        children.push({ id:'c_d1', opcode:'motion_movesteps', params:{ steps:10 } });
-        children.push({ id:'c_d2', opcode:'motion_turnright', params:{ degrees:15 } });
-      }
+      const children = (block.children && block.children.length > 0) ? block.children : [
+        { id:'c_d1', opcode:'motion_movesteps', params:{ steps:10 } },
+        { id:'c_d2', opcode:'motion_turnright', params:{ degrees:15 } }
+      ];
 
       for (let i = 1; i <= times && isScriptRunning; i++) {
         logMessage(`  ↳ [循环] 第 ${i} / ${times} 轮迭代`);
@@ -1647,7 +1774,7 @@ async function runScratchBlocks() {
           clearAllHighlights();
           if (uiEl) uiEl.classList.add('running-container-active');
           const childUi = document.getElementById('block_ui_' + c.id);
-          if (childUi) childUi.classList.add('running-highlight-child');
+          if (childUi) applyHighlightWithZoom(childUi, true);
 
           const childName = OP_TRANSLATE_MAP[c.opcode] || c.opcode;
           setStepTracker(`🎯 [第 ${i}/${times} 轮] ➔ 步骤 ${cIdx+1}/${children.length}: ${childName}`, `循环中`);
@@ -1660,15 +1787,14 @@ async function runScratchBlocks() {
       return;
     }
 
-    // 2. 如果是无限循环 (control_forever) ★ 真正的无限循环！
+    // 2. 无限循环
     if (block.opcode === 'control_forever') {
       logMessage(`♾️ [控制] 进入【无限循环】模式 (持续运行直至点击重置)`);
-      const children = block.children || [];
-      if (children.length === 0) {
-        children.push({ id:'c_f1', opcode:'motion_movesteps', params:{ steps:8 } });
-        children.push({ id:'c_f2', opcode:'motion_turnright', params:{ degrees:10 } });
-        children.push({ id:'c_f3', opcode:'motion_ifonedgebounce', params:{} });
-      }
+      const children = (block.children && block.children.length > 0) ? block.children : [
+        { id:'c_f1', opcode:'motion_movesteps', params:{ steps:8 } },
+        { id:'c_f2', opcode:'motion_turnright', params:{ degrees:10 } },
+        { id:'c_f3', opcode:'motion_ifonedgebounce', params:{} }
+      ];
       let loopRound = 1;
       while (isScriptRunning) {
         for (let cIdx = 0; cIdx < children.length; cIdx++) {
@@ -1678,7 +1804,7 @@ async function runScratchBlocks() {
           clearAllHighlights();
           if (uiEl) uiEl.classList.add('running-container-active');
           const childUi = document.getElementById('block_ui_' + c.id);
-          if (childUi) childUi.classList.add('running-highlight-child');
+          if (childUi) applyHighlightWithZoom(childUi, true);
 
           const childName = OP_TRANSLATE_MAP[c.opcode] || c.opcode;
           setStepTracker(`♾️ [无限循环 第 ${loopRound} 轮] ➔ 步骤 ${cIdx+1}/${children.length}: ${childName}`, `持续执行`);
@@ -1693,7 +1819,7 @@ async function runScratchBlocks() {
       return;
     }
 
-    // 3. 如果是条件分支 (control_if)
+    // 3. 条件分支
     if (block.opcode === 'control_if') {
       const cond = block.params.condition || 'x > 5';
       const isMatched = evaluateCondition(cond);
@@ -1708,7 +1834,7 @@ async function runScratchBlocks() {
           clearAllHighlights();
           if (uiEl) uiEl.classList.add('running-container-active');
           const childUi = document.getElementById('block_ui_' + c.id);
-          if (childUi) childUi.classList.add('running-highlight-child');
+          if (childUi) applyHighlightWithZoom(childUi, true);
 
           const childName = OP_TRANSLATE_MAP[c.opcode] || c.opcode;
           setStepTracker(`⚡ [分支内部] ➔ 步骤 ${cIdx+1}/${block.children.length}: ${childName}`, `分支执行`);
@@ -1727,7 +1853,6 @@ async function runScratchBlocks() {
     await sleep(waitTime);
   }
 
-  // 顶层积木流水线逐一执行
   for (let idx = 0; idx < activeBlocks.length; idx++) {
     if (!isScriptRunning) break;
     await executeStep(activeBlocks[idx], idx, activeBlocks.length);
@@ -1751,9 +1876,11 @@ function stopScratchBlocks() {
   if (runBtn) runBtn.innerText = '🟢 运行';
   document.querySelectorAll('.block-row, .c-block-container, .child-block-item').forEach(el => {
     el.classList.remove('running-highlight', 'running-highlight-child', 'running-container-active');
+    const badge = el.querySelector('.executing-badge');
+    if (badge) badge.remove();
   });
   
-  catX = 70; catY = 45; catRotation = 0; catScale = 1.0; isVisible = true;
+  catX = 65; catY = 40; catRotation = 0; catScale = 1.0; isVisible = true;
   applyCatTransform();
   
   const catBody = document.getElementById('catBody');
@@ -1802,6 +1929,7 @@ window.getProjectJson = function() {
     else if (b.opcode === 'control_if') humanDesc = `如果 (${b.params.condition || 'x > 5'}) 那么`;
     else if (b.opcode === 'motion_movesteps') humanDesc = `移动 ${b.params.steps || 10} 步`;
     else if (b.opcode === 'motion_turnright') humanDesc = `右转 ${b.params.degrees || 15} 度`;
+    else if (b.opcode === 'motion_setrotationstyle') humanDesc = `设置旋转方式为 [${b.params.style || '左右翻转'}]`;
     else if (b.opcode === 'looks_sayforsecs') humanDesc = `说 "${b.params.message || 'Hello!'}" ${b.params.secs || 2} 秒`;
     else if (b.opcode === 'data_setvariableto') humanDesc = `将变量 [${b.params.varName || '得分'}] 设为 ${b.params.value || 0}`;
     else if (b.opcode === 'data_changevariableby') humanDesc = `将变量 [${b.params.varName || '得分'}] 增加 ${b.params.value || 1}`;
@@ -1818,7 +1946,7 @@ window.getProjectJson = function() {
         if (cb.params && cb.params.degrees) cDesc = `右转 ${cb.params.degrees} 度`;
         childSummaries.push(cDesc);
       });
-      summaryList.push(`${prefix}${humanDesc} -> 包含[${childSummaries.join(', ')}]`);
+      summaryList.push(`${prefix}${humanDesc} -> 嵌套内部包含[${childSummaries.join(', ')}]`);
     } else {
       summaryList.push(`${prefix}${humanDesc}`);
     }
@@ -1854,6 +1982,7 @@ window.getProjectCodeSummary = function() {
   }
 };
 
+// 带有层级树解构能力的智能项目加载器 (解析 SUBSTACK 嵌套结构与参数)
 window.loadProject = function(jsonInput) {
   try {
     if (!jsonInput) return;
@@ -1875,24 +2004,82 @@ window.loadProject = function(jsonInput) {
         if (t.variables) {
           projectVariables = { ...projectVariables, ...t.variables };
         }
-        if (t && t.blocks) {
-          if (Array.isArray(t.blocks)) {
-            t.blocks.forEach(b => {
-              const op = (typeof b === 'string') ? b : (b.opcode || '');
-              if (op) {
-                const zhLabel = OP_TRANSLATE_MAP[op] || op;
-                activeBlocks.push({ id: 'block_' + Math.random().toString(36).substr(2, 9), opcode: op, label: zhLabel, params:{}, children:[] });
+        if (t && t.blocks && typeof t.blocks === 'object') {
+          const rawBlocks = t.blocks;
+          const childIds = new Set();
+          
+          // 1. 扫描所有 SUBSTACK 建立父子关系
+          for (let id in rawBlocks) {
+            const b = rawBlocks[id];
+            if (b && b.inputs && b.inputs.SUBSTACK) {
+              const subVal = b.inputs.SUBSTACK;
+              let rootChildId = null;
+              if (Array.isArray(subVal)) {
+                rootChildId = (subVal.length >= 2) ? subVal[1] : subVal[0];
+              } else if (typeof subVal === 'string') {
+                rootChildId = subVal;
               }
-            });
-          } else if (typeof t.blocks === 'object') {
-            for (let id in t.blocks) {
-              const b = t.blocks[id];
-              if (b && typeof b === 'object' && b.opcode) {
-                const op = b.opcode;
-                const zhLabel = OP_TRANSLATE_MAP[op] || op;
-                const isCont = (op === 'control_repeat' || op === 'control_forever' || op === 'control_if');
-                activeBlocks.push({ id: id, opcode: op, label: zhLabel, isContainer: isCont, params:{}, children:[] });
+              
+              let curId = rootChildId;
+              while (curId && rawBlocks[curId]) {
+                childIds.add(curId);
+                curId = rawBlocks[curId].next;
               }
+            }
+          }
+
+          // 递归抽取单块及参数
+          function convertRawBlock(id, b) {
+            const op = b.opcode || 'motion_movesteps';
+            const zhLabel = OP_TRANSLATE_MAP[op] || op;
+            const isCont = (op === 'control_repeat' || op === 'control_forever' || op === 'control_if');
+            const params = {};
+            
+            if (b.fields) {
+              for (let f in b.fields) {
+                const val = Array.isArray(b.fields[f]) ? b.fields[f][0] : b.fields[f];
+                if (f.toLowerCase().includes('style')) params.style = val;
+                else if (f.toLowerCase().includes('key')) params.key = val;
+                else params[f.toLowerCase()] = val;
+              }
+            }
+            if (b.inputs) {
+              for (let inp in b.inputs) {
+                if (inp !== 'SUBSTACK') {
+                  const arr = b.inputs[inp];
+                  const val = Array.isArray(arr) ? arr[arr.length - 1] : arr;
+                  if (inp === 'STEPS') params.steps = Number(val) || 10;
+                  else if (inp === 'DEGREES') params.degrees = Number(val) || 15;
+                  else if (inp === 'DX') params.dx = Number(val) || 10;
+                  else if (inp === 'DY') params.dy = Number(val) || 10;
+                }
+              }
+            }
+
+            const children = [];
+            if (isCont && b.inputs && b.inputs.SUBSTACK) {
+              const subVal = b.inputs.SUBSTACK;
+              let curId = Array.isArray(subVal) ? ((subVal.length >= 2) ? subVal[1] : subVal[0]) : subVal;
+              while (curId && rawBlocks[curId]) {
+                children.push(convertRawBlock(curId, rawBlocks[curId]));
+                curId = rawBlocks[curId].next;
+              }
+            }
+
+            return {
+              id: id,
+              opcode: op,
+              label: zhLabel,
+              isContainer: isCont,
+              params: params,
+              children: children
+            };
+          }
+
+          // 2. 将顶层积木放入 activeBlocks
+          for (let id in rawBlocks) {
+            if (!childIds.has(id)) {
+              activeBlocks.push(convertRawBlock(id, rawBlocks[id]));
             }
           }
         }
@@ -1900,7 +2087,7 @@ window.loadProject = function(jsonInput) {
     }
     
     updateWorkspaceUI();
-    logMessage('✅ 导入积木成功，共计 ' + activeBlocks.length + ' 个积木代码块');
+    logMessage('✅ 导入积木成功，共计 ' + activeBlocks.length + ' 个主代码块');
     notifyAndroidCodeChange();
   } catch(e) {
     logMessage('❌ 解析作业 JSON 异常: ' + e.message);
