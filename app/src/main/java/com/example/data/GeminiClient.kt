@@ -1024,10 +1024,17 @@ object GeminiClient {
         workName: String,
         codeJson: String
     ): EvaluationResult = withContext(Dispatchers.IO) {
-        // 如果代码为空或仅包含1个起始积木，直接调用精准确定性评测引擎，毫秒级响应
         val trimmed = codeJson.trim()
         if (trimmed.isBlank() || trimmed == "{}" || !trimmed.contains("\"opcode\"")) {
             return@withContext ScratchWorkEvaluator.evaluate(codeJson, taskName, taskDetail, workName)
+        }
+
+        val ast = ScratchWorkEvaluator.analyzeProject(codeJson)
+        val deterministic = ScratchWorkEvaluator.evaluate(codeJson, taskName, taskDetail, workName)
+
+        // 积木数 <= 1 块时，直接使用确定性量化引擎，确保秒级响应与精准打分（杜绝大模型给1块积木打80分）
+        if (ast.totalBlocks <= 1) {
+            return@withContext deterministic
         }
 
         // RAG 知识库检索增强 (Task 7)
@@ -1038,29 +1045,44 @@ object GeminiClient {
 
             $ragKnowledge
 
-            任务要求：
+            【任务与作品基本信息】：
             - 任务名称：$taskName
             - 任务详情：$taskDetail
             - 学生作品名称：$workName
 
-            【严格评分规则】：
-            1. 语法合规性(grammarScore): 满分 25 分
-            2. 逻辑完整性(logicScore): 满分 30 分
-            3. 任务匹配度(taskMatchScore): 满分 25 分
-            4. 创意实现度(creativeScore): 满分 20 分
-            综合得分即为这四项总和（满分 100）。
+            【代码真实静态分析 (AST) 事实依据】：
+            - 总积木数量：${ast.totalBlocks} 块
+            - 是否有启动事件（如当绿旗被点击）：${if (ast.hasStart) "是" else "❌ 否（未检测到绿旗或任何启动事件积木）"}
+            - 是否有循环结构（重复执行等）：${if (ast.hasLoop) "是" else "否"}
+            - 是否有运动位移指令：${if (ast.hasMotion) "是" else "否"}
+            - 是否有边缘反弹：${if (ast.hasBounce) "是" else "否"}
+            - 是否有外观造型切换：${if (ast.hasCostumeSwitch) "是" else "否"}
+            - 涉及积木分类数：${ast.categoryCount} 类
 
-            【严禁给空代码或极简代码打高分】：
-            - 若作品为空或无法运行：总分 15-20 分。
-            - 若作品只有 1 个启动积木（如仅有“当绿旗被点击”）或只有 1-2 个未连通积木：总分必须严格评在 25-45 分之间（grammar<=15, logic<=10, match<=8, creative<=6），不可因为鼓励而给出 80-95 分的虚假高分！
-            - 若作品有 2-4 个积木但缺少循环或动作：总分 45-65 分。
-            - 若作品基本实现任务要求（有循环、运动、反弹）：总分 80-90 分。
-            - 若作品逻辑严密且有创意扩展（造型切换、变量、声音、碰撞侦测）：总分 90-98 分。
+            【严格评分规则与扣分红线】：
+            1. 语法合规性(grammarScore): 满分 25 分。
+               - ⚠️【绝对红线】：若作品没有【当 🟢 被点击】或其它启动事件积木（hasStart=否），语法合规性最高只能给 6-8 分！绝对禁止给满分或高分！
+               - 拥有绿旗启动且积木拼接良好，方可获得 18-25 分。
+            2. 逻辑完整性(logicScore): 满分 30 分。
+               - 无启动事件或无循环控制时，逻辑分最高不得超过 10-12 分。
+               - 包含循环控制、条件判断、碰撞与等待时，可得 20-30 分。
+            3. 任务匹配度(taskMatchScore): 满分 25 分。
+               - 结合任务要求评判（如要求漫步反弹需有运动+反弹积木；要求接水果需有按键+侦测）。
+            4. 创意实现度(creativeScore): 满分 20 分。
+               - 多分类积木搭配、造型帧动画、音效、变量系统均可加分。
+            综合得分(averageScore) 必须等于上述四项严格加和（满分 100 分）。
+
+            【基准参考量化区间】：
+            - 语法合规性参考: ${deterministic.grammarScore} 分
+            - 逻辑完整性参考: ${deterministic.logicScore} 分
+            - 任务匹配度参考: ${deterministic.taskMatchScore} 分
+            - 创意实现度参考: ${deterministic.creativeScore} 分
+            - 综合总分基准: ${deterministic.averageScore} 分
 
             关于 "optimizationSuggestions" 字段，你必须遵守以下专门针对小学3-6年级小学生的认知评测规范：
-            - 【极度温柔有爱】：先热情肯定孩子付出的尝试，指出闪光点，再提出建设性建议。
-            - 【具体的具体拼搭指南】：绝对严禁宽泛空洞的评价（如“进一步完善逻辑”、“加强循环理解”等）。必须根据代码实际缺少的积木，给出一看就懂的 ①②③ 极简改进步骤（说明找到哪个积木颜色分类，找什么名字的积木，拼在什么积木下面或里面）。
-            - 字数简短精悍，控制在150字以内，排版清爽。
+            - 【极度温柔有爱】：先肯定孩子付出的尝试，指出闪光点，再提出建设性建议。
+            - 【具体拼搭指南】：绝对严禁宽泛空洞评价。若缺少绿旗启动积木，必须明确指出“①在左侧黄色【事件】分类中找到【当 🟢 被点击】积木；②拼接在脚本最顶端”。
+            - 字数简短精悍，控制在150字以内。
 
             你必须最终输出一个合法的 JSON 格式字符串，不需要任何 markdown 的 ```json 包裹标记，其属性必须完全等于：
             {
@@ -1082,30 +1104,38 @@ object GeminiClient {
             ""
         }
 
-        // 尝试解析返回的 JSON，若非标准 JSON 则做容错提取或提供确定性评分
+        // 尝试解析返回的 JSON，若非标准 JSON 或异常则结合规则引擎强制校准
         try {
             if (responseText.isBlank()) {
-                return@withContext ScratchWorkEvaluator.evaluate(codeJson, taskName, taskDetail, workName)
+                return@withContext deterministic
             }
-            // 清洗掉可能多余的 markdown 标注
             val cleanJson = responseText.replace("```json", "").replace("```", "").trim()
             val json = JSONObject(cleanJson)
-            val grammar = json.optInt("grammarScore", 15)
-            val logic = json.optInt("logicScore", 15)
-            val match = json.optInt("taskMatchScore", 15)
-            val creative = json.optInt("creativeScore", 10)
-            val suggestions = json.optString("optimizationSuggestions", "AI 评语提取：\n$responseText")
+            val grammar = json.optInt("grammarScore", deterministic.grammarScore)
+            val logic = json.optInt("logicScore", deterministic.logicScore)
+            val match = json.optInt("taskMatchScore", deterministic.taskMatchScore)
+            val creative = json.optInt("creativeScore", deterministic.creativeScore)
+            val suggestions = json.optString("optimizationSuggestions", deterministic.suggestions)
 
-            ScratchWorkEvaluator.sanitize(EvaluationResult(
+            val rawResult = EvaluationResult(
                 grammarScore = grammar,
                 logicScore = logic,
                 taskMatchScore = match,
                 creativeScore = creative,
                 averageScore = grammar + logic + match + creative,
                 suggestions = suggestions
-            ))
+            )
+
+            // 经过 AST 确定性硬规则引擎校准，杜绝幻觉
+            ScratchWorkEvaluator.calibrateWithRuleEngine(
+                llmResult = rawResult,
+                codeJson = codeJson,
+                taskName = taskName,
+                taskDetail = taskDetail,
+                workName = workName
+            )
         } catch (e: Exception) {
-            ScratchWorkEvaluator.evaluate(codeJson, taskName, taskDetail, workName)
+            deterministic
         }
     }
 
