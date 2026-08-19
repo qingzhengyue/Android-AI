@@ -415,34 +415,27 @@ class AppRepository(private val context: Context) {
         val workId = if (finalWork.workId != 0) finalWork.workId else insertedWorkId
         val finalWorkWithId = finalWork.copy(workId = workId)
 
-        // 同步作品到云端
-        val realWorkId = try {
-            // 获取真正的外部 ID (如学号 3101)
-            val student = dao.getStudentById(finalWorkWithId.studentId)
-            val realStudentId = student?.studentNumber?.replace(Regex("[^0-9]"), "")?.toLongOrNull() ?: finalWorkWithId.studentId.toLong()
-            
-            // 为了模拟教学场景并解决外键冲突，这里强制转换并传入正确的父级 ID
-            // 班级 ID（例如 31）和任务 ID（例如 500）
-            // 如果你在测试中遇到 class_id 或 task_id 冲突，这里可以进行同样的安全映射处理
-            val supabaseDto = SupabaseScratchWork(
-                workId = finalWorkWithId.workId,
-                workName = finalWorkWithId.workName,
-                workCode = finalWorkWithId.workCode,
-                studentId = realStudentId, 
-                classId = 31L, // 模拟：强制绑定到三年级一班
-                taskId = 500L, // 模拟：强制绑定到基础任务
-                submitCount = finalWorkWithId.submitCount,
-                submitTime = finalWorkWithId.submitTime,
-                reviewStatus = finalWorkWithId.reviewStatus
-            )
-            val remoteWork = supabase?.from("scratch_work")?.upsert(supabaseDto) {
-                select()
-            }?.decodeSingle<SupabaseScratchWork>()
-            remoteWork?.workId ?: workId
+        // 异步或极速同步作品到云端，绝对不阻塞本地评测流程
+        try {
+            withTimeoutOrNull(1000L) {
+                val student = dao.getStudentById(finalWorkWithId.studentId)
+                val realStudentId = student?.studentNumber?.replace(Regex("[^0-9]"), "")?.toLongOrNull() ?: finalWorkWithId.studentId.toLong()
+                
+                val supabaseDto = SupabaseScratchWork(
+                    workId = finalWorkWithId.workId,
+                    workName = finalWorkWithId.workName,
+                    workCode = finalWorkWithId.workCode,
+                    studentId = realStudentId, 
+                    classId = 31L,
+                    taskId = 500L,
+                    submitCount = finalWorkWithId.submitCount,
+                    submitTime = finalWorkWithId.submitTime,
+                    reviewStatus = finalWorkWithId.reviewStatus
+                )
+                supabase?.from("scratch_work")?.upsert(supabaseDto)
+            }
         } catch (e: Exception) {
-            Log.e("SupabaseSync", "同步上传失败，拦截到的底层错误是: ${e.message}", e)
-            val errorMsg = e.message ?: ""
-            Log.w("SupabaseSync", "Ignore sync error and proceed locally")
+            Log.w("SupabaseSync", "Ignore sync error: ${e.message}")
         }
 
         val task = dao.getTaskById(work.taskId)
@@ -467,11 +460,11 @@ class AppRepository(private val context: Context) {
         val reportWithId = report.copy(reportId = localReportId.toInt())
 
         try {
-            supabase?.from("work_ai_report")?.upsert(reportWithId)
+            withTimeoutOrNull(1000L) {
+                supabase?.from("work_ai_report")?.upsert(reportWithId)
+            }
         } catch (e: Exception) {
-            Log.e("SupabaseSync", "评测报告同步失败，拦截到的底层错误是: ${e.message}", e)
-            val errorMsg = e.message ?: ""
-            Log.w("SupabaseSync", "Ignore sync error and proceed locally")
+            Log.w("SupabaseSync", "Ignore sync error: ${e.message}")
         }
 
         reportWithId

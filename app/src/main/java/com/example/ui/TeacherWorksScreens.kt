@@ -702,8 +702,20 @@ fun TeacherWorksClassViewScreen(viewModel: MainViewModel) {
                                                 blocksObj.keys().forEach { key ->
                                                     val block = blocksObj.optJSONObject(key)
                                                     val opcode = block?.optString("opcode")
-                                                    if (!opcode.isNullOrEmpty()) {
+                                                    val isShadow = block?.optBoolean("shadow", false) ?: false
+                                                    val isMenuOpcode = opcode?.endsWith("_menu") == true || opcode?.endsWith("_options") == true || opcode == "sensing_of_object_menu"
+                                                    if (!opcode.isNullOrEmpty() && !isShadow && !isMenuOpcode) {
                                                         blockItems.add(Pair(opcode, block))
+                                                    }
+                                                }
+                                                // 容错：如果全部过滤后为空但原对象有积木，则展示全部
+                                                if (blockItems.isEmpty()) {
+                                                    blocksObj.keys().forEach { key ->
+                                                        val block = blocksObj.optJSONObject(key)
+                                                        val opcode = block?.optString("opcode")
+                                                        if (!opcode.isNullOrEmpty()) {
+                                                            blockItems.add(Pair(opcode, block))
+                                                        }
                                                     }
                                                 }
                                                 if (blockItems.isNotEmpty() || i == 0) {
@@ -716,8 +728,19 @@ fun TeacherWorksClassViewScreen(viewModel: MainViewModel) {
                                             blocksObj.keys().forEach { key ->
                                                 val block = blocksObj.optJSONObject(key)
                                                 val opcode = block?.optString("opcode")
-                                                if (!opcode.isNullOrEmpty()) {
+                                                val isShadow = block?.optBoolean("shadow", false) ?: false
+                                                val isMenuOpcode = opcode?.endsWith("_menu") == true || opcode?.endsWith("_options") == true || opcode == "sensing_of_object_menu"
+                                                if (!opcode.isNullOrEmpty() && !isShadow && !isMenuOpcode) {
                                                     blockItems.add(Pair(opcode, block))
+                                                }
+                                            }
+                                            if (blockItems.isEmpty()) {
+                                                blocksObj.keys().forEach { key ->
+                                                    val block = blocksObj.optJSONObject(key)
+                                                    val opcode = block?.optString("opcode")
+                                                    if (!opcode.isNullOrEmpty()) {
+                                                        blockItems.add(Pair(opcode, block))
+                                                    }
                                                 }
                                             }
                                             list.add(Pair("🐱 角色 1", Pair(blockItems, blocksObj)))
@@ -820,6 +843,12 @@ fun TeacherWorksClassViewScreen(viewModel: MainViewModel) {
                         "AI 评测" -> {
                             val reportFlow = remember(detailWork.workId) { viewModel.getReportForWorkFlow(detailWork.workId) }
                             val rep by reportFlow.collectAsState(initial = null)
+
+                            LaunchedEffect(detailWork.workId, rep) {
+                                if (rep == null) {
+                                    viewModel.ensureAiReportForWork(detailWork)
+                                }
+                            }
 
                             Box(
                                 modifier = Modifier

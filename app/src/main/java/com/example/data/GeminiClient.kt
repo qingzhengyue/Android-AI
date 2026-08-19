@@ -1062,10 +1062,19 @@ object GeminiClient {
         """.trimIndent()
 
         val prompt = "$systemPrompt\n\n学生 Scratch 积木代码如下：\n$codeJson"
-        val responseText = generateContent(prompt)
+        val responseText = try {
+            kotlinx.coroutines.withTimeout(4000L) {
+                generateContent(prompt)
+            }
+        } catch (e: Exception) {
+            ""
+        }
 
         // 尝试解析返回的 JSON，若非标准 JSON 则做容错提取或提供默认分数
         try {
+            if (responseText.isBlank()) {
+                return@withContext ScratchWorkEvaluator.evaluate(codeJson)
+            }
             // 清洗掉可能多余的 markdown 标注
             val cleanJson = responseText.replace("```json", "").replace("```", "").trim()
             val json = JSONObject(cleanJson)

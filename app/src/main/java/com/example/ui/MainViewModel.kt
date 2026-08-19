@@ -218,6 +218,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     // --- AI 会话隔离 Session ID ---
     val activeAiSessionId = MutableStateFlow<String>(java.util.UUID.randomUUID().toString())
+    val currentAiMode = MutableStateFlow<String>("快速")
 
     fun startNewAiSession() {
         activeAiSessionId.value = java.util.UUID.randomUUID().toString()
@@ -982,6 +983,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
             // 2. 根据玩法装配 Prompt 模板
             // 引入专为小学3-6年级订制的少儿认知增强式 AI Prompt 系统
+            val currentMode = currentAiMode.value
+            val modeInstruction = if (currentMode == "专家") {
+                "【辅导模式：专家进阶模式】：针对高年级/竞赛/进阶学生，不仅提供具体的积木拼接方案，还要深度剖析背后的计算机科学算法原理（如物理抛物线运动学、状态机、广播调度机制、克隆体内存池管理与防重扣血算法），并附带启发式思考题，培养高阶计算思维！"
+            } else {
+                "【辅导模式：快速极速模式】：针对初学/低年级学生，请用极简清晰的 3 步拼搭指南，直接告诉小朋友拖拽哪块积木、改什么数值，快速见效，不讲繁复的长篇大论！"
+            }
             val styleInstruction = "【语调特色】：特别注意，你现在说话的辅导语调语气必须表现出【$style】的提示词特色风格。"
             val levelInstruction = "【理解深度限制】：特别注意，提问的学生是【$level】的学生。所以你在语言通俗度、比喻认知、逻辑步骤的深度上，必须100%符合【$level】阶段小学生的认知理解规律 and 实际能力。"
 
@@ -996,8 +1003,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                    - 【条件判断/如果..那么】比作“天气预报小哨兵”，只在符合条件时才吹哨放行。
                    - 【坐标(X, Y)】比作“小猫站在一排横座位 and 一排纵座位交叉的方格教室里”。
                 4. 【视觉分段排版】：句子短小，多用 ①、②、③ 标清动手步骤，重点积木 and 参数名字用中括号【】 and 粗体加亮以便小学生看清。
-                5. $styleInstruction
-                6. $levelInstruction
+                5. $modeInstruction
+                6. $styleInstruction
+                7. $levelInstruction
             """.trimIndent()
 
             val code = currentCodeInjected ?: currentDraftCode.value
@@ -1916,6 +1924,19 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     // --- 查看评测报告详情 ---
     fun getReportForWorkFlow(workId: Int): Flow<WorkAiReport?> {
         return repository.getReportForWorkFlow(workId)
+    }
+
+    fun ensureAiReportForWork(work: ScratchWork) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val existing = repository.getReportForWork(work.workId)
+                if (existing == null) {
+                    repository.submitWorkAndEvaluate(work)
+                }
+            } catch (e: Exception) {
+                Log.e("MainViewModel", "ensureAiReportForWork failed: ${e.message}")
+            }
+        }
     }
 
     fun loadReportForWork(workId: Int) {

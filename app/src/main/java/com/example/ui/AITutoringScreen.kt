@@ -90,7 +90,7 @@ fun AITutoringScreen(viewModel: MainViewModel) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
-    var currentMode by remember { mutableStateOf("快速") }
+    val currentMode by viewModel.currentAiMode.collectAsState()
 
     // 数据库全量历史记录 (Flow)
     val history by viewModel.aiRecordHistory.collectAsState()
@@ -323,7 +323,7 @@ fun AITutoringScreen(viewModel: MainViewModel) {
                         } else {
                             TopModeSwitcher(
                                 currentMode = currentMode,
-                                onModeChanged = { currentMode = it }
+                                onModeChanged = { viewModel.currentAiMode.value = it }
                             )
                         }
                     },
@@ -648,7 +648,7 @@ fun DrawerHistoryListItem(
 
 /**
  * 2. 艺术化空状态破冰页 (Elegant Empty State)
- * 采用可滑动布局，确保小屏设备上所有快捷建议卡片完整显示与流畅滚动
+ * 采用 LazyColumn 布局与自适应居中，确保所有快捷建议卡片完整显示与丝滑流畅滚动
  */
 @Composable
 fun ElegantEmptyState(
@@ -657,138 +657,149 @@ fun ElegantEmptyState(
     onSelectSession: ((String) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
-    val scrollState = rememberScrollState()
-
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .verticalScroll(scrollState)
-            .padding(horizontal = 16.dp, vertical = 16.dp),
-        contentAlignment = Alignment.TopCenter
+    LazyColumn(
+        modifier = modifier.fillMaxSize(),
+        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 64.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .widthIn(max = 520.dp),
-            shape = RoundedCornerShape(24.dp),
-            color = Color.White,
-            shadowElevation = 3.dp,
-            border = BorderStroke(1.dp, Color(0xFFF0F2F5))
-        ) {
-            Column(
+        item {
+            Surface(
                 modifier = Modifier
-                    .padding(horizontal = 20.dp, vertical = 20.dp)
-                    .fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
+                    .fillMaxWidth()
+                    .widthIn(max = 540.dp),
+                shape = RoundedCornerShape(24.dp),
+                color = Color.White,
+                shadowElevation = 3.dp,
+                border = BorderStroke(1.dp, Color(0xFFF0F2F5))
             ) {
-                // 顶部图标柔光卡片
-                Box(
+                Column(
                     modifier = Modifier
-                        .size(52.dp)
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(
-                            brush = Brush.linearGradient(
-                                colors = listOf(
-                                    Color(0xFFEEF2FF),
-                                    Color(0xFFE0E7FF)
-                                )
-                            )
-                        ),
-                    contentAlignment = Alignment.Center
+                        .padding(horizontal = 20.dp, vertical = 22.dp)
+                        .fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Icon(
-                        imageVector = Icons.Rounded.AutoAwesome,
-                        contentDescription = "AI 智能精灵",
-                        tint = PrimaryIndigo,
-                        modifier = Modifier.size(26.dp)
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                Text(
-                    text = "开启 Scratch AI 探秘之旅",
-                    fontSize = 17.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF111827)
-                )
-
-                Spacer(modifier = Modifier.height(4.dp))
-
-                Text(
-                    text = "我是你的专属编程小助手。遇到积木报错、逻辑卡壳还是创意设计？随时问我！",
-                    fontSize = 12.sp,
-                    color = Color(0xFF6B7280),
-                    lineHeight = 17.sp,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(horizontal = 6.dp)
-                )
-
-                if (recentScratchSession != null && onSelectSession != null) {
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Surface(
-                        onClick = { onSelectSession(recentScratchSession.sessionId) },
-                        shape = RoundedCornerShape(14.dp),
-                        color = Color(0xFFFFFBEB),
-                        border = BorderStroke(1.dp, Color(0xFFFDE68A)),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(text = "🧩", fontSize = 18.sp)
-                            Spacer(modifier = Modifier.width(10.dp))
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = "Scratch 智能精灵答疑历史 (${recentScratchSession.records.size}条)",
-                                    fontSize = 12.5.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color(0xFF92400E)
+                    // 顶部图标柔光卡片
+                    Box(
+                        modifier = Modifier
+                            .size(54.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(
+                                brush = Brush.linearGradient(
+                                    colors = listOf(
+                                        Color(0xFFEEF2FF),
+                                        Color(0xFFE0E7FF)
+                                    )
                                 )
-                                Text(
-                                    text = "点击立即查看 Scratch 编程中的全部问答与分析",
-                                    fontSize = 11.sp,
-                                    color = Color(0xFFB45309)
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.AutoAwesome,
+                            contentDescription = "AI 智能精灵",
+                            tint = PrimaryIndigo,
+                            modifier = Modifier.size(28.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Text(
+                        text = "开启 Scratch AI 探秘之旅",
+                        fontSize = 17.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF111827)
+                    )
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    Text(
+                        text = "我是你的专属编程小助手。遇到积木报错、逻辑卡壳还是创意设计？随时问我！",
+                        fontSize = 12.sp,
+                        color = Color(0xFF6B7280),
+                        lineHeight = 17.sp,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(horizontal = 6.dp)
+                    )
+
+                    if (recentScratchSession != null && onSelectSession != null) {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Surface(
+                            onClick = { onSelectSession(recentScratchSession.sessionId) },
+                            shape = RoundedCornerShape(14.dp),
+                            color = Color(0xFFFFFBEB),
+                            border = BorderStroke(1.dp, Color(0xFFFDE68A)),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(text = "🧩", fontSize = 18.sp)
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = "Scratch 智能精灵答疑历史 (${recentScratchSession.records.size}条)",
+                                        fontSize = 12.5.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color(0xFF92400E)
+                                    )
+                                    Text(
+                                        text = "点击立即查看 Scratch 编程中的全部问答与分析",
+                                        fontSize = 11.sp,
+                                        color = Color(0xFFB45309)
+                                    )
+                                }
+                                Icon(
+                                    imageVector = Icons.Default.ChevronRight,
+                                    contentDescription = "查看",
+                                    tint = Color(0xFFD97706),
+                                    modifier = Modifier.size(16.dp)
                                 )
                             }
-                            Icon(
-                                imageVector = Icons.Default.ChevronRight,
-                                contentDescription = "查看",
-                                tint = Color(0xFFD97706),
-                                modifier = Modifier.size(16.dp)
-                            )
                         }
                     }
-                }
 
-                Spacer(modifier = Modifier.height(14.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
 
-                // 启发式快捷提问胶囊列表（全部完整呈现，支持滚动）
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    SuggestionPromptChip(
-                        emoji = "🧩",
-                        text = "怎样让角色在 Scratch 里碰到边缘就反弹？",
-                        onClick = { onPromptClick("怎样让角色在 Scratch 里碰到边缘就反弹？") }
+                    Text(
+                        text = "✨ 常见热点问题 (点击直接提问)",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color(0xFF4B5563),
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp)
                     )
-                    SuggestionPromptChip(
-                        emoji = "💡",
-                        text = "克隆体积木怎么用？请给我一个简单的例子",
-                        onClick = { onPromptClick("Scratch 中的克隆体积木怎么用？请给我一个简单的例子") }
-                    )
-                    SuggestionPromptChip(
-                        emoji = "⚡️",
-                        text = "循环代码卡住了不走怎么排查？",
-                        onClick = { onPromptClick("为什么我的重复执行循环代码卡住了不走？如何调试？") }
-                    )
-                    SuggestionPromptChip(
-                        emoji = "🎮",
-                        text = "如何做角色血条扣减与游戏结束判定？",
-                        onClick = { onPromptClick("如何在 Scratch 中制作角色生命值血条和游戏失败判定？") }
-                    )
+
+                    // 启发式快捷提问胶囊列表（全部完整呈现，支持滚动）
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        SuggestionPromptChip(
+                            emoji = "🧩",
+                            text = "怎样让角色在 Scratch 里碰到边缘就反弹？",
+                            onClick = { onPromptClick("怎样让角色在 Scratch 里碰到边缘就反弹？") }
+                        )
+                        SuggestionPromptChip(
+                            emoji = "💡",
+                            text = "克隆体积木怎么用？请给我一个简单的例子",
+                            onClick = { onPromptClick("Scratch 中的克隆体积木怎么用？请给我一个简单的例子") }
+                        )
+                        SuggestionPromptChip(
+                            emoji = "⚡️",
+                            text = "循环代码卡住了不走怎么排查？",
+                            onClick = { onPromptClick("为什么我的重复执行循环代码卡住了不走？如何调试？") }
+                        )
+                        SuggestionPromptChip(
+                            emoji = "🎮",
+                            text = "如何做角色血条扣减与游戏结束判定？",
+                            onClick = { onPromptClick("如何在 Scratch 中制作角色生命值血条和游戏失败判定？") }
+                        )
+                        SuggestionPromptChip(
+                            emoji = "🐱",
+                            text = "怎样实现角色跟随鼠标移动或键盘控制？",
+                            onClick = { onPromptClick("如何在 Scratch 中实现角色跟随鼠标移动或者用上下左右方向键控制？") }
+                        )
+                    }
                 }
             }
         }

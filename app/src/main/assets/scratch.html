@@ -360,80 +360,105 @@ html, body {
   display: flex;
   flex-direction: column;
   border-radius: 8px;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.12);
   border: 2.5px solid #d97706;
   transition: all 0.2s ease;
   background: #ffffff;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
   overflow: visible;
+  position: relative;
+}
+.c-block-container::before {
+  content: '';
+  position: absolute;
+  top: -6px;
+  left: 20px;
+  width: 20px;
+  height: 6px;
+  background: #FFAB19;
+  border-top-left-radius: 4px;
+  border-top-right-radius: 4px;
 }
 .c-block-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 10px;
+  padding: 8px 12px;
   color: #fff;
-  font-size: 11.5px;
-  font-weight: 700;
-  border-top-left-radius: 5px;
-  border-top-right-radius: 5px;
-  gap: 6px;
+  font-size: 12px;
+  font-weight: 800;
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+  gap: 8px;
   flex-wrap: wrap;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
-/* 核心缩进区：加宽高辨识度脊柱 (22px left spine) + 宽敞内部留白 */
+/* 核心缩进区：官方高辨识度双层脊柱 (26px left spine) + 阶梯凹槽 */
 .c-block-body {
-  background: #fffdf6;
-  border-left: 22px solid #FFAB19;
-  padding: 10px 10px 12px 12px;
+  background: #fffdf5;
+  border-left: 26px solid #FFAB19;
+  padding: 10px 12px 12px 14px;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  min-height: 52px;
+  min-height: 58px;
   position: relative;
-  transition: background 0.15s ease, border-color 0.15s ease;
+  transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
 }
 .c-block-body::before {
+  content: '↳';
+  position: absolute;
+  left: -20px;
+  top: 10px;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 900;
+  pointer-events: none;
+}
+.c-block-body::after {
   content: '';
   position: absolute;
-  left: -15px;
+  left: -4px;
   top: 0;
   bottom: 0;
-  width: 3px;
-  background: rgba(255,255,255,0.7);
+  width: 4px;
+  background: rgba(217, 119, 6, 0.2);
 }
 
 .c-block-body.drag-over-container {
-  background: #fef3c7 !important;
+  background: #f0fdf4 !important;
   border-left-color: #22c55e !important;
-  box-shadow: inset 0 0 0 2px #22c55e !important;
+  box-shadow: inset 0 0 0 3px #22c55e, 0 0 12px rgba(34, 197, 94, 0.4) !important;
 }
 
 .c-block-body-empty {
-  font-size: 11px;
+  font-size: 11.5px;
+  font-weight: 700;
   color: #b45309;
   background: #fef3c7;
-  border: 1.5px dashed #f59e0b;
-  border-radius: 6px;
-  padding: 8px 10px;
+  border: 2px dashed #f59e0b;
+  border-radius: 8px;
+  padding: 10px 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 8px;
   text-align: center;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
 }
 
-/* 循环体内部快捷添加与全量选择工具条 (彻底杜绝文字与底栏重叠) */
+/* 循环体内部快捷添加与全量选择工具条 */
 .c-quick-bar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   padding-top: 8px;
   border-top: 1.5px dashed #fed7aa;
-  margin-top: 4px;
+  margin-top: 6px;
 }
 .quick-chip-label {
-  font-size: 10px;
+  font-size: 10.5px;
   font-weight: 800;
   color: #9a3412;
   margin-right: 2px;
@@ -441,38 +466,40 @@ html, body {
 .c-quick-chip {
   border: none;
   color: #fff;
-  font-size: 10px;
+  font-size: 10.5px;
   font-weight: 700;
-  padding: 4px 8px;
-  border-radius: 5px;
+  padding: 4px 9px;
+  border-radius: 6px;
   cursor: pointer;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
   transition: transform 0.1s, opacity 0.15s;
   display: inline-flex;
   align-items: center;
-  gap: 2px;
+  gap: 3px;
 }
-.c-quick-chip:active { transform: scale(0.95); opacity: 0.9; }
+.c-quick-chip:active { transform: scale(0.94); opacity: 0.9; }
 .c-more-btn {
-  background: #fff !important;
+  background: #ffffff !important;
   color: #b45309 !important;
   border: 1.5px solid #d97706 !important;
   font-weight: 800;
 }
 
 .c-block-footer {
-  min-height: 24px;
+  min-height: 26px;
   background: #FFAB19;
-  border-bottom-left-radius: 5px;
-  border-bottom-right-radius: 5px;
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
   display: flex;
   align-items: center;
-  padding: 3px 10px;
+  justify-content: space-between;
+  padding: 4px 12px;
   color: #fff;
-  font-size: 10px;
+  font-size: 10.5px;
   font-weight: 800;
   letter-spacing: 0.5px;
-  border-top: 1px solid rgba(0,0,0,0.05);
+  border-top: 1px solid rgba(0,0,0,0.08);
+  box-shadow: 0 -1px 3px rgba(0,0,0,0.06);
 }
 
 /* 循环体内部子积木外观 (带阶梯缩进与连接记号) */
@@ -482,55 +509,58 @@ html, body {
   align-items: center;
   justify-content: space-between;
   border-radius: 6px;
-  margin-left: 2px;
+  margin-left: 4px;
   transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.15);
-  margin-bottom: 2px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.18);
+  margin-bottom: 3px;
+  border: 1px solid rgba(255,255,255,0.4);
 }
 .child-indent-notch {
-  color: rgba(255,255,255,0.85);
+  color: rgba(255,255,255,0.95);
   font-weight: 900;
-  font-size: 12px;
-  margin-right: 4px;
+  font-size: 13px;
+  margin-right: 6px;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
 }
 .step-number-tag {
-  background: rgba(0,0,0,0.3);
+  background: rgba(0,0,0,0.35);
   border-radius: 4px;
-  padding: 1px 5px;
+  padding: 1px 6px;
   font-size: 9.5px;
   font-weight: 800;
-  margin-right: 4px;
+  margin-right: 6px;
+  color: #ffffff;
 }
 
 /* 条件嵌套槽 (Condition Slot) - 支持嵌套运算/侦测积木 */
 .condition-slot {
   background: #59C059;
   color: #fff;
-  border: 1.5px solid #ffffff;
-  padding: 2px 8px;
-  border-radius: 12px;
-  font-size: 10.5px;
+  border: 2px solid #ffffff;
+  padding: 3px 10px;
+  border-radius: 14px;
+  font-size: 11px;
   font-weight: 800;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-  transition: all 0.15s ease;
+  gap: 5px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.25);
+  transition: all 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
   user-select: none;
 }
 .condition-slot:hover {
-  transform: scale(1.03);
-  box-shadow: 0 0 6px rgba(255,255,255,0.8);
+  transform: scale(1.05);
+  box-shadow: 0 0 8px rgba(255,255,255,0.9);
 }
 .condition-slot.sensing-cond {
   background: #5CB1D6;
 }
 .condition-slot.drag-over-cond {
   background: #22c55e !important;
-  box-shadow: 0 0 0 3px #fff, 0 0 12px #22c55e !important;
-  transform: scale(1.08) !important;
-  animation: pulseBg 0.6s infinite alternate;
+  box-shadow: 0 0 0 3px #ffffff, 0 0 14px #22c55e !important;
+  transform: scale(1.12) !important;
+  animation: pulseBg 0.5s infinite alternate;
 }
 
 /* 4. 右侧舞台预览面板 */
