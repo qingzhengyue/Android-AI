@@ -40,7 +40,10 @@ object ScratchWorkEvaluator {
         val hasMotion = opcodes.any { it.startsWith("motion_") }
         val hasMove = opcodes.any { it == "motion_movesteps" || it == "motion_gotoxy" || it == "motion_changexby" || it == "motion_changeyby" || it == "motion_glidesecstoxy" }
         val hasBounce = opcodes.any { it == "motion_ifonedgebounce" }
+        val hasRotation = opcodes.any { it == "motion_setrotationstyle" }
         val hasLooks = opcodes.any { it.startsWith("looks_") }
+        val hasCostumeSwitch = opcodes.any { it == "looks_nextcostume" || it == "looks_switchcostumeto" }
+        val hasWait = opcodes.any { it == "control_wait" || it == "control_wait_until" }
         val hasSound = opcodes.any { it.startsWith("sound_") }
         val hasSensing = opcodes.any { it.startsWith("sensing_") }
         val hasOperators = opcodes.any { it.startsWith("operator_") }
@@ -50,98 +53,104 @@ object ScratchWorkEvaluator {
         val uniqueOpcodeCount = opcodes.distinct().size
         val totalBlocks = opcodes.size
 
-        // 针对不同完整度的精准分级评测
-        val grammar: Int
-        val logic: Int
-        val taskMatch: Int
-        val creative: Int
-        val suggestions: String
-
-        when {
-            // 级别 1：极简作品 (仅有1块积木，如仅有 "当绿旗被点击" 或单个未连接积木)
-            totalBlocks <= 1 -> {
-                if (hasStart) {
-                    grammar = 15
-                    logic = 8
-                    taskMatch = 7
-                    creative = 6
-                    val total = grammar + logic + taskMatch + creative // 36分
-                    suggestions = "🌟 【AI个性化诊断】太棒了！你已经迈出了编程的第一步，成功放置了【当 🟢 被点击】启动入口积木！\n\n⚠️ 不过当前脚本中还没有让角色执行运动或外观变换的指令哦（角色暂时静止不动）。\n\n💡 建议下一步：\n① 从左侧蓝色【运动】分类拖入【移动 10 步】拼在绿旗下方；\n② 从橙色【控制】分类拖入【重复执行】包裹住移动指令；\n③ 加入【碰到边缘就反弹】，小猫就能在屏幕里来回走动啦！"
-                    return GeminiClient.EvaluationResult(grammar, logic, taskMatch, creative, total, suggestions)
-                } else {
-                    grammar = 8
-                    logic = 6
-                    taskMatch = 8
-                    creative = 6
-                    val total = grammar + logic + taskMatch + creative // 28分
-                    suggestions = "⚠️ 【AI个性化诊断】检测到一个独立的动作积木，但上方缺少启动事件积木，程序无法在点击绿旗时自动运行。\n\n💡 拼搭指南：\n① 请在最上方拼接黄色【事件】分类里的【当 🟢 被点击】积木；\n② 随后在下方继续拼接运动与循环控制积木！"
-                    return GeminiClient.EvaluationResult(grammar, logic, taskMatch, creative, total, suggestions)
-                }
+        // 极简作品 (1 块积木)
+        if (totalBlocks <= 1) {
+            val grammar = if (hasStart) 15 else 8
+            val logic = 6
+            val taskMatch = 6
+            val creative = 5
+            val total = grammar + logic + taskMatch + creative
+            val suggestions = if (hasStart) {
+                "🌟 【AI个性化诊断】太棒了！你已经成功放置了【当 🟢 被点击】启动入口积木！\n\n⚠️ 不过当前脚本中还没有让角色执行运动或外观变换的指令哦（角色暂时静止不动）。\n\n💡 建议下一步：\n① 从左侧蓝色【运动】分类拖入【移动 10 步】拼在绿旗下方；\n② 从橙色【控制】分类拖入【重复执行】包裹住移动指令；\n③ 加入【碰到边缘就反弹】，小猫就能在屏幕里来回走动啦！"
+            } else {
+                "⚠️ 【AI个性化诊断】检测到一个独立的动作积木，但上方缺少启动事件积木，程序无法在点击绿旗时自动运行。\n\n💡 拼搭指南：\n① 请在最上方拼接黄色【事件】分类里的【当 🟢 被点击】积木；\n② 随后在下方继续拼接运动与循环控制积木！"
             }
+            return GeminiClient.EvaluationResult(grammar, logic, taskMatch, creative, total, suggestions)
+        }
 
-            // 级别 2：初期片段 (2~3块积木，有初步结构但缺少循环或动作)
-            totalBlocks in 2..3 -> {
-                grammar = if (hasStart) 18 else 12
-                logic = if (hasLoop || hasControl) 14 else 10
-                taskMatch = if (hasMotion || hasLooks) 13 else 8
-                creative = 8
-                val total = grammar + logic + taskMatch + creative // 40~53分
+        // 精细多维度差异化计算
+        // 1. 语法合规性 (满分 25 分)
+        var grammar = 0
+        if (hasStart) grammar += 14 else grammar += 6
+        if (totalBlocks >= 2) grammar += 6 else grammar += 2
+        if (totalBlocks >= 5) grammar += 5 else if (totalBlocks >= 3) grammar += 3 else grammar += 1
+        grammar = grammar.coerceIn(5, 25)
 
-                val hint = when {
-                    !hasStart -> "① 在脚本最上方补上【当 🟢 被点击】积木；"
-                    !hasLoop -> "① 小猫目前只会单次执行一步就停下，请从【控制】分类拖入【重复执行】将动作积木包裹起来；"
-                    !hasMotion -> "① 从【运动】分类拖入【移动 10 步】放入循环体内部，让角色动起来；"
-                    !hasBounce -> "① 从【运动】分类加入【碰到边缘就反弹】，防止小猫跑出屏幕外；"
-                    else -> "① 继续添加外观与等待积木，让动作更加丰富；"
-                }
+        // 2. 逻辑完整性 (满分 30 分)
+        var logic = 0
+        if (hasLoop) logic += 12 else if (hasControl) logic += 6 else logic += 3
+        if (hasCondition || hasSensing) logic += 8 else if (hasBounce) logic += 6 else logic += 2
+        if (hasWait) logic += 4
+        if (totalBlocks >= 6) logic += 6 else if (totalBlocks >= 4) logic += 4 else logic += 2
+        logic = logic.coerceIn(5, 30)
 
-                suggestions = "👏 【AI个性化诊断】作品已有初步雏形！检测到你放置了 ${totalBlocks} 个积木，基础事件已就绪。\n\n💡 进阶修改建议：\n$hint\n② 尝试添加【外观】分类里的【下一个造型】与【控制】里的【等待 0.2 秒】，让小猫走起路来像真实迈步一样生动！"
-                return GeminiClient.EvaluationResult(grammar, logic, taskMatch, creative, total, suggestions)
+        // 3. 任务匹配度 (满分 25 分)
+        var taskMatch = 0
+        if (hasMotion || hasMove) taskMatch += 10 else taskMatch += 3
+        if (hasBounce && (taskName.contains("漫步") || taskName.contains("反弹") || workName.contains("漫步") || taskDetail.contains("反弹"))) {
+            taskMatch += 8
+        } else if (hasSensing && (taskName.contains("接水果") || workName.contains("水果") || taskName.contains("按键"))) {
+            taskMatch += 8
+        } else if (hasBounce || hasSensing || hasLooks) {
+            taskMatch += 5
+        } else {
+            taskMatch += 2
+        }
+        if (hasLooks || hasCostumeSwitch) taskMatch += 4 else taskMatch += 1
+        if (totalBlocks >= 6) taskMatch += 3 else taskMatch += 1
+        taskMatch = taskMatch.coerceIn(5, 25)
+
+        // 4. 创意实现度 (满分 20 分)
+        var creative = 0
+        creative += (categoryCount * 3).coerceAtMost(10)
+        if (hasLooks || hasCostumeSwitch) creative += 4
+        if (hasSound || hasVariables || hasSensing) creative += 4
+        if (totalBlocks >= 7) creative += 2
+        creative = creative.coerceIn(5, 20)
+
+        val total = grammar + logic + taskMatch + creative
+
+        // 个性化生成建议文案
+        val suggestions = when {
+            total >= 90 -> {
+                val extraTip = if (hasVariables) "变量记分系统运用熟练！" else "可以尝试添加【变量】记分器或计时器，打造更具挑战性的趣味小游戏！"
+                "🌟 【AI个性化诊断】太精彩了！作品结构完整，积木运用熟练，逻辑思维非常清晰（包含循环、动作、造型动画与边界控制），展现了出色的少儿编程素养！\n\n💡 拓展挑战建议：\n$extraTip"
             }
-
-            // 级别 3：基础功能实现 (4~7块积木，具备循环和运动，但缺少反弹/造型/条件)
-            totalBlocks in 4..7 -> {
-                grammar = (19 + (if (hasStart) 3 else 0)).coerceAtMost(24)
-                logic = (16 + (if (hasLoop) 4 else 0) + (if (hasBounce || hasCondition) 4 else 0)).coerceAtMost(26)
-                taskMatch = (15 + (if (hasMotion) 4 else 0) + (if (hasLooks || hasSound) 3 else 0)).coerceAtMost(23)
-                creative = (10 + categoryCount * 2).coerceAtMost(16)
-                val total = grammar + logic + taskMatch + creative // 65~85分
-
-                val detailTips = mutableListOf<String>()
-                if (!hasBounce && (taskName.contains("漫步") || taskName.contains("反弹") || taskDetail.contains("反弹"))) {
-                    detailTips.add("加入【运动】分类中的【碰到边缘就反弹】与【将旋转方式设为左右翻转】，避免小猫贴墙卡住或倒立。")
+            total >= 80 -> {
+                val needTips = mutableListOf<String>()
+                if (!hasBounce && (taskName.contains("漫步") || workName.contains("漫步"))) {
+                    needTips.add("从【运动】分类拖入【碰到边缘就反弹】，防止角色移出舞台边缘。")
                 }
-                if (!hasLooks) {
-                    detailTips.add("在移动后加入【外观】中的【下一个造型】，让角色呈现行走迈步的动态帧动画。")
+                if (!hasCostumeSwitch) {
+                    needTips.add("在动作后加入【外观】中的【下一个造型】，让角色走起路来更加逼真生动。")
                 }
-                if (detailTips.isEmpty()) {
-                    detailTips.add("可以加入【声音】模块中的播放音效，或设置一个【得分】变量增加互动乐趣！")
+                if (!hasWait && hasCostumeSwitch) {
+                    needTips.add("加入【控制】里的【等待 0.1 秒】，避免造型切换过快。")
                 }
-
-                suggestions = "🎉 【AI个性化诊断】很棒的编程作品！核心逻辑已基本跑通，角色已经可以按照程序指令进行连贯交互！\n\n💡 老师级别的精修建议：\n" + detailTips.mapIndexed { idx, s -> "${idx + 1}. $s" }.joinToString("\n")
-                return GeminiClient.EvaluationResult(grammar, logic, taskMatch, creative, total, suggestions)
+                if (needTips.isEmpty()) {
+                    needTips.add("尝试加入背景音乐或按键碰撞音效，增加视听互动体验！")
+                }
+                "🎉 【AI个性化诊断】很棒的编程作品！核心逻辑已基本跑通，角色已经可以按照程序指令进行连贯交互！\n\n💡 进阶精修建议：\n" + needTips.mapIndexed { idx, s -> "${idx + 1}. $s" }.joinToString("\n")
             }
-
-            // 级别 4：优秀及高完成度作品 (8块及以上，多分类协同，逻辑严密)
+            total >= 60 -> {
+                val fixTips = mutableListOf<String>()
+                if (!hasBounce) {
+                    fixTips.add("检测到角色移动后会卡在舞台边缘无法返回，请在【重复执行】内部加入【碰到边缘就反弹】与【将旋转方式设为左右翻转】！")
+                }
+                if (!hasCostumeSwitch) {
+                    fixTips.add("从小猫外观分类添加【下一个造型】，为小猫赋予生动的迈步帧动画。")
+                }
+                if (!hasLoop) {
+                    fixTips.add("角色目前只会单次执行一步，请用【重复执行】将移动指令包裹起来。")
+                }
+                "👏 【AI个性化诊断】作品已有初步结构，基础运动指令已就位！\n\n⚠️ 发现待优化问题与指导：\n" + fixTips.mapIndexed { idx, s -> "${idx + 1}. $s" }.joinToString("\n")
+            }
             else -> {
-                grammar = (22 + (if (hasStart) 2 else 0) + (if (totalBlocks >= 10) 1 else 0)).coerceIn(23, 25)
-                logic = (24 + (if (hasLoop) 2 else 0) + (if (hasCondition || hasSensing) 2 else 0) + (if (hasVariables) 2 else 0)).coerceIn(25, 30)
-                taskMatch = (21 + (if (hasMotion) 2 else 0) + (if (hasBounce) 1 else 0) + (if (hasLooks || hasSound) 1 else 0)).coerceIn(22, 25)
-                creative = (14 + categoryCount + (if (hasVariables || hasSensing) 2 else 0)).coerceIn(15, 20)
-                val total = grammar + logic + taskMatch + creative // 88~98分
-
-                val advTips = if (hasVariables) {
-                    "你巧妙地运用了变量与条件分支，算法思维非常成熟！可以尝试设计双人对战机制或关卡递增难度。"
-                } else if (hasCondition || hasSensing) {
-                    "条件侦测与分支响应编写得十分精准！建议添加计分器（变量）与倒计时，将小游戏打磨得更加耐玩。"
-                } else {
-                    "程序结构非常完整，动效流畅！建议在循环中加入碰撞侦测或键盘控制，提升作品的趣味性与交互度！"
-                }
-
-                suggestions = "🌟 【AI个性化诊断】太精彩了！作品结构完整，积木运用熟练，逻辑思维非常清晰，展现了出色的少儿编程素养！\n\n💡 拓展挑战与大师建议：\n$advTips"
-                return GeminiClient.EvaluationResult(grammar, logic, taskMatch, creative, total, suggestions)
+                "⚠️ 【AI个性化诊断】检测到当前积木数量较少（仅 ${totalBlocks} 块），逻辑尚未闭环。\n\n💡 起步指导：\n1. 确保最上方拼接黄色【当 🟢 被点击】；\n2. 从橙色【控制】拖入【重复执行】；\n3. 在循环内部放入蓝色【移动 10 步】和【碰到边缘就反弹】！"
             }
         }
+
+        return GeminiClient.EvaluationResult(grammar, logic, taskMatch, creative, total, suggestions)
     }
 
     fun sanitize(result: GeminiClient.EvaluationResult): GeminiClient.EvaluationResult {

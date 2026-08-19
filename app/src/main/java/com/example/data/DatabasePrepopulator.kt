@@ -194,12 +194,13 @@ object DatabasePrepopulator {
 
         // 6. 检查并补全示例作品 (ScratchWork) 与 评测报告
         val existingWorks = dao.getAllWorksList()
-        if (existingWorks.isEmpty() && studentId1 != 0 && taskId1 != 0) {
-            val sampleCatCode = """{"targets":[{"isStage":true,"name":"Stage","variables":{},"lists":{},"broadcasts":{},"blocks":{},"comments":{},"currentCostume":0,"costumes":[{"name":"背景1","bitmapResolution":1,"dataFormat":"svg","assetId":"cd21584322f79459ecb5864133b44723","md5ext":"cd21584322f79459ecb5864133b44723.svg","rotationCenterX":240,"rotationCenterY":180}],"sounds":[],"volume":100,"layerOrder":0},{"isStage":false,"name":"角色1","variables":{},"lists":{},"broadcasts":{},"blocks":{"a":{"opcode":"event_whenflagclicked","next":"b","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":100,"y":100},"b":{"opcode":"control_forever","next":null,"parent":"a","inputs":{"SUBSTACK":[2,"c"]},"fields":{},"shadow":false,"topLevel":false},"c":{"opcode":"motion_movesteps","next":"d","parent":"b","inputs":{"STEPS":[1,[4,"10"]]},"fields":{},"shadow":false,"topLevel":false},"d":{"opcode":"motion_ifonedgebounce","next":null,"parent":"c","inputs":{},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"name":"造型1","bitmapResolution":1,"dataFormat":"svg","assetId":"b7853f557e44241d288a7593e62c0d58","md5ext":"b7853f557e44241d288a7593e62c0d58.svg","rotationCenterX":48,"rotationCenterY":50}],"sounds":[],"volume":100,"visible":true,"x":0,"y":0,"size":100,"direction":90,"draggable":false,"rotationStyle":"all around","layerOrder":1}],"monitors":[],"extensions":[],"meta":{"semver":"3.0.0","vm":"0.2.0","agent":"Android"}}"""
-            val sampleFruitCode = """{"targets":[{"isStage":true,"name":"Stage","variables":{},"lists":{},"broadcasts":{},"blocks":{},"comments":{},"currentCostume":0,"costumes":[{"name":"背景1","bitmapResolution":1,"dataFormat":"svg","assetId":"cd21584322f79459ecb5864133b44723","md5ext":"cd21584322f79459ecb5864133b44723.svg","rotationCenterX":240,"rotationCenterY":180}],"sounds":[],"volume":100,"layerOrder":0},{"isStage":false,"name":"碗","variables":{},"lists":{},"broadcasts":{},"blocks":{"a":{"opcode":"event_whenflagclicked","next":"b","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":100,"y":100},"b":{"opcode":"control_forever","next":null,"parent":"a","inputs":{"SUBSTACK":[2,"c"]},"fields":{},"shadow":false,"topLevel":false},"c":{"opcode":"control_if","next":null,"parent":"b","inputs":{"CONDITION":[2,"d"],"SUBSTACK":[2,"e"]},"fields":{},"shadow":false,"topLevel":false},"d":{"opcode":"sensing_keypressed","next":null,"parent":"c","inputs":{},"fields":{"KEY_OPTION":["right arrow",null]},"shadow":false,"topLevel":false},"e":{"opcode":"motion_changexby","next":null,"parent":"c","inputs":{"DX":[1,[4,"10"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"name":"造型1","bitmapResolution":1,"dataFormat":"svg","assetId":"b7853f557e44241d288a7593e62c0d58","md5ext":"b7853f557e44241d288a7593e62c0d58.svg","rotationCenterX":48,"rotationCenterY":50}],"sounds":[],"volume":100,"visible":true,"x":0,"y":0,"size":100,"direction":90,"draggable":false,"rotationStyle":"all around","layerOrder":1}],"monitors":[],"extensions":[],"meta":{"semver":"3.0.0","vm":"0.2.0","agent":"Android"}}"""
+        val zhangXiaoshuaiCatCode = """{"targets":[{"isStage":true,"name":"Stage","variables":{},"lists":{},"broadcasts":{},"blocks":{},"comments":{},"currentCostume":0,"costumes":[{"name":"背景1","bitmapResolution":1,"dataFormat":"svg","assetId":"cd21584322f79459ecb5864133b44723","md5ext":"cd21584322f79459ecb5864133b44723.svg","rotationCenterX":240,"rotationCenterY":180}],"sounds":[],"volume":100,"layerOrder":0},{"isStage":false,"name":"角色1","variables":{},"lists":{},"broadcasts":{},"blocks":{"a":{"opcode":"event_whenflagclicked","next":"b","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":100,"y":100},"b":{"opcode":"motion_setrotationstyle","next":"c","parent":"a","inputs":{},"fields":{"STYLE":["left-right",null]},"shadow":false,"topLevel":false},"c":{"opcode":"control_forever","next":null,"parent":"b","inputs":{"SUBSTACK":[2,"d"]},"fields":{},"shadow":false,"topLevel":false},"d":{"opcode":"motion_movesteps","next":"e","parent":"c","inputs":{"STEPS":[1,[4,"10"]]},"fields":{},"shadow":false,"topLevel":false},"e":{"opcode":"looks_nextcostume","next":"f","parent":"d","inputs":{},"fields":{},"shadow":false,"topLevel":false},"f":{"opcode":"control_wait","next":"g","parent":"e","inputs":{"DURATION":[1,[4,"0.1"]]},"fields":{},"shadow":false,"topLevel":false},"g":{"opcode":"motion_ifonedgebounce","next":null,"parent":"f","inputs":{},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"name":"造型1","bitmapResolution":1,"dataFormat":"svg","assetId":"b7853f557e44241d288a7593e62c0d58","md5ext":"b7853f557e44241d288a7593e62c0d58.svg","rotationCenterX":48,"rotationCenterY":50},{"name":"造型2","bitmapResolution":1,"dataFormat":"svg","assetId":"b7853f557e44241d288a7593e62c0d59","md5ext":"b7853f557e44241d288a7593e62c0d59.svg","rotationCenterX":48,"rotationCenterY":50}],"sounds":[],"volume":100,"visible":true,"x":0,"y":0,"size":100,"direction":90,"draggable":false,"rotationStyle":"left-right","layerOrder":1}],"monitors":[],"extensions":[],"meta":{"semver":"3.0.0","vm":"0.2.0","agent":"Android"}}"""
+        val liXiaomeiFruitCode = """{"targets":[{"isStage":true,"name":"Stage","variables":{},"lists":{},"broadcasts":{},"blocks":{},"comments":{},"currentCostume":0,"costumes":[{"name":"背景1","bitmapResolution":1,"dataFormat":"svg","assetId":"cd21584322f79459ecb5864133b44723","md5ext":"cd21584322f79459ecb5864133b44723.svg","rotationCenterX":240,"rotationCenterY":180}],"sounds":[],"volume":100,"layerOrder":0},{"isStage":false,"name":"碗","variables":{},"lists":{},"broadcasts":{},"blocks":{"a":{"opcode":"event_whenflagclicked","next":"b","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":100,"y":100},"b":{"opcode":"control_forever","next":null,"parent":"a","inputs":{"SUBSTACK":[2,"c"]},"fields":{},"shadow":false,"topLevel":false},"c":{"opcode":"control_if","next":"f","parent":"b","inputs":{"CONDITION":[2,"d"],"SUBSTACK":[2,"e"]},"fields":{},"shadow":false,"topLevel":false},"d":{"opcode":"sensing_keypressed","next":null,"parent":"c","inputs":{},"fields":{"KEY_OPTION":["right arrow",null]},"shadow":false,"topLevel":false},"e":{"opcode":"motion_changexby","next":null,"parent":"c","inputs":{"DX":[1,[4,"10"]]},"fields":{},"shadow":false,"topLevel":false},"f":{"opcode":"control_if","next":null,"parent":"c","inputs":{"CONDITION":[2,"g"],"SUBSTACK":[2,"h"]},"fields":{},"shadow":false,"topLevel":false},"g":{"opcode":"sensing_keypressed","next":null,"parent":"f","inputs":{"KEY_OPTION":["left arrow",null]},"shadow":false,"topLevel":false},"h":{"opcode":"motion_changexby","next":null,"parent":"f","inputs":{"DX":[1,[4,"-10"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"name":"造型1","bitmapResolution":1,"dataFormat":"svg","assetId":"b7853f557e44241d288a7593e62c0d58","md5ext":"b7853f557e44241d288a7593e62c0d58.svg","rotationCenterX":48,"rotationCenterY":50}],"sounds":[],"volume":100,"visible":true,"x":0,"y":0,"size":100,"direction":90,"draggable":false,"rotationStyle":"all around","layerOrder":1}],"monitors":[],"extensions":[],"meta":{"semver":"3.0.0","vm":"0.2.0","agent":"Android"}}"""
+        val zhouJielunCatCode = """{"targets":[{"isStage":true,"name":"Stage","variables":{},"lists":{},"broadcasts":{},"blocks":{},"comments":{},"currentCostume":0,"costumes":[{"name":"背景1","bitmapResolution":1,"dataFormat":"svg","assetId":"cd21584322f79459ecb5864133b44723","md5ext":"cd21584322f79459ecb5864133b44723.svg","rotationCenterX":240,"rotationCenterY":180}],"sounds":[],"volume":100,"layerOrder":0},{"isStage":false,"name":"角色1","variables":{},"lists":{},"broadcasts":{},"blocks":{"a":{"opcode":"event_whenflagclicked","next":"b","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":100,"y":100},"b":{"opcode":"control_forever","next":null,"parent":"a","inputs":{"SUBSTACK":[2,"c"]},"fields":{},"shadow":false,"topLevel":false},"c":{"opcode":"motion_movesteps","next":null,"parent":"b","inputs":{"STEPS":[1,[4,"10"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"name":"造型1","bitmapResolution":1,"dataFormat":"svg","assetId":"b7853f557e44241d288a7593e62c0d58","md5ext":"b7853f557e44241d288a7593e62c0d58.svg","rotationCenterX":48,"rotationCenterY":50}],"sounds":[],"volume":100,"visible":true,"x":0,"y":0,"size":100,"direction":90,"draggable":false,"rotationStyle":"all around","layerOrder":1}],"monitors":[],"extensions":[],"meta":{"semver":"3.0.0","vm":"0.2.0","agent":"Android"}}"""
 
+        if (existingWorks.isEmpty() && studentId1 != 0 && taskId1 != 0) {
             val eval1 = ScratchWorkEvaluator.evaluate(
-                sampleCatCode,
+                zhangXiaoshuaiCatCode,
                 "猫咪趣味漫步",
                 "让小猫在舞台上一直左右移动漫步，碰到边缘自动反弹",
                 "张小帅的猫咪漫步作品"
@@ -207,7 +208,7 @@ object DatabasePrepopulator {
             val workId1 = dao.insertWork(
                 ScratchWork(
                     workName = "张小帅的猫咪漫步作品",
-                    workCode = sampleCatCode,
+                    workCode = zhangXiaoshuaiCatCode,
                     studentId = studentId1,
                     classId = classId1,
                     taskId = taskId1,
@@ -215,7 +216,7 @@ object DatabasePrepopulator {
                     submitTime = now - 2 * 3600 * 1000L,
                     reviewStatus = "已打分",
                     teacherScore = eval1.averageScore,
-                    teacherComment = "双向弹跳逻辑写得非常规范，小猫咪非常欢快地动起来了，加油！",
+                    teacherComment = "双向弹跳与造型切换逻辑写得非常规范生动，小猫咪十分欢快！",
                     teacherReviewTime = now - 1 * 3600 * 1000L
                 )
             ).toInt()
@@ -236,7 +237,7 @@ object DatabasePrepopulator {
 
             if (studentId2 != 0 && taskId2 != 0) {
                 val eval2 = ScratchWorkEvaluator.evaluate(
-                    sampleFruitCode,
+                    liXiaomeiFruitCode,
                     "接水果大作战",
                     "用键盘方向键控制碗左右移动，接住从上方掉落的水果",
                     "李小美的接水果大作战"
@@ -244,7 +245,7 @@ object DatabasePrepopulator {
                 val workId2 = dao.insertWork(
                     ScratchWork(
                         workName = "李小美的接水果大作战",
-                        workCode = sampleFruitCode,
+                        workCode = liXiaomeiFruitCode,
                         studentId = studentId2,
                         classId = classId1,
                         taskId = taskId2,
@@ -271,7 +272,7 @@ object DatabasePrepopulator {
 
             if (studentId3 != 0) {
                 val eval3 = ScratchWorkEvaluator.evaluate(
-                    sampleCatCode,
+                    zhouJielunCatCode,
                     "猫咪趣味漫步",
                     "让小猫在舞台上一直左右移动漫步，碰到边缘自动反弹",
                     "周杰伦的猫咪左右摇摆"
@@ -279,15 +280,15 @@ object DatabasePrepopulator {
                 val workId3 = dao.insertWork(
                     ScratchWork(
                         workName = "周杰伦的猫咪左右摇摆",
-                        workCode = sampleCatCode,
+                        workCode = zhouJielunCatCode,
                         studentId = studentId3,
                         classId = classId1,
                         taskId = taskId1,
                         submitCount = 1,
                         submitTime = now - 6 * 3600 * 1000L,
-                        reviewStatus = "已评测",
+                        reviewStatus = "已打分",
                         teacherScore = eval3.averageScore,
-                        teacherComment = "积木结构完整，小猫动作流畅，表现优秀！",
+                        teacherComment = "基础移动逻辑已搭建，注意边缘反弹的补充！",
                         teacherReviewTime = now - 5 * 3600 * 1000L
                     )
                 ).toInt()
@@ -335,23 +336,38 @@ object DatabasePrepopulator {
             )
         }
 
-        // 8. 修复与校准历史数据中可能存在的幽灵评分，确保同等代码评分完全客观一致
+        // 8. 修复与校准历史数据，升级代码并实施高分辨率多维度差异化评分
         try {
             val allExistingWorks = dao.getAllWorksList()
             for (w in allExistingWorks) {
-                val rep = dao.getReportByWorkId(w.workId)
-                if (rep == null || (rep.averageScore == 55 && rep.optimizationSuggestions.contains("缺少让小猫向前走动的【移动 10 步】") && w.workCode.contains("motion_movesteps"))) {
-                    val task = dao.getTaskById(w.taskId)
-                    val eval = ScratchWorkEvaluator.evaluate(
-                        w.workCode,
-                        task?.taskName ?: "Scratch 编程作品",
-                        task?.taskDetail ?: "完成指定逻辑",
-                        w.workName
-                    )
+                var currentWork = w
+                // 升级示例代码以真实呈现高中低三档差异
+                if (w.workName.contains("张小帅") && !w.workCode.contains("looks_nextcostume")) {
+                    currentWork = w.copy(workCode = zhangXiaoshuaiCatCode)
+                    dao.insertWork(currentWork)
+                } else if (w.workName.contains("李小美") && !w.workCode.contains("left arrow")) {
+                    currentWork = w.copy(workCode = liXiaomeiFruitCode)
+                    dao.insertWork(currentWork)
+                } else if (w.workName.contains("周杰伦") && w.workCode.contains("motion_ifonedgebounce")) {
+                    currentWork = w.copy(workCode = zhouJielunCatCode)
+                    dao.insertWork(currentWork)
+                }
+
+                val rep = dao.getReportByWorkId(currentWork.workId)
+                val task = dao.getTaskById(currentWork.taskId)
+                val eval = ScratchWorkEvaluator.evaluate(
+                    currentWork.workCode,
+                    task?.taskName ?: "Scratch 编程作品",
+                    task?.taskDetail ?: "完成指定逻辑",
+                    currentWork.workName
+                )
+
+                // 如果未生成报告或当前评分与精细算法不一致，进行无缝数据对齐与更新
+                if (rep == null || rep.averageScore != eval.averageScore || rep.grammarScore != eval.grammarScore) {
                     dao.insertAiReport(
                         WorkAiReport(
-                            workId = w.workId,
-                            studentId = w.studentId,
+                            workId = currentWork.workId,
+                            studentId = currentWork.studentId,
                             grammarScore = eval.grammarScore,
                             logicScore = eval.logicScore,
                             taskMatchScore = eval.taskMatchScore,
@@ -361,6 +377,10 @@ object DatabasePrepopulator {
                             reportTime = rep?.reportTime ?: (System.currentTimeMillis() - 3600 * 1000L)
                         )
                     )
+                    // 如果老师已有评分，同步更新对齐客观AI平均分
+                    if (currentWork.reviewStatus == "已打分") {
+                        dao.insertWork(currentWork.copy(teacherScore = eval.averageScore))
+                    }
                 }
             }
         } catch (e: Exception) {

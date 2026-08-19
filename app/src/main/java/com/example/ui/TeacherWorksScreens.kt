@@ -852,9 +852,16 @@ fun TeacherWorksClassViewScreen(viewModel: MainViewModel) {
                             val rep by reportFlow.collectAsState(initial = null)
                             var isReevaluating by remember { mutableStateOf(false) }
                             var showRubrics by remember { mutableStateOf(false) }
+                            var countdownSeconds by remember(detailWork.workId) { mutableStateOf(3) }
 
                             LaunchedEffect(detailWork.workId, rep) {
                                 if (rep == null) {
+                                    viewModel.ensureAiReportForWork(detailWork)
+                                    countdownSeconds = 3
+                                    while (countdownSeconds > 0) {
+                                        kotlinx.coroutines.delay(1000L)
+                                        countdownSeconds -= 1
+                                    }
                                     viewModel.ensureAiReportForWork(detailWork)
                                 }
                             }
@@ -1054,32 +1061,82 @@ fun TeacherWorksClassViewScreen(viewModel: MainViewModel) {
                                     }
                                 } else {
                                     Column(
-                                        modifier = Modifier.fillMaxSize(),
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .padding(16.dp),
                                         horizontalAlignment = Alignment.CenterHorizontally,
                                         verticalArrangement = Arrangement.Center
                                     ) {
-                                        CircularProgressIndicator(
-                                            modifier = Modifier.size(36.dp),
-                                            color = Color(0xFF00897B),
-                                            strokeWidth = 3.dp
-                                        )
-                                        Spacer(modifier = Modifier.height(10.dp))
+                                        Box(
+                                            contentAlignment = Alignment.Center,
+                                            modifier = Modifier.size(64.dp)
+                                        ) {
+                                            val progress = ((3 - countdownSeconds) / 3f).coerceIn(0.1f, 1f)
+                                            CircularProgressIndicator(
+                                                progress = { progress },
+                                                modifier = Modifier.size(64.dp),
+                                                color = Color(0xFF00897B),
+                                                trackColor = Color(0xFFE0F2F1),
+                                                strokeWidth = 4.5.dp
+                                            )
+                                            Text(
+                                                text = "${countdownSeconds.coerceAtLeast(1)}s",
+                                                fontSize = 16.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                color = Color(0xFF00897B)
+                                            )
+                                        }
+
+                                        Spacer(modifier = Modifier.height(14.dp))
+
                                         Text(
-                                            text = "🤖 正在生成 AI 评测报告中...\n(后台预载中，请稍候)",
-                                            fontSize = 12.sp,
-                                            color = Color.Gray,
-                                            fontWeight = FontWeight.Medium,
+                                            text = "🤖 AI 智能多维度分析中...",
+                                            fontSize = 14.sp,
+                                            color = Color(0xFF1E293B),
+                                            fontWeight = FontWeight.Bold
+                                        )
+
+                                        Spacer(modifier = Modifier.height(4.dp))
+
+                                        Text(
+                                            text = "预计剩余 ${countdownSeconds.coerceAtLeast(1)} 秒 · 即刻呈现量化评测报告",
+                                            fontSize = 11.sp,
+                                            color = Color(0xFF64748B),
                                             textAlign = TextAlign.Center
                                         )
-                                        Spacer(modifier = Modifier.height(12.dp))
-                                        OutlinedButton(
-                                            onClick = {
-                                                viewModel.ensureAiReportForWork(detailWork)
-                                            },
-                                            shape = RoundedCornerShape(8.dp),
-                                            border = BorderStroke(1.dp, Color(0xFF00897B))
+
+                                        Spacer(modifier = Modifier.height(16.dp))
+
+                                        Surface(
+                                            shape = RoundedCornerShape(10.dp),
+                                            color = Color(0xFFF1F5F9),
+                                            border = BorderStroke(1.dp, Color(0xFFE2E8F0)),
+                                            modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp)
                                         ) {
-                                            Text("⚡ 立即加速评测", fontSize = 11.sp, color = Color(0xFF00897B))
+                                            Row(
+                                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                val stepText = when (countdownSeconds) {
+                                                    3 -> "① 解析 Scratch 语法树与积木连接结构..."
+                                                    2 -> "② 校验循环控制、动作参数与任务契合度..."
+                                                    1 -> "③ 核算各维度量化得分并生成个性化建议..."
+                                                    else -> "④ 报告已就绪，正在渲染呈现..."
+                                                }
+                                                Icon(
+                                                    imageVector = Icons.Default.AutoAwesome,
+                                                    contentDescription = null,
+                                                    tint = Color(0xFFF59E0B),
+                                                    modifier = Modifier.size(13.dp)
+                                                )
+                                                Spacer(modifier = Modifier.width(6.dp))
+                                                Text(
+                                                    text = stepText,
+                                                    fontSize = 10.sp,
+                                                    color = Color(0xFF475569),
+                                                    fontWeight = FontWeight.Medium
+                                                )
+                                            }
                                         }
                                     }
                                 }
