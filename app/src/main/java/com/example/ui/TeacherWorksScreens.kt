@@ -850,52 +850,38 @@ fun TeacherWorksClassViewScreen(viewModel: MainViewModel) {
                         "AI 评测" -> {
                             val reportFlow = remember(detailWork.workId) { viewModel.getReportForWorkFlow(detailWork.workId) }
                             val repFromDb by reportFlow.collectAsState(initial = null)
-                            var localReport by remember(detailWork.workId) { mutableStateOf<WorkAiReport?>(null) }
-                            val rep = repFromDb ?: localReport
+                            
+                            // 极速内存即时量化兜底，确保打开瞬间 0ms 即刻呈现，绝不卡顿
+                            val immediateFallbackReport = remember(detailWork.workId, detailWork.workCode) {
+                                val eval = ScratchWorkEvaluator.evaluate(
+                                    codeJson = detailWork.workCode,
+                                    taskName = "Scratch 创意作品",
+                                    taskDetail = "完成指定逻辑与动画",
+                                    workName = detailWork.workName
+                                )
+                                WorkAiReport(
+                                    workId = detailWork.workId,
+                                    studentId = detailWork.studentId,
+                                    grammarScore = eval.grammarScore,
+                                    logicScore = eval.logicScore,
+                                    taskMatchScore = eval.taskMatchScore,
+                                    creativeScore = eval.creativeScore,
+                                    averageScore = eval.averageScore,
+                                    optimizationSuggestions = eval.suggestions,
+                                    reportTime = System.currentTimeMillis()
+                                )
+                            }
+                            val rep = repFromDb ?: immediateFallbackReport
 
                             var isReevaluating by remember { mutableStateOf(false) }
                             var showRubrics by remember { mutableStateOf(false) }
-                            var countdownSeconds by remember(detailWork.workId) { mutableStateOf(2) }
 
-                            LaunchedEffect(detailWork.workId, repFromDb) {
-                                if (repFromDb == null && localReport == null) {
-                                    // 异步触发后台评测与入库
-                                    viewModel.ensureAiReportForWork(detailWork) { readyReport ->
-                                        localReport = readyReport
-                                    }
-                                    // 倒计时动画给用户呈现清晰的分析步骤体验
-                                    countdownSeconds = 2
-                                    while (countdownSeconds > 0) {
-                                        kotlinx.coroutines.delay(800L)
-                                        countdownSeconds -= 1
-                                    }
-                                    // 倒计时结束时若仍未收到DB回调，直接本地确定性即时生成兜底，绝不卡死
-                                    if (repFromDb == null && localReport == null) {
-                                        val eval = ScratchWorkEvaluator.evaluate(
-                                            codeJson = detailWork.workCode,
-                                            taskName = "Scratch 创意作品",
-                                            taskDetail = "完成指定逻辑与动画",
-                                            workName = detailWork.workName
-                                        )
-                                        val fallbackReport = WorkAiReport(
-                                            workId = detailWork.workId,
-                                            studentId = detailWork.studentId,
-                                            grammarScore = eval.grammarScore,
-                                            logicScore = eval.logicScore,
-                                            taskMatchScore = eval.taskMatchScore,
-                                            creativeScore = eval.creativeScore,
-                                            averageScore = eval.averageScore,
-                                            optimizationSuggestions = eval.suggestions,
-                                            reportTime = System.currentTimeMillis()
-                                        )
-                                        localReport = fallbackReport
-                                        viewModel.ensureAiReportForWork(detailWork)
-                                    }
-                                }
+                            LaunchedEffect(detailWork.workId) {
+                                viewModel.ensureAiReportForWork(detailWork)
                             }
 
-                            val formattedReportTime = remember(rep?.reportTime) {
-                                val time = rep?.reportTime ?: 0L
+                            val formattedReportTime = remember(rep.reportTime) {
+                                val time = rep.reportTime
                                 if (time > 0L) {
                                     try {
                                         val sdf = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault())
@@ -916,255 +902,174 @@ fun TeacherWorksClassViewScreen(viewModel: MainViewModel) {
                                     .background(Color(0xFFFAFAFA))
                                     .padding(10.dp)
                             ) {
-                                if (rep != null && countdownSeconds <= 0) {
-                                    Column(
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .verticalScroll(rememberScrollState())
+                                ) {
+                                    // 顶部元信息栏：生成时间 + 重新评测按钮
+                                    Row(
                                         modifier = Modifier
-                                            .fillMaxSize()
-                                            .verticalScroll(rememberScrollState())
+                                            .fillMaxWidth()
+                                            .padding(bottom = 8.dp),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
                                     ) {
-                                        // 顶部元信息栏：生成时间 + 重新评测按钮
-                                        Row(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .padding(bottom = 8.dp),
-                                            horizontalArrangement = Arrangement.SpaceBetween,
-                                            verticalAlignment = Alignment.CenterVertically
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Icon(
+                                                imageVector = Icons.Default.AccessTime,
+                                                contentDescription = null,
+                                                tint = Color(0xFF64748B),
+                                                modifier = Modifier.size(13.dp)
+                                            )
+                                            Spacer(modifier = Modifier.width(4.dp))
+                                            Text(
+                                                text = "评测生成时间: $formattedReportTime",
+                                                fontSize = 11.sp,
+                                                color = Color(0xFF64748B),
+                                                fontWeight = FontWeight.Medium
+                                            )
+                                        }
+
+                                        OutlinedButton(
+                                            onClick = {
+                                                isReevaluating = true
+                                                viewModel.reEvaluateWork(detailWork) {
+                                                    isReevaluating = false
+                                                    Toast.makeText(context, "AI 评测报告已重新生成并校准！", Toast.LENGTH_SHORT).show()
+                                                }
+                                            },
+                                            enabled = !isReevaluating,
+                                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+                                            modifier = Modifier.height(28.dp),
+                                            shape = RoundedCornerShape(6.dp),
+                                            border = BorderStroke(1.dp, Color(0xFF00897B))
                                         ) {
-                                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                                Icon(
-                                                    imageVector = Icons.Default.AccessTime,
-                                                    contentDescription = null,
-                                                    tint = Color(0xFF64748B),
-                                                    modifier = Modifier.size(13.dp)
+                                            if (isReevaluating) {
+                                                CircularProgressIndicator(
+                                                    modifier = Modifier.size(12.dp),
+                                                    strokeWidth = 1.5.dp,
+                                                    color = Color(0xFF00897B)
                                                 )
                                                 Spacer(modifier = Modifier.width(4.dp))
-                                                Text(
-                                                    text = "评测生成时间: $formattedReportTime",
-                                                    fontSize = 11.sp,
-                                                    color = Color(0xFF64748B),
-                                                    fontWeight = FontWeight.Medium
+                                                Text("评测中...", fontSize = 10.sp, color = Color(0xFF00897B))
+                                            } else {
+                                                Icon(
+                                                    Icons.Default.Refresh,
+                                                    contentDescription = null,
+                                                    tint = Color(0xFF00897B),
+                                                    modifier = Modifier.size(12.dp)
                                                 )
+                                                Spacer(modifier = Modifier.width(4.dp))
+                                                Text("🔄 重新评测", fontSize = 10.sp, color = Color(0xFF00897B))
                                             }
-
-                                            OutlinedButton(
-                                                onClick = {
-                                                    isReevaluating = true
-                                                    viewModel.reEvaluateWork(detailWork) {
-                                                        isReevaluating = false
-                                                        Toast.makeText(context, "AI 评测报告已重新生成并校准！", Toast.LENGTH_SHORT).show()
-                                                    }
-                                                },
-                                                enabled = !isReevaluating,
-                                                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
-                                                modifier = Modifier.height(28.dp),
-                                                shape = RoundedCornerShape(6.dp),
-                                                border = BorderStroke(1.dp, Color(0xFF00897B))
-                                            ) {
-                                                if (isReevaluating) {
-                                                    CircularProgressIndicator(
-                                                        modifier = Modifier.size(12.dp),
-                                                        strokeWidth = 1.5.dp,
-                                                        color = Color(0xFF00897B)
-                                                    )
-                                                    Spacer(modifier = Modifier.width(4.dp))
-                                                    Text("评测中...", fontSize = 10.sp, color = Color(0xFF00897B))
-                                                } else {
-                                                    Icon(
-                                                        Icons.Default.Refresh,
-                                                        contentDescription = null,
-                                                        tint = Color(0xFF00897B),
-                                                        modifier = Modifier.size(12.dp)
-                                                    )
-                                                    Spacer(modifier = Modifier.width(4.dp))
-                                                    Text("🔄 重新评测", fontSize = 10.sp, color = Color(0xFF00897B))
-                                                }
-                                            }
-                                        }
-
-                                        Card(
-                                            colors = CardDefaults.cardColors(containerColor = Color.White),
-                                            shape = RoundedCornerShape(8.dp),
-                                            border = BorderStroke(1.dp, Color(0xFFE2E8F0)),
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .padding(bottom = 10.dp)
-                                        ) {
-                                            Column(
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .padding(10.dp),
-                                                horizontalAlignment = Alignment.CenterHorizontally
-                                            ) {
-                                                Text("AI 客观综合量化得分", fontSize = 11.sp, color = Color.Gray)
-                                                Row(verticalAlignment = Alignment.Bottom) {
-                                                    Text(text = "${rep.averageScore}", fontSize = 32.sp, fontWeight = FontWeight.Bold, color = Color(0xFF3F51B5))
-                                                    Text(text = " / 100 分", fontSize = 12.sp, color = Color.Gray, modifier = Modifier.padding(bottom = 4.dp))
-                                                }
-                                                val badge = when {
-                                                    rep.averageScore >= 90 -> "卓越五星 ⭐⭐⭐⭐⭐"
-                                                    rep.averageScore >= 80 -> "四星优秀 ⭐⭐⭐⭐"
-                                                    rep.averageScore >= 70 -> "三星良好 ⭐⭐⭐"
-                                                    else -> "持续加油 ⭐⭐"
-                                                }
-                                                Text(badge, fontWeight = FontWeight.Bold, color = Color(0xFFD97706), fontSize = 12.sp)
-                                            }
-                                        }
-
-                                        // 评分标准与维度展开卡片
-                                        Card(
-                                            onClick = { showRubrics = !showRubrics },
-                                            colors = CardDefaults.cardColors(containerColor = Color(0xFFF0FDF4)),
-                                            border = BorderStroke(1.dp, Color(0xFFBBF7D0)),
-                                            shape = RoundedCornerShape(6.dp),
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .padding(bottom = 10.dp)
-                                        ) {
-                                            Column(modifier = Modifier.padding(8.dp)) {
-                                                Row(
-                                                    modifier = Modifier.fillMaxWidth(),
-                                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                                    verticalAlignment = Alignment.CenterVertically
-                                                ) {
-                                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                                        Icon(
-                                                            Icons.Default.Info,
-                                                            contentDescription = null,
-                                                            tint = Color(0xFF16A34A),
-                                                            modifier = Modifier.size(14.dp)
-                                                        )
-                                                        Spacer(modifier = Modifier.width(4.dp))
-                                                        Text(
-                                                            "📋 查看 AI 评分标准与量化细则",
-                                                            fontSize = 11.sp,
-                                                            fontWeight = FontWeight.Bold,
-                                                            color = Color(0xFF15803D)
-                                                        )
-                                                    }
-                                                    Icon(
-                                                        imageVector = if (showRubrics) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                                                        contentDescription = null,
-                                                        tint = Color(0xFF16A34A),
-                                                        modifier = Modifier.size(16.dp)
-                                                    )
-                                                }
-
-                                                if (showRubrics) {
-                                                    Spacer(modifier = Modifier.height(6.dp))
-                                                    Text("• 语法合规性 (满分25分)：积木语法拼插规范，必须包含【当绿旗被点击】等起始事件入口。", fontSize = 10.sp, color = Color(0xFF166534), lineHeight = 14.sp)
-                                                    Text("• 逻辑完整性 (满分30分)：包含【重复执行/如果条件判断】等控制结构及算法连贯性。", fontSize = 10.sp, color = Color(0xFF166534), lineHeight = 14.sp)
-                                                    Text("• 任务匹配度 (满分25分)：角色动作位移(移动10步/边缘反弹/旋转)与题目要求的一致性。", fontSize = 10.sp, color = Color(0xFF166534), lineHeight = 14.sp)
-                                                    Text("• 创意实现度 (满分20分)：涵盖运动、控制、侦测、外观等多模块组合与交互深度。", fontSize = 10.sp, color = Color(0xFF166534), lineHeight = 14.sp)
-                                                    Spacer(modifier = Modifier.height(2.dp))
-                                                    Text("✨ 系统采用统一客观评测规则，杜绝幽灵数据，相同积木代码得分与分析必然完全一致。", fontSize = 9.sp, color = Color(0xFF15803D), fontWeight = FontWeight.Bold)
-                                                }
-                                            }
-                                        }
-
-                                        Text("多维度量化评测结果：", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.DarkGray)
-                                        Spacer(modifier = Modifier.height(4.dp))
-
-                                        AnimatedQuantitativeScoreBar(dimensionName = "语法合规性", score = rep.grammarScore, maxScore = 25, themeColor = Color(0xFF10B981), icon = Icons.Default.Code)
-                                        AnimatedQuantitativeScoreBar(dimensionName = "逻辑完整性", score = rep.logicScore, maxScore = 30, themeColor = Color(0xFF3B82F6), icon = Icons.Default.Psychology)
-                                        AnimatedQuantitativeScoreBar(dimensionName = "任务匹配度", score = rep.taskMatchScore, maxScore = 25, themeColor = Color(0xFFF59E0B), icon = Icons.Default.AssignmentTurnedIn)
-                                        AnimatedQuantitativeScoreBar(dimensionName = "创意实现度", score = rep.creativeScore, maxScore = 20, themeColor = Color(0xFF8B5CF6), icon = Icons.Default.AutoAwesome)
-
-                                        Spacer(modifier = Modifier.height(10.dp))
-
-                                        Text("💡 AI 精细优化指引：", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color(0xFFD97706))
-                                        Spacer(modifier = Modifier.height(4.dp))
-                                        Card(
-                                            colors = CardDefaults.cardColors(containerColor = Color(0xFFFFFBEB)),
-                                            border = BorderStroke(1.dp, Color(0xFFFDE68A)),
-                                            modifier = Modifier.fillMaxWidth()
-                                        ) {
-                                            Text(
-                                                text = rep.optimizationSuggestions,
-                                                fontSize = 11.sp,
-                                                lineHeight = 16.sp,
-                                                color = Color(0xFF78350F),
-                                                modifier = Modifier.padding(10.dp)
-                                            )
                                         }
                                     }
-                                } else {
-                                    Column(
+
+                                    Card(
+                                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                                        shape = RoundedCornerShape(8.dp),
+                                        border = BorderStroke(1.dp, Color(0xFFE2E8F0)),
                                         modifier = Modifier
-                                            .fillMaxSize()
-                                            .padding(16.dp),
-                                        horizontalAlignment = Alignment.CenterHorizontally,
-                                        verticalArrangement = Arrangement.Center
+                                            .fillMaxWidth()
+                                            .padding(bottom = 10.dp)
                                     ) {
-                                        Box(
-                                            contentAlignment = Alignment.Center,
-                                            modifier = Modifier.size(64.dp)
+                                        Column(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(10.dp),
+                                            horizontalAlignment = Alignment.CenterHorizontally
                                         ) {
-                                            val progress = ((2 - countdownSeconds) / 2f).coerceIn(0.15f, 1f)
-                                            CircularProgressIndicator(
-                                                progress = { progress },
-                                                modifier = Modifier.size(64.dp),
-                                                color = Color(0xFF00897B),
-                                                trackColor = Color(0xFFE0F2F1),
-                                                strokeWidth = 4.5.dp
-                                            )
-                                            Text(
-                                                text = "${countdownSeconds.coerceAtLeast(1)}s",
-                                                fontSize = 16.sp,
-                                                fontWeight = FontWeight.Bold,
-                                                color = Color(0xFF00897B)
-                                            )
+                                            Text("AI 客观综合量化得分", fontSize = 11.sp, color = Color.Gray)
+                                            Row(verticalAlignment = Alignment.Bottom) {
+                                                Text(text = "${rep.averageScore}", fontSize = 32.sp, fontWeight = FontWeight.Bold, color = Color(0xFF3F51B5))
+                                                Text(text = " / 100 分", fontSize = 12.sp, color = Color.Gray, modifier = Modifier.padding(bottom = 4.dp))
+                                            }
+                                            val badge = when {
+                                                rep.averageScore >= 90 -> "卓越五星 ⭐⭐⭐⭐⭐"
+                                                rep.averageScore >= 80 -> "四星优秀 ⭐⭐⭐⭐"
+                                                rep.averageScore >= 70 -> "三星良好 ⭐⭐⭐"
+                                                else -> "持续加油 ⭐⭐"
+                                            }
+                                            Text(badge, fontWeight = FontWeight.Bold, color = Color(0xFFD97706), fontSize = 12.sp)
                                         }
+                                    }
 
-                                        Spacer(modifier = Modifier.height(14.dp))
-
-                                        Text(
-                                            text = "🤖 AI 智能多维度分析中...",
-                                            fontSize = 14.sp,
-                                            color = Color(0xFF1E293B),
-                                            fontWeight = FontWeight.Bold
-                                        )
-
-                                        Spacer(modifier = Modifier.height(4.dp))
-
-                                        Text(
-                                            text = "预计剩余 ${countdownSeconds.coerceAtLeast(1)} 秒 · 即刻呈现量化评测报告",
-                                            fontSize = 11.sp,
-                                            color = Color(0xFF64748B),
-                                            textAlign = TextAlign.Center
-                                        )
-
-                                        Spacer(modifier = Modifier.height(16.dp))
-
-                                        Surface(
-                                            shape = RoundedCornerShape(10.dp),
-                                            color = Color(0xFFF1F5F9),
-                                            border = BorderStroke(1.dp, Color(0xFFE2E8F0)),
-                                            modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp)
-                                        ) {
+                                    // 评分标准与维度展开卡片
+                                    Card(
+                                        onClick = { showRubrics = !showRubrics },
+                                        colors = CardDefaults.cardColors(containerColor = Color(0xFFF0FDF4)),
+                                        border = BorderStroke(1.dp, Color(0xFFBBF7D0)),
+                                        shape = RoundedCornerShape(6.dp),
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(bottom = 10.dp)
+                                    ) {
+                                        Column(modifier = Modifier.padding(8.dp)) {
                                             Row(
-                                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.SpaceBetween,
                                                 verticalAlignment = Alignment.CenterVertically
                                             ) {
-                                                val stepText = when (countdownSeconds) {
-                                                    2 -> "① 解析 Scratch 语法树与积木连接结构..."
-                                                    1 -> "② 校验循环控制、动作参数与任务契合度..."
-                                                    else -> "③ 报告已就绪，正在渲染呈现..."
+                                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                                    Icon(
+                                                        Icons.Default.Info,
+                                                        contentDescription = null,
+                                                        tint = Color(0xFF16A34A),
+                                                        modifier = Modifier.size(14.dp)
+                                                    )
+                                                    Spacer(modifier = Modifier.width(4.dp))
+                                                    Text(
+                                                        "📋 查看 AI 评分标准与量化细则",
+                                                        fontSize = 11.sp,
+                                                        fontWeight = FontWeight.Bold,
+                                                        color = Color(0xFF15803D)
+                                                    )
                                                 }
                                                 Icon(
-                                                    imageVector = Icons.Default.AutoAwesome,
+                                                    imageVector = if (showRubrics) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
                                                     contentDescription = null,
-                                                    tint = Color(0xFFF59E0B),
-                                                    modifier = Modifier.size(13.dp)
-                                                )
-                                                Spacer(modifier = Modifier.width(6.dp))
-                                                Text(
-                                                    text = stepText,
-                                                    fontSize = 10.sp,
-                                                    color = Color(0xFF475569),
-                                                    fontWeight = FontWeight.Medium
+                                                    tint = Color(0xFF16A34A),
+                                                    modifier = Modifier.size(16.dp)
                                                 )
                                             }
+
+                                            if (showRubrics) {
+                                                Spacer(modifier = Modifier.height(6.dp))
+                                                Text("• 语法合规性 (满分25分)：积木语法拼插规范，必须包含【当绿旗被点击】等起始事件入口。", fontSize = 10.sp, color = Color(0xFF166534), lineHeight = 14.sp)
+                                                Text("• 逻辑完整性 (满分30分)：包含【重复执行/如果条件判断】等控制结构及算法连贯性。", fontSize = 10.sp, color = Color(0xFF166534), lineHeight = 14.sp)
+                                                Text("• 任务匹配度 (满分25分)：角色动作位移(移动10步/边缘反弹/旋转)与题目要求的一致性。", fontSize = 10.sp, color = Color(0xFF166534), lineHeight = 14.sp)
+                                                Text("• 创意实现度 (满分20分)：涵盖运动、控制、侦测、外观等多模块组合与交互深度。", fontSize = 10.sp, color = Color(0xFF166534), lineHeight = 14.sp)
+                                                Spacer(modifier = Modifier.height(2.dp))
+                                                Text("✨ 系统采用统一客观评测规则，杜绝幽灵数据，相同积木代码得分与分析必然完全一致。", fontSize = 9.sp, color = Color(0xFF15803D), fontWeight = FontWeight.Bold)
+                                            }
                                         }
+                                    }
+
+                                    Text("多维度量化评测结果：", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.DarkGray)
+                                    Spacer(modifier = Modifier.height(4.dp))
+
+                                    AnimatedQuantitativeScoreBar(dimensionName = "语法合规性", score = rep.grammarScore, maxScore = 25, themeColor = Color(0xFF10B981), icon = Icons.Default.Code)
+                                    AnimatedQuantitativeScoreBar(dimensionName = "逻辑完整性", score = rep.logicScore, maxScore = 30, themeColor = Color(0xFF3B82F6), icon = Icons.Default.Psychology)
+                                    AnimatedQuantitativeScoreBar(dimensionName = "任务匹配度", score = rep.taskMatchScore, maxScore = 25, themeColor = Color(0xFFF59E0B), icon = Icons.Default.AssignmentTurnedIn)
+                                    AnimatedQuantitativeScoreBar(dimensionName = "创意实现度", score = rep.creativeScore, maxScore = 20, themeColor = Color(0xFF8B5CF6), icon = Icons.Default.AutoAwesome)
+
+                                    Spacer(modifier = Modifier.height(10.dp))
+
+                                    Text("💡 AI 精细优化指引：", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color(0xFFD97706))
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Card(
+                                        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFFBEB)),
+                                        border = BorderStroke(1.dp, Color(0xFFFDE68A)),
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        Text(
+                                            text = rep.optimizationSuggestions,
+                                            fontSize = 11.sp,
+                                            lineHeight = 16.sp,
+                                            color = Color(0xFF78350F),
+                                            modifier = Modifier.padding(10.dp)
+                                        )
                                     }
                                 }
                             }
