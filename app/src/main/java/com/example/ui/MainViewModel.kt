@@ -1939,6 +1939,35 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun reEvaluateWork(work: ScratchWork, onComplete: () -> Unit = {}) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                repository.submitWorkAndEvaluate(work)
+            } catch (e: Exception) {
+                Log.e("MainViewModel", "reEvaluateWork failed: ${e.message}")
+            } finally {
+                withContext(Dispatchers.Main) {
+                    onComplete()
+                }
+            }
+        }
+    }
+
+    fun preloadAiReportsForClass(works: List<ScratchWork>) {
+        viewModelScope.launch(Dispatchers.IO) {
+            works.forEach { work ->
+                try {
+                    val existing = repository.getReportForWork(work.workId)
+                    if (existing == null) {
+                        repository.submitWorkAndEvaluate(work)
+                    }
+                } catch (e: Exception) {
+                    Log.w("MainViewModel", "preload report for work ${work.workId} failed: ${e.message}")
+                }
+            }
+        }
+    }
+
     fun loadReportForWork(workId: Int) {
         viewModelScope.launch {
             _isReportLoading.value = true

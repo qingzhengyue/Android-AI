@@ -198,6 +198,12 @@ object DatabasePrepopulator {
             val sampleCatCode = """{"targets":[{"isStage":true,"name":"Stage","variables":{},"lists":{},"broadcasts":{},"blocks":{},"comments":{},"currentCostume":0,"costumes":[{"name":"背景1","bitmapResolution":1,"dataFormat":"svg","assetId":"cd21584322f79459ecb5864133b44723","md5ext":"cd21584322f79459ecb5864133b44723.svg","rotationCenterX":240,"rotationCenterY":180}],"sounds":[],"volume":100,"layerOrder":0},{"isStage":false,"name":"角色1","variables":{},"lists":{},"broadcasts":{},"blocks":{"a":{"opcode":"event_whenflagclicked","next":"b","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":100,"y":100},"b":{"opcode":"control_forever","next":null,"parent":"a","inputs":{"SUBSTACK":[2,"c"]},"fields":{},"shadow":false,"topLevel":false},"c":{"opcode":"motion_movesteps","next":"d","parent":"b","inputs":{"STEPS":[1,[4,"10"]]},"fields":{},"shadow":false,"topLevel":false},"d":{"opcode":"motion_ifonedgebounce","next":null,"parent":"c","inputs":{},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"name":"造型1","bitmapResolution":1,"dataFormat":"svg","assetId":"b7853f557e44241d288a7593e62c0d58","md5ext":"b7853f557e44241d288a7593e62c0d58.svg","rotationCenterX":48,"rotationCenterY":50}],"sounds":[],"volume":100,"visible":true,"x":0,"y":0,"size":100,"direction":90,"draggable":false,"rotationStyle":"all around","layerOrder":1}],"monitors":[],"extensions":[],"meta":{"semver":"3.0.0","vm":"0.2.0","agent":"Android"}}"""
             val sampleFruitCode = """{"targets":[{"isStage":true,"name":"Stage","variables":{},"lists":{},"broadcasts":{},"blocks":{},"comments":{},"currentCostume":0,"costumes":[{"name":"背景1","bitmapResolution":1,"dataFormat":"svg","assetId":"cd21584322f79459ecb5864133b44723","md5ext":"cd21584322f79459ecb5864133b44723.svg","rotationCenterX":240,"rotationCenterY":180}],"sounds":[],"volume":100,"layerOrder":0},{"isStage":false,"name":"碗","variables":{},"lists":{},"broadcasts":{},"blocks":{"a":{"opcode":"event_whenflagclicked","next":"b","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":100,"y":100},"b":{"opcode":"control_forever","next":null,"parent":"a","inputs":{"SUBSTACK":[2,"c"]},"fields":{},"shadow":false,"topLevel":false},"c":{"opcode":"control_if","next":null,"parent":"b","inputs":{"CONDITION":[2,"d"],"SUBSTACK":[2,"e"]},"fields":{},"shadow":false,"topLevel":false},"d":{"opcode":"sensing_keypressed","next":null,"parent":"c","inputs":{},"fields":{"KEY_OPTION":["right arrow",null]},"shadow":false,"topLevel":false},"e":{"opcode":"motion_changexby","next":null,"parent":"c","inputs":{"DX":[1,[4,"10"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"name":"造型1","bitmapResolution":1,"dataFormat":"svg","assetId":"b7853f557e44241d288a7593e62c0d58","md5ext":"b7853f557e44241d288a7593e62c0d58.svg","rotationCenterX":48,"rotationCenterY":50}],"sounds":[],"volume":100,"visible":true,"x":0,"y":0,"size":100,"direction":90,"draggable":false,"rotationStyle":"all around","layerOrder":1}],"monitors":[],"extensions":[],"meta":{"semver":"3.0.0","vm":"0.2.0","agent":"Android"}}"""
 
+            val eval1 = ScratchWorkEvaluator.evaluate(
+                sampleCatCode,
+                "猫咪趣味漫步",
+                "让小猫在舞台上一直左右移动漫步，碰到边缘自动反弹",
+                "张小帅的猫咪漫步作品"
+            )
             val workId1 = dao.insertWork(
                 ScratchWork(
                     workName = "张小帅的猫咪漫步作品",
@@ -208,7 +214,7 @@ object DatabasePrepopulator {
                     submitCount = 1,
                     submitTime = now - 2 * 3600 * 1000L,
                     reviewStatus = "已打分",
-                    teacherScore = 95,
+                    teacherScore = eval1.averageScore,
                     teacherComment = "双向弹跳逻辑写得非常规范，小猫咪非常欢快地动起来了，加油！",
                     teacherReviewTime = now - 1 * 3600 * 1000L
                 )
@@ -218,16 +224,23 @@ object DatabasePrepopulator {
                 WorkAiReport(
                     workId = workId1,
                     studentId = studentId1,
-                    grammarScore = 24,
-                    logicScore = 29,
-                    taskMatchScore = 23,
-                    creativeScore = 19,
-                    averageScore = 95,
-                    optimizationSuggestions = "非常出色的作品！你已经完全掌握了【重复执行】与【碰到边缘反弹】这两个核心运动控制积木。若能在猫咪走动时切换造型（下一个造型），会让整个画面显得更加栩栩如生哦！"
+                    grammarScore = eval1.grammarScore,
+                    logicScore = eval1.logicScore,
+                    taskMatchScore = eval1.taskMatchScore,
+                    creativeScore = eval1.creativeScore,
+                    averageScore = eval1.averageScore,
+                    optimizationSuggestions = eval1.suggestions,
+                    reportTime = now - 2 * 3600 * 1000L
                 )
             )
 
             if (studentId2 != 0 && taskId2 != 0) {
+                val eval2 = ScratchWorkEvaluator.evaluate(
+                    sampleFruitCode,
+                    "接水果大作战",
+                    "用键盘方向键控制碗左右移动，接住从上方掉落的水果",
+                    "李小美的接水果大作战"
+                )
                 val workId2 = dao.insertWork(
                     ScratchWork(
                         workName = "李小美的接水果大作战",
@@ -245,17 +258,24 @@ object DatabasePrepopulator {
                     WorkAiReport(
                         workId = workId2,
                         studentId = studentId2,
-                        grammarScore = 22,
-                        logicScore = 25,
-                        taskMatchScore = 23,
-                        creativeScore = 17,
-                        averageScore = 87,
-                        optimizationSuggestions = "接水果逻辑非常完整！碗的左右移动灵敏度适中。AI初评建议：可以多添加几类不同落速的水果（如炸弹、香蕉），让游戏更加充满未知的趣味吧！"
+                        grammarScore = eval2.grammarScore,
+                        logicScore = eval2.logicScore,
+                        taskMatchScore = eval2.taskMatchScore,
+                        creativeScore = eval2.creativeScore,
+                        averageScore = eval2.averageScore,
+                        optimizationSuggestions = eval2.suggestions,
+                        reportTime = now - 4 * 3600 * 1000L
                     )
                 )
             }
 
             if (studentId3 != 0) {
+                val eval3 = ScratchWorkEvaluator.evaluate(
+                    sampleCatCode,
+                    "猫咪趣味漫步",
+                    "让小猫在舞台上一直左右移动漫步，碰到边缘自动反弹",
+                    "周杰伦的猫咪左右摇摆"
+                )
                 val workId3 = dao.insertWork(
                     ScratchWork(
                         workName = "周杰伦的猫咪左右摇摆",
@@ -265,9 +285,9 @@ object DatabasePrepopulator {
                         taskId = taskId1,
                         submitCount = 1,
                         submitTime = now - 6 * 3600 * 1000L,
-                        reviewStatus = "打回重做",
-                        teacherScore = 55,
-                        teacherComment = "作品中好像没有发现让小猫向前走动的积木动作噢，重新看下任务卡说明吧！",
+                        reviewStatus = "已评测",
+                        teacherScore = eval3.averageScore,
+                        teacherComment = "积木结构完整，小猫动作流畅，表现优秀！",
                         teacherReviewTime = now - 5 * 3600 * 1000L
                     )
                 ).toInt()
@@ -276,12 +296,13 @@ object DatabasePrepopulator {
                     WorkAiReport(
                         workId = workId3,
                         studentId = studentId3,
-                        grammarScore = 15,
-                        logicScore = 15,
-                        taskMatchScore = 12,
-                        creativeScore = 13,
-                        averageScore = 55,
-                        optimizationSuggestions = "AI诊断发现：作品中仅放置了事件和控制积木，缺少让小猫向前走动的【移动 10 步】动作指令。建议：在【重复执行】内部从左侧拖入【移动 10 步】和【碰到边缘就反弹】，小猫就能欢快漫步啦！"
+                        grammarScore = eval3.grammarScore,
+                        logicScore = eval3.logicScore,
+                        taskMatchScore = eval3.taskMatchScore,
+                        creativeScore = eval3.creativeScore,
+                        averageScore = eval3.averageScore,
+                        optimizationSuggestions = eval3.suggestions,
+                        reportTime = now - 6 * 3600 * 1000L
                     )
                 )
             }
@@ -312,6 +333,38 @@ object DatabasePrepopulator {
                     draftId = null
                 )
             )
+        }
+
+        // 8. 修复与校准历史数据中可能存在的幽灵评分，确保同等代码评分完全客观一致
+        try {
+            val allExistingWorks = dao.getAllWorksList()
+            for (w in allExistingWorks) {
+                val rep = dao.getReportByWorkId(w.workId)
+                if (rep == null || (rep.averageScore == 55 && rep.optimizationSuggestions.contains("缺少让小猫向前走动的【移动 10 步】") && w.workCode.contains("motion_movesteps"))) {
+                    val task = dao.getTaskById(w.taskId)
+                    val eval = ScratchWorkEvaluator.evaluate(
+                        w.workCode,
+                        task?.taskName ?: "Scratch 编程作品",
+                        task?.taskDetail ?: "完成指定逻辑",
+                        w.workName
+                    )
+                    dao.insertAiReport(
+                        WorkAiReport(
+                            workId = w.workId,
+                            studentId = w.studentId,
+                            grammarScore = eval.grammarScore,
+                            logicScore = eval.logicScore,
+                            taskMatchScore = eval.taskMatchScore,
+                            creativeScore = eval.creativeScore,
+                            averageScore = eval.averageScore,
+                            optimizationSuggestions = eval.suggestions,
+                            reportTime = rep?.reportTime ?: (System.currentTimeMillis() - 3600 * 1000L)
+                        )
+                    )
+                }
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("DatabasePrepopulator", "Reconciliation error: ${e.message}")
         }
     }
 }
