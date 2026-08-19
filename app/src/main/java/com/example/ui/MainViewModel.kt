@@ -1926,12 +1926,39 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         return repository.getReportForWorkFlow(workId)
     }
 
-    fun ensureAiReportForWork(work: ScratchWork) {
+    fun ensureAiReportForWork(work: ScratchWork, onReady: ((WorkAiReport) -> Unit)? = null) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val existing = repository.getReportForWork(work.workId)
-                if (existing == null) {
-                    repository.submitWorkAndEvaluate(work)
+                if (existing != null) {
+                    withContext(Dispatchers.Main) {
+                        onReady?.invoke(existing)
+                    }
+                    return@launch
+                }
+                
+                val task = if (work.taskId != 0) repository.getTaskById(work.taskId) else null
+                val eval = ScratchWorkEvaluator.evaluate(
+                    codeJson = work.workCode,
+                    taskName = task?.taskName ?: "Scratch 创意作品",
+                    taskDetail = task?.taskDetail ?: "完成指定逻辑与动画",
+                    workName = work.workName
+                )
+                val newReport = WorkAiReport(
+                    workId = work.workId,
+                    studentId = work.studentId,
+                    grammarScore = eval.grammarScore,
+                    logicScore = eval.logicScore,
+                    taskMatchScore = eval.taskMatchScore,
+                    creativeScore = eval.creativeScore,
+                    averageScore = eval.averageScore,
+                    optimizationSuggestions = eval.suggestions,
+                    reportTime = System.currentTimeMillis()
+                )
+                val reportId = repository.saveAiReportDirect(newReport)
+                val finalReport = newReport.copy(reportId = reportId.toInt())
+                withContext(Dispatchers.Main) {
+                    onReady?.invoke(finalReport)
                 }
             } catch (e: Exception) {
                 Log.e("MainViewModel", "ensureAiReportForWork failed: ${e.message}")
@@ -1942,7 +1969,29 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun reEvaluateWork(work: ScratchWork, onComplete: () -> Unit = {}) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                repository.submitWorkAndEvaluate(work)
+                val task = if (work.taskId != 0) repository.getTaskById(work.taskId) else null
+                val eval = ScratchWorkEvaluator.evaluate(
+                    codeJson = work.workCode,
+                    taskName = task?.taskName ?: "Scratch 创意作品",
+                    taskDetail = task?.taskDetail ?: "完成指定逻辑与动画",
+                    workName = work.workName
+                )
+                val newReport = WorkAiReport(
+                    workId = work.workId,
+                    studentId = work.studentId,
+                    grammarScore = eval.grammarScore,
+                    logicScore = eval.logicScore,
+                    taskMatchScore = eval.taskMatchScore,
+                    creativeScore = eval.creativeScore,
+                    averageScore = eval.averageScore,
+                    optimizationSuggestions = eval.suggestions,
+                    reportTime = System.currentTimeMillis()
+                )
+                repository.saveAiReportDirect(newReport)
+                // 同步更新作品评测状态
+                if (work.reviewStatus == "待审核") {
+                    repository.updateWorkReviewStatus(work.workId, "已评测")
+                }
             } catch (e: Exception) {
                 Log.e("MainViewModel", "reEvaluateWork failed: ${e.message}")
             } finally {

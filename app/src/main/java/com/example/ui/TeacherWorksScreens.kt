@@ -849,20 +849,48 @@ fun TeacherWorksClassViewScreen(viewModel: MainViewModel) {
                         }
                         "AI 评测" -> {
                             val reportFlow = remember(detailWork.workId) { viewModel.getReportForWorkFlow(detailWork.workId) }
-                            val rep by reportFlow.collectAsState(initial = null)
+                            val repFromDb by reportFlow.collectAsState(initial = null)
+                            var localReport by remember(detailWork.workId) { mutableStateOf<WorkAiReport?>(null) }
+                            val rep = repFromDb ?: localReport
+
                             var isReevaluating by remember { mutableStateOf(false) }
                             var showRubrics by remember { mutableStateOf(false) }
-                            var countdownSeconds by remember(detailWork.workId) { mutableStateOf(3) }
+                            var countdownSeconds by remember(detailWork.workId) { mutableStateOf(2) }
 
-                            LaunchedEffect(detailWork.workId, rep) {
-                                if (rep == null) {
-                                    viewModel.ensureAiReportForWork(detailWork)
-                                    countdownSeconds = 3
+                            LaunchedEffect(detailWork.workId, repFromDb) {
+                                if (repFromDb == null && localReport == null) {
+                                    // 异步触发后台评测与入库
+                                    viewModel.ensureAiReportForWork(detailWork) { readyReport ->
+                                        localReport = readyReport
+                                    }
+                                    // 倒计时动画给用户呈现清晰的分析步骤体验
+                                    countdownSeconds = 2
                                     while (countdownSeconds > 0) {
-                                        kotlinx.coroutines.delay(1000L)
+                                        kotlinx.coroutines.delay(800L)
                                         countdownSeconds -= 1
                                     }
-                                    viewModel.ensureAiReportForWork(detailWork)
+                                    // 倒计时结束时若仍未收到DB回调，直接本地确定性即时生成兜底，绝不卡死
+                                    if (repFromDb == null && localReport == null) {
+                                        val eval = ScratchWorkEvaluator.evaluate(
+                                            codeJson = detailWork.workCode,
+                                            taskName = "Scratch 创意作品",
+                                            taskDetail = "完成指定逻辑与动画",
+                                            workName = detailWork.workName
+                                        )
+                                        val fallbackReport = WorkAiReport(
+                                            workId = detailWork.workId,
+                                            studentId = detailWork.studentId,
+                                            grammarScore = eval.grammarScore,
+                                            logicScore = eval.logicScore,
+                                            taskMatchScore = eval.taskMatchScore,
+                                            creativeScore = eval.creativeScore,
+                                            averageScore = eval.averageScore,
+                                            optimizationSuggestions = eval.suggestions,
+                                            reportTime = System.currentTimeMillis()
+                                        )
+                                        localReport = fallbackReport
+                                        viewModel.ensureAiReportForWork(detailWork)
+                                    }
                                 }
                             }
 
@@ -888,7 +916,7 @@ fun TeacherWorksClassViewScreen(viewModel: MainViewModel) {
                                     .background(Color(0xFFFAFAFA))
                                     .padding(10.dp)
                             ) {
-                                if (rep != null) {
+                                if (rep != null && countdownSeconds <= 0) {
                                     Column(
                                         modifier = Modifier
                                             .fillMaxSize()
@@ -969,13 +997,13 @@ fun TeacherWorksClassViewScreen(viewModel: MainViewModel) {
                                             ) {
                                                 Text("AI 客观综合量化得分", fontSize = 11.sp, color = Color.Gray)
                                                 Row(verticalAlignment = Alignment.Bottom) {
-                                                    Text(text = "${rep!!.averageScore}", fontSize = 32.sp, fontWeight = FontWeight.Bold, color = Color(0xFF3F51B5))
+                                                    Text(text = "${rep.averageScore}", fontSize = 32.sp, fontWeight = FontWeight.Bold, color = Color(0xFF3F51B5))
                                                     Text(text = " / 100 分", fontSize = 12.sp, color = Color.Gray, modifier = Modifier.padding(bottom = 4.dp))
                                                 }
                                                 val badge = when {
-                                                    rep!!.averageScore >= 90 -> "卓越五星 ⭐⭐⭐⭐⭐"
-                                                    rep!!.averageScore >= 80 -> "四星优秀 ⭐⭐⭐⭐"
-                                                    rep!!.averageScore >= 70 -> "三星良好 ⭐⭐⭐"
+                                                    rep.averageScore >= 90 -> "卓越五星 ⭐⭐⭐⭐⭐"
+                                                    rep.averageScore >= 80 -> "四星优秀 ⭐⭐⭐⭐"
+                                                    rep.averageScore >= 70 -> "三星良好 ⭐⭐⭐"
                                                     else -> "持续加油 ⭐⭐"
                                                 }
                                                 Text(badge, fontWeight = FontWeight.Bold, color = Color(0xFFD97706), fontSize = 12.sp)
@@ -1036,10 +1064,10 @@ fun TeacherWorksClassViewScreen(viewModel: MainViewModel) {
                                         Text("多维度量化评测结果：", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.DarkGray)
                                         Spacer(modifier = Modifier.height(4.dp))
 
-                                        AnimatedQuantitativeScoreBar(dimensionName = "语法合规性", score = rep!!.grammarScore, maxScore = 25, themeColor = Color(0xFF10B981), icon = Icons.Default.Code)
-                                        AnimatedQuantitativeScoreBar(dimensionName = "逻辑完整性", score = rep!!.logicScore, maxScore = 30, themeColor = Color(0xFF3B82F6), icon = Icons.Default.Psychology)
-                                        AnimatedQuantitativeScoreBar(dimensionName = "任务匹配度", score = rep!!.taskMatchScore, maxScore = 25, themeColor = Color(0xFFF59E0B), icon = Icons.Default.AssignmentTurnedIn)
-                                        AnimatedQuantitativeScoreBar(dimensionName = "创意实现度", score = rep!!.creativeScore, maxScore = 20, themeColor = Color(0xFF8B5CF6), icon = Icons.Default.AutoAwesome)
+                                        AnimatedQuantitativeScoreBar(dimensionName = "语法合规性", score = rep.grammarScore, maxScore = 25, themeColor = Color(0xFF10B981), icon = Icons.Default.Code)
+                                        AnimatedQuantitativeScoreBar(dimensionName = "逻辑完整性", score = rep.logicScore, maxScore = 30, themeColor = Color(0xFF3B82F6), icon = Icons.Default.Psychology)
+                                        AnimatedQuantitativeScoreBar(dimensionName = "任务匹配度", score = rep.taskMatchScore, maxScore = 25, themeColor = Color(0xFFF59E0B), icon = Icons.Default.AssignmentTurnedIn)
+                                        AnimatedQuantitativeScoreBar(dimensionName = "创意实现度", score = rep.creativeScore, maxScore = 20, themeColor = Color(0xFF8B5CF6), icon = Icons.Default.AutoAwesome)
 
                                         Spacer(modifier = Modifier.height(10.dp))
 
@@ -1051,7 +1079,7 @@ fun TeacherWorksClassViewScreen(viewModel: MainViewModel) {
                                             modifier = Modifier.fillMaxWidth()
                                         ) {
                                             Text(
-                                                text = rep!!.optimizationSuggestions,
+                                                text = rep.optimizationSuggestions,
                                                 fontSize = 11.sp,
                                                 lineHeight = 16.sp,
                                                 color = Color(0xFF78350F),
@@ -1071,7 +1099,7 @@ fun TeacherWorksClassViewScreen(viewModel: MainViewModel) {
                                             contentAlignment = Alignment.Center,
                                             modifier = Modifier.size(64.dp)
                                         ) {
-                                            val progress = ((3 - countdownSeconds) / 3f).coerceIn(0.1f, 1f)
+                                            val progress = ((2 - countdownSeconds) / 2f).coerceIn(0.15f, 1f)
                                             CircularProgressIndicator(
                                                 progress = { progress },
                                                 modifier = Modifier.size(64.dp),
@@ -1118,10 +1146,9 @@ fun TeacherWorksClassViewScreen(viewModel: MainViewModel) {
                                                 verticalAlignment = Alignment.CenterVertically
                                             ) {
                                                 val stepText = when (countdownSeconds) {
-                                                    3 -> "① 解析 Scratch 语法树与积木连接结构..."
-                                                    2 -> "② 校验循环控制、动作参数与任务契合度..."
-                                                    1 -> "③ 核算各维度量化得分并生成个性化建议..."
-                                                    else -> "④ 报告已就绪，正在渲染呈现..."
+                                                    2 -> "① 解析 Scratch 语法树与积木连接结构..."
+                                                    1 -> "② 校验循环控制、动作参数与任务契合度..."
+                                                    else -> "③ 报告已就绪，正在渲染呈现..."
                                                 }
                                                 Icon(
                                                     imageVector = Icons.Default.AutoAwesome,

@@ -405,15 +405,19 @@ class AppRepository(private val context: Context) {
 
     // --- 作品与自动评测 ---
     suspend fun submitWorkAndEvaluate(work: ScratchWork): WorkAiReport = withContext(Dispatchers.IO) {
-        val existingWork = dao.getWorkByStudentAndTask(work.studentId, work.taskId)
-        val finalWork = if (existingWork != null) {
-            work.copy(workId = existingWork.workId, submitCount = existingWork.submitCount + 1, reviewStatus = "已评测")
+        val workId = if (work.workId != 0) {
+            work.workId
         } else {
-            work.copy(submitCount = 1, reviewStatus = "已评测")
+            val existingWork = dao.getWorkByStudentAndTask(work.studentId, work.taskId)
+            val finalWork = if (existingWork != null) {
+                work.copy(workId = existingWork.workId, submitCount = existingWork.submitCount + 1, reviewStatus = "已评测")
+            } else {
+                work.copy(submitCount = 1, reviewStatus = "已评测")
+            }
+            val insertedWorkId = dao.insertWork(finalWork).toInt()
+            if (finalWork.workId != 0) finalWork.workId else insertedWorkId
         }
-        val insertedWorkId = dao.insertWork(finalWork).toInt()
-        val workId = if (finalWork.workId != 0) finalWork.workId else insertedWorkId
-        val finalWorkWithId = finalWork.copy(workId = workId)
+        val finalWorkWithId = work.copy(workId = workId, reviewStatus = "已评测")
 
         // 异步或极速同步作品到云端，绝对不阻塞本地评测流程
         try {
@@ -454,7 +458,8 @@ class AppRepository(private val context: Context) {
             taskMatchScore = eval.taskMatchScore,
             creativeScore = eval.creativeScore,
             averageScore = eval.averageScore,
-            optimizationSuggestions = eval.suggestions
+            optimizationSuggestions = eval.suggestions,
+            reportTime = System.currentTimeMillis()
         )
         val localReportId = dao.insertAiReport(report)
         val reportWithId = report.copy(reportId = localReportId.toInt())
@@ -468,6 +473,18 @@ class AppRepository(private val context: Context) {
         }
 
         reportWithId
+    }
+
+    suspend fun saveAiReportDirect(report: WorkAiReport): Long = withContext(Dispatchers.IO) {
+        val id = dao.insertAiReport(report)
+        try {
+            withTimeoutOrNull(1000L) {
+                supabase?.from("work_ai_report")?.upsert(report.copy(reportId = id.toInt()))
+            }
+        } catch (e: Exception) {
+            // ignore
+        }
+        id
     }
 
     fun getWorkWithReportByStudent(studentId: Int, taskId: Int): Flow<WorkWithReport?> =
