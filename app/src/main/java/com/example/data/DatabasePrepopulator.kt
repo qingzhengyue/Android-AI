@@ -256,7 +256,7 @@ object DatabasePrepopulator {
             }
 
             if (studentId3 != 0) {
-                dao.insertWork(
+                val workId3 = dao.insertWork(
                     ScratchWork(
                         workName = "周杰伦的猫咪左右摇摆",
                         workCode = sampleCatCode,
@@ -269,6 +269,19 @@ object DatabasePrepopulator {
                         teacherScore = 55,
                         teacherComment = "作品中好像没有发现让小猫向前走动的积木动作噢，重新看下任务卡说明吧！",
                         teacherReviewTime = now - 5 * 3600 * 1000L
+                    )
+                ).toInt()
+
+                dao.insertAiReport(
+                    WorkAiReport(
+                        workId = workId3,
+                        studentId = studentId3,
+                        grammarScore = 15,
+                        logicScore = 15,
+                        taskMatchScore = 12,
+                        creativeScore = 13,
+                        averageScore = 55,
+                        optimizationSuggestions = "AI诊断发现：作品中仅放置了事件和控制积木，缺少让小猫向前走动的【移动 10 步】动作指令。建议：在【重复执行】内部从左侧拖入【移动 10 步】和【碰到边缘就反弹】，小猫就能欢快漫步啦！"
                     )
                 )
             }

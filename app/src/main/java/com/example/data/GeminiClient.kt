@@ -1024,11 +1024,17 @@ object GeminiClient {
         workName: String,
         codeJson: String
     ): EvaluationResult = withContext(Dispatchers.IO) {
+        // 如果代码为空或仅包含1个起始积木，直接调用精准确定性评测引擎，毫秒级响应
+        val trimmed = codeJson.trim()
+        if (trimmed.isBlank() || trimmed == "{}" || !trimmed.contains("\"opcode\"")) {
+            return@withContext ScratchWorkEvaluator.evaluate(codeJson, taskName, taskDetail, workName)
+        }
+
         // RAG 知识库检索增强 (Task 7)
         val ragKnowledge = EducationalKnowledgeBase.retrieveRelevantContext("$taskName $taskDetail", codeJson)
 
         val systemPrompt = """
-            你是一个充满爱心的资深少儿编程(Scratch 3.0)教学评测专家。请针对学生交上来的Scratch JSON积木代码进行专业而亲切的自动评测。
+            你是一个充满爱心且严谨公正的资深少儿编程(Scratch 3.0)教学评测专家。请针对学生交上来的Scratch JSON积木代码进行专业、客观、个性化且亲切的自动评测。
 
             $ragKnowledge
 
@@ -1037,17 +1043,23 @@ object GeminiClient {
             - 任务详情：$taskDetail
             - 学生作品名称：$workName
 
-            请严格从以下四个维度进行打分（各项分值不能超越其上限）：
+            【严格评分规则】：
             1. 语法合规性(grammarScore): 满分 25 分
             2. 逻辑完整性(logicScore): 满分 30 分
             3. 任务匹配度(taskMatchScore): 满分 25 分
             4. 创意实现度(creativeScore): 满分 20 分
             综合得分即为这四项总和（满分 100）。
 
+            【严禁给空代码或极简代码打高分】：
+            - 若作品为空或无法运行：总分 15-20 分。
+            - 若作品只有 1 个启动积木（如仅有“当绿旗被点击”）或只有 1-2 个未连通积木：总分必须严格评在 25-45 分之间（grammar<=15, logic<=10, match<=8, creative<=6），不可因为鼓励而给出 80-95 分的虚假高分！
+            - 若作品有 2-4 个积木但缺少循环或动作：总分 45-65 分。
+            - 若作品基本实现任务要求（有循环、运动、反弹）：总分 80-90 分。
+            - 若作品逻辑严密且有创意扩展（造型切换、变量、声音、碰撞侦测）：总分 90-98 分。
+
             关于 "optimizationSuggestions" 字段，你必须遵守以下专门针对小学3-6年级小学生的认知评测规范：
-            - 【极度温柔有爱】：先热情赞美孩子付出的努力和创意，不可打击自信心。多用可爱的卡通表情符号。
-            - 【具体的具体拼搭指南】：绝对严禁宽泛空洞的评价（如“进一步完善逻辑”、“加强循环理解”等）。必须给出一看就懂的 ①②③ 极简改进步骤（说明找到哪个积木颜色分类，找什么名字的积木，拼在什么积木下面或里面，或修改什么变量值）。
-            - 【比喻解说】：如果指出错漏，用拟人化或简单比喻（比如“这里有个孤单的小猫积木没有排入队伍中哦～”、“让控制哨兵更好地帮你把关吧！”）。
+            - 【极度温柔有爱】：先热情肯定孩子付出的尝试，指出闪光点，再提出建设性建议。
+            - 【具体的具体拼搭指南】：绝对严禁宽泛空洞的评价（如“进一步完善逻辑”、“加强循环理解”等）。必须根据代码实际缺少的积木，给出一看就懂的 ①②③ 极简改进步骤（说明找到哪个积木颜色分类，找什么名字的积木，拼在什么积木下面或里面）。
             - 字数简短精悍，控制在150字以内，排版清爽。
 
             你必须最终输出一个合法的 JSON 格式字符串，不需要任何 markdown 的 ```json 包裹标记，其属性必须完全等于：
@@ -1063,25 +1075,25 @@ object GeminiClient {
 
         val prompt = "$systemPrompt\n\n学生 Scratch 积木代码如下：\n$codeJson"
         val responseText = try {
-            kotlinx.coroutines.withTimeout(4000L) {
+            kotlinx.coroutines.withTimeout(3000L) {
                 generateContent(prompt)
             }
         } catch (e: Exception) {
             ""
         }
 
-        // 尝试解析返回的 JSON，若非标准 JSON 则做容错提取或提供默认分数
+        // 尝试解析返回的 JSON，若非标准 JSON 则做容错提取或提供确定性评分
         try {
             if (responseText.isBlank()) {
-                return@withContext ScratchWorkEvaluator.evaluate(codeJson)
+                return@withContext ScratchWorkEvaluator.evaluate(codeJson, taskName, taskDetail, workName)
             }
             // 清洗掉可能多余的 markdown 标注
             val cleanJson = responseText.replace("```json", "").replace("```", "").trim()
             val json = JSONObject(cleanJson)
-            val grammar = json.optInt("grammarScore", 20)
-            val logic = json.optInt("logicScore", 24)
-            val match = json.optInt("taskMatchScore", 20)
-            val creative = json.optInt("creativeScore", 15)
+            val grammar = json.optInt("grammarScore", 15)
+            val logic = json.optInt("logicScore", 15)
+            val match = json.optInt("taskMatchScore", 15)
+            val creative = json.optInt("creativeScore", 10)
             val suggestions = json.optString("optimizationSuggestions", "AI 评语提取：\n$responseText")
 
             ScratchWorkEvaluator.sanitize(EvaluationResult(
@@ -1093,7 +1105,7 @@ object GeminiClient {
                 suggestions = suggestions
             ))
         } catch (e: Exception) {
-            ScratchWorkEvaluator.evaluate(codeJson)
+            ScratchWorkEvaluator.evaluate(codeJson, taskName, taskDetail, workName)
         }
     }
 

@@ -1908,7 +1908,7 @@ function renderBlockHtml(b, parentIndex = null) {
         `;
       });
     } else {
-      childrenHtml = `<div class="c-block-body-empty"><span>👉 循环体内部为空，可从左侧拖拽或点击下方快捷按钮放入动作</span></div>`;
+      childrenHtml = `<div class="c-block-body-empty"><span>👉 循环体内部为空，可从左侧拖拽放入动作</span></div>`;
     }
 
     return `
@@ -1919,16 +1919,6 @@ function renderBlockHtml(b, parentIndex = null) {
         </div>
         <div class="c-block-body" id="container_body_${b.id}" data-container-body="true" data-container-id="${b.id}" ondragover="handleContainerDragOver(event, '${b.id}')" ondragleave="handleContainerDragLeave(event, '${b.id}')" ondrop="handleContainerDrop(event, '${b.id}')">
           ${childrenHtml}
-          <!-- 循环体内部快捷添加工具条 -->
-          <div class="c-quick-bar">
-            <span class="quick-chip-label">快捷放入:</span>
-            <button type="button" class="c-quick-chip cat-motion" onclick="event.stopPropagation();addQuickChild('${b.id}', 'motion_movesteps')">＋移动10步</button>
-            <button type="button" class="c-quick-chip cat-motion" onclick="event.stopPropagation();addQuickChild('${b.id}', 'motion_turnright')">＋右转15°</button>
-            <button type="button" class="c-quick-chip cat-motion" onclick="event.stopPropagation();addQuickChild('${b.id}', 'motion_ifonedgebounce')">＋边缘反弹</button>
-            <button type="button" class="c-quick-chip cat-looks" onclick="event.stopPropagation();addQuickChild('${b.id}', 'looks_nextcostume')">＋换造型</button>
-            <button type="button" class="c-quick-chip cat-control" onclick="event.stopPropagation();addQuickChild('${b.id}', 'control_wait')">＋等待0.2s</button>
-            <button type="button" class="c-quick-chip c-more-btn" onclick="event.stopPropagation();addChildBlockToContainer('${b.id}')">➕ 更多积木库...</button>
-          </div>
         </div>
         <div class="c-block-footer">↺ 循环体闭合 (执行完毕后回到顶部重复)</div>
       </div>
