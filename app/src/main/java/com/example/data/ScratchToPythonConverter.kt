@@ -226,8 +226,8 @@ object ScratchToPythonConverter {
         }
 
         // 处理顺序连接的下一个积木
-        val nextBlock = block.optString("next", null)
-        if (nextBlock != null && nextBlock != "null" && nextBlock.isNotEmpty()) {
+        val nextBlock = block.optString("next", "")
+        if (nextBlock.isNotEmpty() && nextBlock != "null") {
             val nextIndent = if (opcode == "event_whenflagclicked") indentLevel + 1 else indentLevel
             sb.append(parseBlock(nextBlock, blocks, nextIndent))
         } else if (opcode == "event_whenflagclicked") {

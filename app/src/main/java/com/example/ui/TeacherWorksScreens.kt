@@ -693,7 +693,7 @@ fun TeacherWorksClassViewScreen(viewModel: MainViewModel) {
                                     .background(Color.White)
                             ) {
                                 val targetBlocksList = remember(detailWork.workCode) {
-                                    val list = mutableListOf<Pair<String, Pair<List<Pair<String, org.json.JSONObject>>, org.json.JSONObject>>>()
+                                    val list = mutableListOf<Pair<String, Pair<List<ScratchBlockNode>, org.json.JSONObject>>>()
                                     try {
                                         val json = org.json.JSONObject(detailWork.workCode)
                                         if (json.has("targets")) {
@@ -703,54 +703,16 @@ fun TeacherWorksClassViewScreen(viewModel: MainViewModel) {
                                                 val name = target.optString("name", "角色 ${i+1}")
                                                 val isStage = target.optBoolean("isStage", false)
                                                 val displayName = if (isStage) "🖼️ 舞台 ($name)" else "🐱 角色 ($name)"
-                                                val blockItems = mutableListOf<Pair<String, org.json.JSONObject>>()
                                                 val blocksObj = target.optJSONObject("blocks") ?: org.json.JSONObject()
-                                                
-                                                blocksObj.keys().forEach { key ->
-                                                    val block = blocksObj.optJSONObject(key)
-                                                    val opcode = block?.optString("opcode")
-                                                    val isShadow = block?.optBoolean("shadow", false) ?: false
-                                                    val isMenuOpcode = opcode?.endsWith("_menu") == true || opcode?.endsWith("_options") == true || opcode == "sensing_of_object_menu"
-                                                    if (!opcode.isNullOrEmpty() && !isShadow && !isMenuOpcode) {
-                                                        blockItems.add(Pair(opcode, block))
-                                                    }
-                                                }
-                                                // 容错：如果全部过滤后为空但原对象有积木，则展示全部
-                                                if (blockItems.isEmpty()) {
-                                                    blocksObj.keys().forEach { key ->
-                                                        val block = blocksObj.optJSONObject(key)
-                                                        val opcode = block?.optString("opcode")
-                                                        if (!opcode.isNullOrEmpty()) {
-                                                            blockItems.add(Pair(opcode, block))
-                                                        }
-                                                    }
-                                                }
-                                                if (blockItems.isNotEmpty() || i == 0) {
-                                                    list.add(Pair(displayName, Pair(blockItems, blocksObj)))
+                                                val nodes = ScratchBlockTreeParser.parseBlocks(blocksObj)
+                                                if (nodes.isNotEmpty() || i == 0) {
+                                                    list.add(Pair(displayName, Pair(nodes, blocksObj)))
                                                 }
                                             }
                                         } else if (json.has("blocks")) {
-                                            val blockItems = mutableListOf<Pair<String, org.json.JSONObject>>()
                                             val blocksObj = json.optJSONObject("blocks") ?: org.json.JSONObject()
-                                            blocksObj.keys().forEach { key ->
-                                                val block = blocksObj.optJSONObject(key)
-                                                val opcode = block?.optString("opcode")
-                                                val isShadow = block?.optBoolean("shadow", false) ?: false
-                                                val isMenuOpcode = opcode?.endsWith("_menu") == true || opcode?.endsWith("_options") == true || opcode == "sensing_of_object_menu"
-                                                if (!opcode.isNullOrEmpty() && !isShadow && !isMenuOpcode) {
-                                                    blockItems.add(Pair(opcode, block))
-                                                }
-                                            }
-                                            if (blockItems.isEmpty()) {
-                                                blocksObj.keys().forEach { key ->
-                                                    val block = blocksObj.optJSONObject(key)
-                                                    val opcode = block?.optString("opcode")
-                                                    if (!opcode.isNullOrEmpty()) {
-                                                        blockItems.add(Pair(opcode, block))
-                                                    }
-                                                }
-                                            }
-                                            list.add(Pair("🐱 角色 1", Pair(blockItems, blocksObj)))
+                                            val nodes = ScratchBlockTreeParser.parseBlocks(blocksObj)
+                                            list.add(Pair("🐱 角色 1", Pair(nodes, blocksObj)))
                                         }
                                     } catch (e: Exception) {
                                         e.printStackTrace()
@@ -764,8 +726,9 @@ fun TeacherWorksClassViewScreen(viewModel: MainViewModel) {
                                     verticalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
                                     targetBlocksList.forEach { (targetName, blocksData) ->
-                                        val blockItems = blocksData.first
+                                        val blockNodes = blocksData.first
                                         val blocksMap = blocksData.second
+                                        val totalBlocks = ScratchBlockTreeParser.countTotalBlocks(blockNodes)
                                         
                                         item {
                                             Row(
@@ -793,7 +756,7 @@ fun TeacherWorksClassViewScreen(viewModel: MainViewModel) {
                                                     contentAlignment = Alignment.Center
                                                 ) {
                                                     Text(
-                                                        text = "${blockItems.size} 个积木",
+                                                        text = "$totalBlocks 个积木",
                                                         fontSize = 11.sp,
                                                         fontWeight = FontWeight.SemiBold,
                                                         color = Color(0xFF1976D2),
@@ -804,18 +767,14 @@ fun TeacherWorksClassViewScreen(viewModel: MainViewModel) {
                                             HorizontalDivider(color = Color(0xFFEEEEEE), thickness = 1.dp)
                                         }
                                         
-                                        if (blockItems.isEmpty()) {
+                                        if (blockNodes.isEmpty()) {
                                             item {
                                                 Text("无积木程序", fontSize = 12.sp, color = Color.Gray, modifier = Modifier.padding(vertical = 8.dp))
                                             }
                                         } else {
-                                            items(blockItems) { blockItem ->
-                                                val opcode = blockItem.first
-                                                val blockJson = blockItem.second
-                                                
-                                                BlockItemView(
-                                                    opcode = opcode,
-                                                    blockJson = blockJson,
+                                            items(blockNodes) { node ->
+                                                ScratchBlockNodeView(
+                                                    node = node,
                                                     blocksMap = blocksMap
                                                 )
                                             }

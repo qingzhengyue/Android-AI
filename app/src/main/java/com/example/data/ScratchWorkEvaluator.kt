@@ -283,6 +283,25 @@ object ScratchWorkEvaluator {
     }
 
     /**
+     * 对外部或模型评分做基础的边界约束和总分校准
+     */
+    fun sanitize(result: GeminiClient.EvaluationResult): GeminiClient.EvaluationResult {
+        val grammar = result.grammarScore.coerceIn(0, 25)
+        val logic = result.logicScore.coerceIn(0, 30)
+        val taskMatch = result.taskMatchScore.coerceIn(0, 25)
+        val creative = result.creativeScore.coerceIn(0, 20)
+        val total = grammar + logic + taskMatch + creative
+        return GeminiClient.EvaluationResult(
+            grammarScore = grammar,
+            logicScore = logic,
+            taskMatchScore = taskMatch,
+            creativeScore = creative,
+            averageScore = total,
+            suggestions = result.suggestions.trim()
+        )
+    }
+
+    /**
      * 校准并清洗大模型返回的评测结果，强制执行 AST 事实基准，杜绝幻觉虚高分与缺失绿旗得满分的荒谬现象。
      */
     fun calibrateWithRuleEngine(
