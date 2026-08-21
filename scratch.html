@@ -397,14 +397,27 @@ html, body {
 }
 
 .del-btn {
-  opacity: 0.75;
-  font-size: 12px;
+  opacity: 0.85;
+  font-size: 13px;
+  font-weight: 900;
   cursor: pointer;
-  padding: 2px 5px;
+  padding: 3px 6px;
   border-radius: 4px;
-  transition: opacity 0.15s;
+  transition: all 0.15s;
+  pointer-events: auto !important;
+  user-select: none;
+  touch-action: manipulation;
+  z-index: 20;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
 }
-.del-btn:hover { opacity: 1; background: rgba(0,0,0,0.3); }
+.del-btn:hover, .del-btn:active {
+  opacity: 1;
+  background: rgba(0,0,0,0.35);
+  transform: scale(1.15);
+}
 
 /* =================================================== */
 /* C-Block 嵌套分支结构与清晰无重叠凹槽造型 */
@@ -1030,14 +1043,12 @@ function executeDeleteVariable(varName) {
     replaceDeletedVariableInBlocks(activeBlocks, varName, currentSelectedVar);
   }
   
-  closeModal();
-  updateStageVarHUD();
-  if (typeof currentCatCategory !== 'undefined' && currentCatCategory === 'data') {
-    renderPalette('data');
-  }
-  updateWorkspaceUI();
+  try { closeModal(); } catch(e){}
+  try { updateStageVarHUD(); } catch(e){}
+  try { renderPalette('data'); } catch(e){}
+  try { updateWorkspaceUI(); } catch(e){}
   logMessage(`🗑️ 成功删除变量: 【${varName}】`);
-  notifyAndroidCodeChange();
+  try { notifyAndroidCodeChange(); } catch(e){}
 }
 
 function deleteVariable(varName) {
@@ -1312,25 +1323,58 @@ let isTouchDragging = false;
 
 function initTouchDragSupport() {
   const panel = document.getElementById('palettePanel');
-  if (!panel) return;
-
-  panel.addEventListener('touchstart', handlePaletteTouchStart, { passive: false });
+  if (panel) {
+    panel.addEventListener('touchstart', handlePaletteTouchStart, { passive: false });
+  }
   document.addEventListener('touchmove', handlePaletteTouchMove, { passive: false });
   document.addEventListener('touchend', handlePaletteTouchEnd, { passive: false });
   document.addEventListener('touchcancel', handlePaletteTouchEnd, { passive: false });
 
-  // 变量管理面板点击委托监听
-  panel.addEventListener('click', function(e) {
-    const delBtn = e.target.closest('.del-var-btn') || e.target.closest('[data-action="delete-variable"]');
-    if (delBtn) {
+  // 全局强力删除委托处理 (在捕获阶段执行，杜绝任何事件冒泡被拦截的问题)
+  function handleAnyDeleteClick(e) {
+    const target = e.target;
+    if (!target) return;
+
+    // 1. 删除循环体内子积木
+    const childDel = target.closest('[data-action="delete-child-block"]');
+    if (childDel) {
       e.stopPropagation();
       e.preventDefault();
-      const vName = delBtn.getAttribute('data-var');
+      const parentId = childDel.getAttribute('data-parent-id');
+      const childId = childDel.getAttribute('data-child-id');
+      if (parentId && childId) {
+        removeChildBlock(parentId, childId);
+      }
+      return;
+    }
+
+    // 2. 删除主画布积木
+    const blockDel = target.closest('[data-action="delete-block"]') || (target.classList.contains('del-btn') ? target : null);
+    if (blockDel && !target.closest('.modal-dialog')) {
+      e.stopPropagation();
+      e.preventDefault();
+      const blockId = blockDel.getAttribute('data-block-id');
+      if (blockId) {
+        removeBlock(blockId);
+      }
+      return;
+    }
+
+    // 3. 删除变量
+    const varDel = target.closest('[data-action="delete-variable"]') || target.closest('.del-var-btn');
+    if (varDel) {
+      e.stopPropagation();
+      e.preventDefault();
+      const vName = varDel.getAttribute('data-var');
       if (vName) {
         deleteVariable(vName);
       }
+      return;
     }
-  });
+  }
+
+  document.addEventListener('click', handleAnyDeleteClick, true);
+  document.addEventListener('touchend', handleAnyDeleteClick, true);
 }
 
 function handlePaletteTouchStart(e) {
@@ -1895,25 +1939,42 @@ function confirmAddChildDynamic(containerId, category, candidateIdx) {
 }
 
 function removeChildBlock(containerId, childId) {
+  if (!childId) return;
   const parent = findBlockById(containerId);
   if (parent && parent.children) {
     const idx = parent.children.findIndex(c => c.id === childId);
     if (idx !== -1) {
-      parent.children.splice(idx, 1);
+      const removed = parent.children.splice(idx, 1)[0];
       updateWorkspaceUI();
-      logMessage('🗑️ 从循环体内移除积木');
-      notifyAndroidCodeChange();
+      logMessage('🗑️ 从循环体内移除积木: ' + (OP_TRANSLATE_MAP[removed?.opcode] || removed?.opcode || ''));
+      try { notifyAndroidCodeChange(); } catch(e){}
+      return;
     }
   }
+  // 兜底递归查找移除
+  removeBlock(childId);
 }
 
 function removeBlock(blockId) {
-  const res = findBlockParentList(blockId);
-  if (res) {
-    res.list.splice(res.index, 1);
+  if (!blockId) return;
+  // 1. 顶层主列表直接匹配
+  const topIdx = activeBlocks.findIndex(b => b.id === blockId);
+  if (topIdx !== -1) {
+    const removed = activeBlocks.splice(topIdx, 1)[0];
     updateWorkspaceUI();
-    logMessage('🗑️ 移除积木');
-    notifyAndroidCodeChange();
+    logMessage('🗑️ 移除积木: ' + (OP_TRANSLATE_MAP[removed?.opcode] || removed?.opcode || ''));
+    try { notifyAndroidCodeChange(); } catch(e){}
+    return;
+  }
+
+  // 2. 深度递归嵌套列表查找
+  const res = findBlockParentList(blockId);
+  if (res && res.list) {
+    const removed = res.list.splice(res.index, 1)[0];
+    updateWorkspaceUI();
+    logMessage('🗑️ 移除积木: ' + (OP_TRANSLATE_MAP[removed?.opcode] || removed?.opcode || ''));
+    try { notifyAndroidCodeChange(); } catch(e){}
+    return;
   }
 }
 
@@ -2180,7 +2241,7 @@ function renderBlockHtml(b, parentIndex = null) {
               <span class="step-number-tag">${cIdx + 1}</span>
               <span>${renderBlockInnerHtml(cBlock)}</span>
             </div>
-            <span class="del-btn" onclick="event.stopPropagation();removeChildBlock('${b.id}', '${cBlock.id}')">✕</span>
+            <span class="del-btn" data-action="delete-child-block" data-parent-id="${b.id}" data-child-id="${cBlock.id}" onclick="event.stopPropagation();event.preventDefault();removeChildBlock('${b.id}', '${cBlock.id}')" title="删除此积木">✕</span>
           </div>
         `;
       });
@@ -2192,7 +2253,7 @@ function renderBlockHtml(b, parentIndex = null) {
       <div class="c-block-container" id="block_ui_${b.id}">
         <div class="c-block-header ${cls}">
           <span>${formattedLabel}</span>
-          <span class="del-btn" onclick="event.stopPropagation();removeBlock('${b.id}')">✕</span>
+          <span class="del-btn" data-action="delete-block" data-block-id="${b.id}" onclick="event.stopPropagation();event.preventDefault();removeBlock('${b.id}')" title="删除此积木">✕</span>
         </div>
         <div class="c-block-body" id="container_body_${b.id}" data-container-body="true" data-container-id="${b.id}" ondragover="handleContainerDragOver(event, '${b.id}')" ondragleave="handleContainerDragLeave(event, '${b.id}')" ondrop="handleContainerDrop(event, '${b.id}')">
           ${childrenHtml}
@@ -2206,7 +2267,7 @@ function renderBlockHtml(b, parentIndex = null) {
   return `
     <div class="scratch-block ${cls} block-row" id="block_ui_${b.id}">
       <span>${formattedLabel}</span>
-      <span class="del-btn" onclick="event.stopPropagation();removeBlock('${b.id}')">✕</span>
+      <span class="del-btn" data-action="delete-block" data-block-id="${b.id}" onclick="event.stopPropagation();event.preventDefault();removeBlock('${b.id}')" title="删除此积木">✕</span>
     </div>
   `;
 }
