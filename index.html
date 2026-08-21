@@ -759,27 +759,27 @@
           <p class="text-xs text-slate-500 mt-1">查看学生提交的实际 Scratch 积木工程、支持转换为 Python 代码审查，参考 AI 五维诊断评分并给出个性化评语</p>
         </div>
         
-        <!-- 班级类型筛选按钮组与状态筛选 -->
-        <div class="flex flex-wrap items-center gap-3">
-          <div id="gradingClassButtonGroup" class="flex flex-wrap items-center gap-1.5 bg-slate-100 p-1 rounded-2xl border border-slate-200 shadow-inner">
-            <!-- 动态生成班级筛选按钮 -->
+        <!-- 班级与状态筛选下拉框及搜索框工具栏 -->
+        <div class="flex flex-wrap items-center gap-2.5">
+          <div class="relative">
+            <select id="gradingClassFilter" onchange="renderGradingWorks()" class="bg-white border border-slate-200 text-xs font-semibold text-slate-700 pl-3 pr-8 py-2 rounded-xl shadow-sm hover:border-sky-300 focus:outline-none focus:ring-2 focus:ring-sky-500/20 appearance-none cursor-pointer">
+              <!-- 动态生成班级选项 -->
+            </select>
+            <i class="fa-solid fa-chevron-down absolute right-3 top-3 text-[10px] text-slate-400 pointer-events-none"></i>
           </div>
 
-          <select id="gradingClassFilter" onchange="syncGradingClassFilterFromDropdown()" class="hidden sm:inline-block bg-white border border-slate-200 text-xs font-bold text-slate-700 px-3 py-2 rounded-xl shadow-sm focus:outline-none">
-            <option value="all">🏫 全部班级</option>
-            <option value="1">三年级一班</option>
-            <option value="2">四年级二班</option>
-          </select>
-
-          <select id="gradingStatusFilter" onchange="renderGradingWorks()" class="bg-white border border-slate-200 text-xs font-medium text-slate-700 px-3 py-2 rounded-xl shadow-sm focus:outline-none">
-            <option value="all">📋 全部批改状态</option>
-            <option value="pending">⏳ 待批改作品</option>
-            <option value="graded">✅ 已完成批改</option>
-          </select>
+          <div class="relative">
+            <select id="gradingStatusFilter" onchange="renderGradingWorks()" class="bg-white border border-slate-200 text-xs font-semibold text-slate-700 pl-3 pr-8 py-2 rounded-xl shadow-sm hover:border-sky-300 focus:outline-none focus:ring-2 focus:ring-sky-500/20 appearance-none cursor-pointer">
+              <option value="all">📋 全部批改状态</option>
+              <option value="pending">⏳ 待批改作品</option>
+              <option value="graded">✅ 已完成批改</option>
+            </select>
+            <i class="fa-solid fa-chevron-down absolute right-3 top-3 text-[10px] text-slate-400 pointer-events-none"></i>
+          </div>
 
           <div class="relative">
             <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-xs text-slate-400"></i>
-            <input id="gradingSearchInput" oninput="renderGradingWorks()" type="text" placeholder="搜索学生姓名/作品名..." class="bg-white border border-slate-200 text-xs text-slate-700 pl-8 pr-3 py-2 rounded-xl shadow-sm focus:outline-none w-44">
+            <input id="gradingSearchInput" oninput="renderGradingWorks()" type="text" placeholder="搜索学生姓名/作品名/学号..." class="bg-white border border-slate-200 text-xs text-slate-700 pl-8 pr-3 py-2 rounded-xl shadow-sm hover:border-sky-300 focus:outline-none focus:ring-2 focus:ring-sky-500/20 w-52">
           </div>
         </div>
       </div>
@@ -3479,55 +3479,31 @@
       });
     }
 
-    let currentGradingClassFilter = 'all';
-
-    function setGradingClassFilter(classId) {
-      currentGradingClassFilter = classId ? classId.toString() : 'all';
+    function populateGradingClassDropdown() {
       const dropdown = document.getElementById('gradingClassFilter');
-      if (dropdown) dropdown.value = currentGradingClassFilter;
-      renderGradingClassButtons();
-      renderGradingWorks();
-    }
-
-    function syncGradingClassFilterFromDropdown() {
-      const dropdown = document.getElementById('gradingClassFilter');
-      if (dropdown) {
-        currentGradingClassFilter = dropdown.value;
-      }
-      renderGradingClassButtons();
-      renderGradingWorks();
-    }
-
-    function renderGradingClassButtons() {
-      const container = document.getElementById('gradingClassButtonGroup');
-      if (!container) return;
-
+      if (!dropdown) return;
+      const currentVal = dropdown.value || 'all';
       const totalWorks = state.works.length;
-      let html = `
-        <button type="button" onclick="setGradingClassFilter('all')" class="text-xs font-bold px-3 py-1.5 rounded-xl transition flex items-center gap-1.5 ${currentGradingClassFilter === 'all' ? 'bg-sky-600 text-white shadow-sm' : 'text-slate-600 hover:bg-white/80'}">
-          <i class="fa-solid fa-inbox"></i> 全部班级 <span class="text-[10px] px-1.5 py-0.2 rounded-full ${currentGradingClassFilter === 'all' ? 'bg-sky-500 text-white' : 'bg-slate-200 text-slate-700'}">${totalWorks}</span>
-        </button>
-      `;
-
+      let html = `<option value="all">🏫 全部班级 (${totalWorks} 份作业)</option>`;
       state.classes.forEach(c => {
-        const isSel = (currentGradingClassFilter === c.classId.toString());
         const count = state.works.filter(w => w.classId === c.classId).length;
-        html += `
-          <button type="button" onclick="setGradingClassFilter('${c.classId}')" class="text-xs font-bold px-3 py-1.5 rounded-xl transition flex items-center gap-1.5 ${isSel ? 'bg-sky-600 text-white shadow-sm' : 'text-slate-600 hover:bg-white/80'}">
-            <i class="fa-solid fa-graduation-cap"></i> ${c.className} <span class="text-[10px] px-1.5 py-0.2 rounded-full ${isSel ? 'bg-sky-500 text-white' : 'bg-slate-200 text-slate-700'}">${count}</span>
-          </button>
-        `;
+        html += `<option value="${c.classId}">🎓 ${c.className} (${count} 份 / ${c.studentCount}人)</option>`;
       });
-
-      container.innerHTML = html;
+      dropdown.innerHTML = html;
+      if ([...dropdown.options].some(opt => opt.value === currentVal)) {
+        dropdown.value = currentVal;
+      }
     }
 
     function renderGradingWorks() {
-      renderGradingClassButtons();
+      const dropdown = document.getElementById('gradingClassFilter');
+      if (dropdown && dropdown.options.length <= 1) {
+        populateGradingClassDropdown();
+      }
       const container = document.getElementById('teacherGradingTableContainer');
       if (!container) return;
 
-      const classFilter = currentGradingClassFilter;
+      const classFilter = dropdown ? dropdown.value : 'all';
       const statusFilter = document.getElementById('gradingStatusFilter')?.value || 'all';
       const searchKeyword = document.getElementById('gradingSearchInput')?.value.trim().toLowerCase() || '';
 
@@ -3992,11 +3968,16 @@ if __name__ == "__main__":
         if (isAnalytics) {
           html = '<option value="-1">🏫 全部班级汇总</option>';
         } else if (isGradingFilter) {
-          html = '<option value="all">🏫 全部班级作业</option>';
+          html = `<option value="all">🏫 全部班级 (${state.works.length} 份作业)</option>`;
         }
         state.classes.forEach(c => {
           const archiveTag = c.isArchived ? ' [已归档]' : '';
-          html += `<option value="${c.classId}">${c.className} (${c.studentCount}人)${archiveTag}</option>`;
+          const workCount = state.works.filter(w => w.classId === c.classId).length;
+          if (isGradingFilter) {
+            html += `<option value="${c.classId}">🎓 ${c.className} (${workCount} 份 / ${c.studentCount}人)${archiveTag}</option>`;
+          } else {
+            html += `<option value="${c.classId}">${c.className} (${c.studentCount}人)${archiveTag}</option>`;
+          }
         });
         sel.innerHTML = html;
       });
@@ -4007,7 +3988,6 @@ if __name__ == "__main__":
       if (currentGradingClassVal && document.getElementById('gradingClassFilter')) {
         document.getElementById('gradingClassFilter').value = currentGradingClassVal;
       }
-      renderGradingClassButtons();
     }
 
     function renderTeacherClasses() {

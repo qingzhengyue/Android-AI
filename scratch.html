@@ -981,7 +981,8 @@ html, body {
 <div id="modalContainer" style="display:none;"></div>
 
 <script>
-// 全局变量库管理
+// 全局变量与积木库管理
+let activeBlocks = [];
 let projectVariables = {
   "得分": 0,
   "x": 0
@@ -1025,11 +1026,15 @@ function executeDeleteVariable(varName) {
     currentSelectedVar = remaining.length > 0 ? remaining[0] : '';
   }
   
-  replaceDeletedVariableInBlocks(activeBlocks, varName, currentSelectedVar);
+  if (typeof activeBlocks !== 'undefined' && Array.isArray(activeBlocks)) {
+    replaceDeletedVariableInBlocks(activeBlocks, varName, currentSelectedVar);
+  }
   
   closeModal();
   updateStageVarHUD();
-  renderPalette('data');
+  if (typeof currentCatCategory !== 'undefined' && currentCatCategory === 'data') {
+    renderPalette('data');
+  }
   updateWorkspaceUI();
   logMessage(`🗑️ 成功删除变量: 【${varName}】`);
   notifyAndroidCodeChange();
@@ -1039,6 +1044,10 @@ function deleteVariable(varName) {
   if (!varName) return;
   executeDeleteVariable(varName);
 }
+
+window.deleteVariable = deleteVariable;
+window.executeDeleteVariable = executeDeleteVariable;
+window.selectActiveVariable = selectActiveVariable;
 
 // 全中文、精准映射的 Scratch 3.0 Opcode 映射字典 (绝对杜绝任何英文 Opcode 泄露)
 const OP_TRANSLATE_MAP = {
@@ -1162,7 +1171,6 @@ const PALETTE_DEFINITIONS = {
   data: [] // 动态生成
 };
 
-let activeBlocks = [];
 let catX = 65, catY = 40, catRotation = 0, catScale = 1.0, isVisible = true;
 let isScriptRunning = false;
 let audioCtx = null;
@@ -1263,11 +1271,11 @@ function renderPalette(catKey) {
         const isChecked = visibleVariables[vName] ? 'checked' : '';
         const isSelected = (vName === currentSelectedVar);
         const safeVName = vName.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-        html += `<div class="var-item-row ${isSelected ? 'active-var-item' : ''}" onclick="selectActiveVariable('${safeVName}')">
-          <input type="checkbox" ${isChecked} onclick="event.stopPropagation()" onchange="toggleVariableVisibility('${safeVName}', this.checked)" title="在舞台显示/隐藏变量HUD">
-          <span style="font-weight:800;color:${isSelected ? '#c2410c' : '#ea580c'};flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;">📦 ${vName}</span>
-          ${isSelected ? '<span style="font-size:9px;background:#ea580c;color:#fff;padding:1px 4px;border-radius:3px;font-weight:800;">选用</span>' : ''}
-          <button type="button" class="del-var-btn" onclick="event.stopPropagation();event.preventDefault();deleteVariable('${safeVName}')" onmousedown="event.stopPropagation()" ontouchend="event.stopPropagation();event.preventDefault();deleteVariable('${safeVName}')" title="删除变量 ${vName}">✕</button>
+        html += `<div class="var-item-row ${isSelected ? 'active-var-item' : ''}" data-var="${safeVName}">
+          <input type="checkbox" ${isChecked} onclick="event.stopPropagation()" onchange="toggleVariableVisibility('${safeVName}', this.checked)" title="在舞台显示/隐藏变量HUD" style="cursor:pointer;">
+          <span onclick="selectActiveVariable('${safeVName}')" style="font-weight:800;color:${isSelected ? '#c2410c' : '#ea580c'};flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;cursor:pointer;" title="点击选用此变量">📦 ${vName}</span>
+          ${isSelected ? '<span style="font-size:9px;background:#ea580c;color:#fff;padding:1px 4px;border-radius:3px;font-weight:800;pointer-events:none;">选用</span>' : ''}
+          <button type="button" class="del-var-btn" data-action="delete-variable" data-var="${safeVName}" onclick="event.stopPropagation();deleteVariable('${safeVName}')" title="删除变量 ${vName}">✕</button>
         </div>`;
       });
 
@@ -1310,6 +1318,19 @@ function initTouchDragSupport() {
   document.addEventListener('touchmove', handlePaletteTouchMove, { passive: false });
   document.addEventListener('touchend', handlePaletteTouchEnd, { passive: false });
   document.addEventListener('touchcancel', handlePaletteTouchEnd, { passive: false });
+
+  // 变量管理面板点击委托监听
+  panel.addEventListener('click', function(e) {
+    const delBtn = e.target.closest('.del-var-btn') || e.target.closest('[data-action="delete-variable"]');
+    if (delBtn) {
+      e.stopPropagation();
+      e.preventDefault();
+      const vName = delBtn.getAttribute('data-var');
+      if (vName) {
+        deleteVariable(vName);
+      }
+    }
+  });
 }
 
 function handlePaletteTouchStart(e) {
