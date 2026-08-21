@@ -192,19 +192,20 @@ html, body {
   cursor: pointer;
   background: #fee2e2;
   border: 1px solid #fecaca;
-  transition: all 0.15s;
+  transition: background 0.15s, border-color 0.15s;
   line-height: 1;
   margin-left: auto;
   user-select: none;
   touch-action: manipulation;
-  z-index: 10;
+  z-index: 50;
+  position: relative;
   padding: 0;
+  pointer-events: auto !important;
 }
 .del-var-btn:hover, .del-var-btn:active {
   color: #ffffff;
   background: #ef4444;
   border-color: #dc2626;
-  transform: scale(1.08);
 }
 
 /* 积木外观样式 */
@@ -223,10 +224,10 @@ html, body {
   cursor: pointer;
   box-shadow: 0 2px 4px rgba(0,0,0,0.12);
   user-select: none;
-  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  transition: box-shadow 0.15s ease, border-color 0.15s ease;
   line-height: 1.3;
 }
-.scratch-block:active { transform: scale(0.97); }
+#palettePanel .scratch-block:active { transform: scale(0.97); }
 
 .param-pill {
   background: rgba(0,0,0,0.25);
@@ -407,17 +408,18 @@ html, body {
   min-height: 24px;
   padding: 0;
   border-radius: 5px;
-  transition: all 0.15s ease;
+  transition: background 0.15s ease, border-color 0.15s ease;
   pointer-events: auto !important;
   user-select: none;
   touch-action: manipulation;
-  z-index: 40;
+  z-index: 50;
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   line-height: 1;
-  border: 1px solid rgba(255,255,255,0.3);
-  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(255,255,255,0.4);
+  background: rgba(0,0,0,0.35);
   color: #ffffff;
   flex-shrink: 0;
   margin-left: 8px;
@@ -427,7 +429,6 @@ html, body {
   background: #ef4444 !important;
   border-color: #dc2626 !important;
   color: #ffffff !important;
-  transform: scale(1.15);
   box-shadow: 0 2px 6px rgba(239, 68, 68, 0.4);
 }
 
@@ -1300,7 +1301,7 @@ function renderPalette(catKey) {
           <input type="checkbox" ${isChecked} onclick="event.stopPropagation()" onchange="toggleVariableVisibility('${safeVName}', this.checked)" title="在舞台显示/隐藏变量HUD" style="cursor:pointer;">
           <span onclick="selectActiveVariable('${safeVName}')" style="font-weight:800;color:${isSelected ? '#c2410c' : '#ea580c'};flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;cursor:pointer;" title="点击选用此变量">📦 ${vName}</span>
           ${isSelected ? '<span style="font-size:9px;background:#ea580c;color:#fff;padding:1px 4px;border-radius:3px;font-weight:800;pointer-events:none;">选用</span>' : ''}
-          <button type="button" class="del-var-btn" data-action="delete-variable" data-var="${safeVName}" onclick="deleteVariable('${safeVName}', event)" title="删除变量 ${vName}">✕</button>
+          <button type="button" class="del-var-btn" data-action="delete-variable" data-var="${safeVName}" onpointerdown="event.stopPropagation()" onmousedown="event.stopPropagation()" onclick="event.stopPropagation();deleteVariable('${safeVName}', event)" title="删除变量 ${vName}">✕</button>
         </div>`;
       });
 
@@ -1355,7 +1356,7 @@ function handleAnyDeleteClick(e) {
   // 1. 删除循环体内子积木
   const childDel = target.closest('[data-action="delete-child-block"]');
   if (childDel) {
-    if (e.stopPropagation) e.stopPropagation();
+    try { e.stopPropagation(); } catch(err){}
     const parentId = childDel.getAttribute('data-parent-id');
     const childId = childDel.getAttribute('data-child-id');
     if (childId) {
@@ -1365,9 +1366,9 @@ function handleAnyDeleteClick(e) {
   }
 
   // 2. 删除主画布积木
-  const blockDel = target.closest('[data-action="delete-block"]') || (target.classList && target.classList.contains('del-btn') ? target : null);
+  const blockDel = target.closest('[data-action="delete-block"]') || (target.classList && target.classList.contains('del-btn') && !target.closest('.modal-dialog') ? target : null);
   if (blockDel && !target.closest('.modal-dialog')) {
-    if (e.stopPropagation) e.stopPropagation();
+    try { e.stopPropagation(); } catch(err){}
     const blockId = blockDel.getAttribute('data-block-id');
     if (blockId) {
       removeBlock(blockId, e);
@@ -1378,7 +1379,7 @@ function handleAnyDeleteClick(e) {
   // 3. 删除变量
   const varDel = target.closest('[data-action="delete-variable"]') || (target.classList && target.classList.contains('del-var-btn') ? target : null);
   if (varDel) {
-    if (e.stopPropagation) e.stopPropagation();
+    try { e.stopPropagation(); } catch(err){}
     const vName = varDel.getAttribute('data-var');
     if (vName) {
       deleteVariable(vName, e);
@@ -1387,8 +1388,14 @@ function handleAnyDeleteClick(e) {
   }
 }
 
-// 绑定全局点击委托
+// 绑定全局事件委托 (click 与 pointerdown 双重保障)
 document.addEventListener('click', handleAnyDeleteClick);
+document.addEventListener('pointerdown', function(e) {
+  const btn = e.target && e.target.closest && (e.target.closest('.del-btn') || e.target.closest('.del-var-btn'));
+  if (btn) {
+    try { e.stopPropagation(); } catch(err){}
+  }
+}, true);
 
 function handlePaletteTouchStart(e) {
   const targetBlock = e.target.closest('.scratch-block');
@@ -2159,7 +2166,7 @@ function openVariableSelectorModal(blockId, paramKey, currentVar) {
         <button type="button" class="modal-btn" style="flex:1;background:transparent;border:none;color:${isAct ? '#c2410c' : '#7c2d12'};font-weight:800;font-size:11.5px;padding:5px 0;display:flex;align-items:center;justify-content:flex-start;gap:3px;box-shadow:none;" onclick="applyVariableSelection('${blockId}', '${paramKey}', '${safeV}')">
           📦 ${v} ${isAct ? '✓' : ''}
         </button>
-        <button type="button" onclick="event.stopPropagation();deleteVariableFromModal('${safeV}', '${blockId}', '${paramKey}')" title="删除变量 ${v}" style="background:#fee2e2;color:#ef4444;border:1px solid #fecaca;border-radius:4px;width:22px;height:22px;min-width:22px;min-height:22px;font-size:12px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;">✕</button>
+        <button type="button" onpointerdown="event.stopPropagation()" onmousedown="event.stopPropagation()" onclick="event.stopPropagation();deleteVariableFromModal('${safeV}', '${blockId}', '${paramKey}')" title="删除变量 ${v}" style="background:#fee2e2;color:#ef4444;border:1px solid #fecaca;border-radius:4px;width:22px;height:22px;min-width:22px;min-height:22px;font-size:12px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;">✕</button>
       </div>
     `;
   });
@@ -2286,7 +2293,7 @@ function renderBlockHtml(b, parentIndex = null) {
               <span class="step-number-tag">${cIdx + 1}</span>
               <span>${renderBlockInnerHtml(cBlock)}</span>
             </div>
-            <button type="button" class="del-btn" data-action="delete-child-block" data-parent-id="${b.id}" data-child-id="${cBlock.id}" onclick="removeChildBlock('${b.id}', '${cBlock.id}', event)" title="删除此积木">✕</button>
+            <button type="button" class="del-btn" data-action="delete-child-block" data-parent-id="${b.id}" data-child-id="${cBlock.id}" onpointerdown="event.stopPropagation()" onmousedown="event.stopPropagation()" onclick="event.stopPropagation();removeChildBlock('${b.id}', '${cBlock.id}', event)" title="删除此积木">✕</button>
           </div>
         `;
       });
@@ -2298,7 +2305,7 @@ function renderBlockHtml(b, parentIndex = null) {
       <div class="c-block-container" id="block_ui_${b.id}">
         <div class="c-block-header ${cls}">
           <span>${formattedLabel}</span>
-          <button type="button" class="del-btn" data-action="delete-block" data-block-id="${b.id}" onclick="removeBlock('${b.id}', event)" title="删除此积木">✕</button>
+          <button type="button" class="del-btn" data-action="delete-block" data-block-id="${b.id}" onpointerdown="event.stopPropagation()" onmousedown="event.stopPropagation()" onclick="event.stopPropagation();removeBlock('${b.id}', event)" title="删除此积木">✕</button>
         </div>
         <div class="c-block-body" id="container_body_${b.id}" data-container-body="true" data-container-id="${b.id}" ondragover="handleContainerDragOver(event, '${b.id}')" ondragleave="handleContainerDragLeave(event, '${b.id}')" ondrop="handleContainerDrop(event, '${b.id}')">
           ${childrenHtml}
@@ -2312,7 +2319,7 @@ function renderBlockHtml(b, parentIndex = null) {
   return `
     <div class="scratch-block ${cls} block-row" id="block_ui_${b.id}">
       <span>${formattedLabel}</span>
-      <button type="button" class="del-btn" data-action="delete-block" data-block-id="${b.id}" onclick="removeBlock('${b.id}', event)" title="删除此积木">✕</button>
+      <button type="button" class="del-btn" data-action="delete-block" data-block-id="${b.id}" onpointerdown="event.stopPropagation()" onmousedown="event.stopPropagation()" onclick="event.stopPropagation();removeBlock('${b.id}', event)" title="删除此积木">✕</button>
     </div>
   `;
 }
