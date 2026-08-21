@@ -755,6 +755,61 @@ html, body {
 .modal-btn-cancel { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
 .modal-btn-confirm { background: #3b82f6; color: #fff; box-shadow: 0 2px 6px rgba(59,130,246,0.3); }
 
+/* 变量管理行与删除按钮样式 */
+.var-item-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  background: #fff7ed;
+  padding: 3px 6px;
+  border-radius: 6px;
+  border: 1.5px solid #fed7aa;
+  margin-bottom: 4px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.var-item-row:hover {
+  border-color: #ea580c;
+  background: #ffedd5;
+}
+.var-item-row.active-var-item {
+  border-color: #ea580c;
+  background: #ffedd5;
+  box-shadow: 0 0 0 2px rgba(234, 88, 12, 0.25);
+}
+.del-var-btn {
+  color: #94a3b8;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 1px 5px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s;
+  line-height: 1.2;
+  margin-left: auto;
+}
+.del-var-btn:hover {
+  color: #ef4444;
+  background: #fee2e2;
+}
+
+.param-pill-var {
+  background: rgba(0,0,0,0.18) !important;
+  border: 1px dashed rgba(255,255,255,0.7) !important;
+  padding: 1px 6px !important;
+  border-radius: 10px !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 3px !important;
+}
+.param-pill-var::after {
+  content: '▾';
+  font-size: 9px;
+  opacity: 0.85;
+}
+
 /* 拖拽浮动镜像与高亮 */
 .touch-drag-ghost {
   position: fixed !important;
@@ -881,6 +936,31 @@ let visibleVariables = {
   "得分": true,
   "x": true
 };
+let currentSelectedVar = "得分";
+
+function selectActiveVariable(varName) {
+  currentSelectedVar = varName;
+  renderPalette('data');
+  logMessage(`🎯 当前选用变量切换为: 【${varName}】`);
+}
+
+function deleteVariable(varName) {
+  if (confirm(`确定要删除变量【${varName}】吗？`)) {
+    delete projectVariables[varName];
+    delete visibleVariables[varName];
+    
+    const remaining = Object.keys(projectVariables);
+    if (currentSelectedVar === varName) {
+      currentSelectedVar = remaining.length > 0 ? remaining[0] : '';
+    }
+    
+    updateStageVarHUD();
+    renderPalette('data');
+    updateWorkspaceUI();
+    logMessage(`🗑️ 成功删除变量: 【${varName}】`);
+    notifyAndroidCodeChange();
+  }
+}
 
 // 全中文、精准映射的 Scratch 3.0 Opcode 映射字典 (绝对杜绝任何英文 Opcode 泄露)
 const OP_TRANSLATE_MAP = {
@@ -1096,21 +1176,28 @@ function renderPalette(catKey) {
     
     const varNames = Object.keys(projectVariables);
     if (varNames.length > 0) {
-      html += `<div style="font-size:9.5px;font-weight:700;color:#64748b;margin:3px 0;">已建变量 (勾选显示):</div>`;
+      if (!currentSelectedVar || !projectVariables.hasOwnProperty(currentSelectedVar)) {
+        currentSelectedVar = varNames[0];
+      }
+
+      html += `<div style="font-size:9.5px;font-weight:700;color:#64748b;margin:4px 0 2px;">已建变量 (点击选用 / 勾选显示):</div>`;
       varNames.forEach(vName => {
         const isChecked = visibleVariables[vName] ? 'checked' : '';
-        html += `<div style="display:flex;align-items:center;gap:4px;font-size:10.5px;background:#fff7ed;padding:2px 5px;border-radius:4px;border:1px solid #fed7aa;margin-bottom:3px;">
-          <input type="checkbox" ${isChecked} onchange="toggleVariableVisibility('${vName}', this.checked)">
-          <span style="font-weight:700;color:#ea580c;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">📦 ${vName}</span>
+        const isSelected = (vName === currentSelectedVar);
+        html += `<div class="var-item-row ${isSelected ? 'active-var-item' : ''}" onclick="selectActiveVariable('${vName}')">
+          <input type="checkbox" ${isChecked} onclick="event.stopPropagation()" onchange="toggleVariableVisibility('${vName}', this.checked)" title="在舞台显示/隐藏变量HUD">
+          <span style="font-weight:800;color:${isSelected ? '#c2410c' : '#ea580c'};flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;">📦 ${vName}</span>
+          ${isSelected ? '<span style="font-size:9px;background:#ea580c;color:#fff;padding:1px 4px;border-radius:3px;font-weight:800;">选用</span>' : ''}
+          <span class="del-var-btn" onclick="event.stopPropagation();deleteVariable('${vName}')" title="删除变量 ${vName}">✕</span>
         </div>`;
       });
 
-      const primaryVar = varNames[0];
+      const primaryVar = currentSelectedVar || varNames[0] || '得分';
       const dataBlocks = [
-        { opcode:'data_setvariableto', label:`将 <span class="param-pill" data-key="varName">${primaryVar}</span> 设为 <span class="param-pill" data-key="value">0</span> 📦`, cls:'cat-data', params:{ varName: primaryVar, value: 0 } },
-        { opcode:'data_changevariableby', label:`将 <span class="param-pill" data-key="varName">${primaryVar}</span> 增加 <span class="param-pill" data-key="value">1</span> 🏆`, cls:'cat-data', params:{ varName: primaryVar, value: 1 } },
-        { opcode:'data_showvariable', label:`显示变量 <span class="param-pill" data-key="varName">${primaryVar}</span> 👁️`, cls:'cat-data', params:{ varName: primaryVar } },
-        { opcode:'data_hidevariable', label:`隐藏变量 <span class="param-pill" data-key="varName">${primaryVar}</span> 🙈`, cls:'cat-data', params:{ varName: primaryVar } }
+        { opcode:'data_setvariableto', label:`将 <span class="param-pill param-pill-var" data-key="varName">${primaryVar}</span> 设为 <span class="param-pill" data-key="value">0</span> 📦`, cls:'cat-data', params:{ varName: primaryVar, value: 0 } },
+        { opcode:'data_changevariableby', label:`将 <span class="param-pill param-pill-var" data-key="varName">${primaryVar}</span> 增加 <span class="param-pill" data-key="value">1</span> 🏆`, cls:'cat-data', params:{ varName: primaryVar, value: 1 } },
+        { opcode:'data_showvariable', label:`显示变量 <span class="param-pill param-pill-var" data-key="varName">${primaryVar}</span> 👁️`, cls:'cat-data', params:{ varName: primaryVar } },
+        { opcode:'data_hidevariable', label:`隐藏变量 <span class="param-pill param-pill-var" data-key="varName">${primaryVar}</span> 🙈`, cls:'cat-data', params:{ varName: primaryVar } }
       ];
       dataBlocks.forEach((b, idx) => {
         html += `<div class="scratch-block ${b.cls}" data-category="data" data-index="${idx}" draggable="true" ondragstart="handlePaletteDragStart(event, 'data', ${idx})" onclick="addBlockFromPalette('data', ${idx})">${b.label}</div>`;
@@ -1161,12 +1248,12 @@ function handlePaletteTouchStart(e) {
   let template;
   if (catKey === 'data') {
     const varNames = Object.keys(projectVariables);
-    const primaryVar = varNames[0] || '得分';
+    const primaryVar = currentSelectedVar || varNames[0] || '得分';
     const dataBlocks = [
-      { opcode:'data_setvariableto', label:`将 <span class="param-pill" data-key="varName">${primaryVar}</span> 设为 <span class="param-pill" data-key="value">0</span> 📦`, cls:'cat-data', params:{ varName: primaryVar, value: 0 } },
-      { opcode:'data_changevariableby', label:`将 <span class="param-pill" data-key="varName">${primaryVar}</span> 增加 <span class="param-pill" data-key="value">1</span> 🏆`, cls:'cat-data', params:{ varName: primaryVar, value: 1 } },
-      { opcode:'data_showvariable', label:`显示变量 <span class="param-pill" data-key="varName">${primaryVar}</span> 👁️`, cls:'cat-data', params:{ varName: primaryVar } },
-      { opcode:'data_hidevariable', label:`隐藏变量 <span class="param-pill" data-key="varName">${primaryVar}</span> 🙈`, cls:'cat-data', params:{ varName: primaryVar } }
+      { opcode:'data_setvariableto', label:`将 <span class="param-pill param-pill-var" data-key="varName">${primaryVar}</span> 设为 <span class="param-pill" data-key="value">0</span> 📦`, cls:'cat-data', params:{ varName: primaryVar, value: 0 } },
+      { opcode:'data_changevariableby', label:`将 <span class="param-pill param-pill-var" data-key="varName">${primaryVar}</span> 增加 <span class="param-pill" data-key="value">1</span> 🏆`, cls:'cat-data', params:{ varName: primaryVar, value: 1 } },
+      { opcode:'data_showvariable', label:`显示变量 <span class="param-pill param-pill-var" data-key="varName">${primaryVar}</span> 👁️`, cls:'cat-data', params:{ varName: primaryVar } },
+      { opcode:'data_hidevariable', label:`隐藏变量 <span class="param-pill param-pill-var" data-key="varName">${primaryVar}</span> 🙈`, cls:'cat-data', params:{ varName: primaryVar } }
     ];
     template = dataBlocks[idx];
   } else {
@@ -1346,12 +1433,12 @@ function handlePaletteDragStart(event, catKey, idx) {
   let template;
   if (catKey === 'data') {
     const varNames = Object.keys(projectVariables);
-    const primaryVar = varNames[0] || '得分';
+    const primaryVar = currentSelectedVar || varNames[0] || '得分';
     const dataBlocks = [
-      { opcode:'data_setvariableto', label:`将 <span class="param-pill" data-key="varName">${primaryVar}</span> 设为 <span class="param-pill" data-key="value">0</span> 📦`, cls:'cat-data', params:{ varName: primaryVar, value: 0 } },
-      { opcode:'data_changevariableby', label:`将 <span class="param-pill" data-key="varName">${primaryVar}</span> 增加 <span class="param-pill" data-key="value">1</span> 🏆`, cls:'cat-data', params:{ varName: primaryVar, value: 1 } },
-      { opcode:'data_showvariable', label:`显示变量 <span class="param-pill" data-key="varName">${primaryVar}</span> 👁️`, cls:'cat-data', params:{ varName: primaryVar } },
-      { opcode:'data_hidevariable', label:`隐藏变量 <span class="param-pill" data-key="varName">${primaryVar}</span> 🙈`, cls:'cat-data', params:{ varName: primaryVar } }
+      { opcode:'data_setvariableto', label:`将 <span class="param-pill param-pill-var" data-key="varName">${primaryVar}</span> 设为 <span class="param-pill" data-key="value">0</span> 📦`, cls:'cat-data', params:{ varName: primaryVar, value: 0 } },
+      { opcode:'data_changevariableby', label:`将 <span class="param-pill param-pill-var" data-key="varName">${primaryVar}</span> 增加 <span class="param-pill" data-key="value">1</span> 🏆`, cls:'cat-data', params:{ varName: primaryVar, value: 1 } },
+      { opcode:'data_showvariable', label:`显示变量 <span class="param-pill param-pill-var" data-key="varName">${primaryVar}</span> 👁️`, cls:'cat-data', params:{ varName: primaryVar } },
+      { opcode:'data_hidevariable', label:`隐藏变量 <span class="param-pill param-pill-var" data-key="varName">${primaryVar}</span> 🙈`, cls:'cat-data', params:{ varName: primaryVar } }
     ];
     template = dataBlocks[idx];
   } else {
@@ -1497,9 +1584,11 @@ function confirmNewVariable() {
   }
   projectVariables[name] = 0;
   visibleVariables[name] = true;
+  currentSelectedVar = name;
   closeModal();
   updateStageVarHUD();
   renderPalette('data');
+  updateWorkspaceUI();
   logMessage(`📦 成功创建新变量: 【${name}】`);
   notifyAndroidCodeChange();
 }
@@ -1537,12 +1626,12 @@ function addBlockFromPalette(catKey, idx) {
   let template;
   if (catKey === 'data') {
     const varNames = Object.keys(projectVariables);
-    const primaryVar = varNames[0] || '得分';
+    const primaryVar = currentSelectedVar || varNames[0] || '得分';
     const dataBlocks = [
-      { opcode:'data_setvariableto', label:`将 <span class="param-pill" data-key="varName">${primaryVar}</span> 设为 <span class="param-pill" data-key="value">0</span> 📦`, cls:'cat-data', params:{ varName: primaryVar, value: 0 } },
-      { opcode:'data_changevariableby', label:`将 <span class="param-pill" data-key="varName">${primaryVar}</span> 增加 <span class="param-pill" data-key="value">1</span> 🏆`, cls:'cat-data', params:{ varName: primaryVar, value: 1 } },
-      { opcode:'data_showvariable', label:`显示变量 <span class="param-pill" data-key="varName">${primaryVar}</span> 👁️`, cls:'cat-data', params:{ varName: primaryVar } },
-      { opcode:'data_hidevariable', label:`隐藏变量 <span class="param-pill" data-key="varName">${primaryVar}</span> 🙈`, cls:'cat-data', params:{ varName: primaryVar } }
+      { opcode:'data_setvariableto', label:`将 <span class="param-pill param-pill-var" data-key="varName">${primaryVar}</span> 设为 <span class="param-pill" data-key="value">0</span> 📦`, cls:'cat-data', params:{ varName: primaryVar, value: 0 } },
+      { opcode:'data_changevariableby', label:`将 <span class="param-pill param-pill-var" data-key="varName">${primaryVar}</span> 增加 <span class="param-pill" data-key="value">1</span> 🏆`, cls:'cat-data', params:{ varName: primaryVar, value: 1 } },
+      { opcode:'data_showvariable', label:`显示变量 <span class="param-pill param-pill-var" data-key="varName">${primaryVar}</span> 👁️`, cls:'cat-data', params:{ varName: primaryVar } },
+      { opcode:'data_hidevariable', label:`隐藏变量 <span class="param-pill param-pill-var" data-key="varName">${primaryVar}</span> 🙈`, cls:'cat-data', params:{ varName: primaryVar } }
     ];
     template = dataBlocks[idx];
   } else {
@@ -1621,10 +1710,12 @@ function addChildBlockToContainer(containerId, selectedCategory = 'motion') {
   let blockList = [];
   if (selectedCategory === 'data') {
     const varNames = Object.keys(projectVariables);
-    const v = varNames[0] || '得分';
+    const v = currentSelectedVar || varNames[0] || '得分';
     blockList = [
       { opcode:'data_changevariableby', label:`将 ${v} 增加 1 🏆`, params:{ varName:v, value:1 }, cls:'cat-data' },
-      { opcode:'data_setvariableto', label:`将 ${v} 设为 0 📦`, params:{ varName:v, value:0 }, cls:'cat-data' }
+      { opcode:'data_setvariableto', label:`将 ${v} 设为 0 📦`, params:{ varName:v, value:0 }, cls:'cat-data' },
+      { opcode:'data_showvariable', label:`显示变量 ${v} 👁️`, params:{ varName:v }, cls:'cat-data' },
+      { opcode:'data_hidevariable', label:`隐藏变量 ${v} 🙈`, params:{ varName:v }, cls:'cat-data' }
     ];
   } else {
     blockList = (PALETTE_DEFINITIONS[selectedCategory] || []).filter(b => b.opcode !== 'event_whenflagclicked');
@@ -1667,10 +1758,12 @@ function confirmAddChildDynamic(containerId, category, candidateIdx) {
   let cand;
   if (category === 'data') {
     const varNames = Object.keys(projectVariables);
-    const v = varNames[0] || '得分';
+    const v = currentSelectedVar || varNames[0] || '得分';
     const items = [
-      { opcode:'data_changevariableby', label:`将 <span class="param-pill" data-key="varName">${v}</span> 增加 <span class="param-pill" data-key="value">1</span> 🏆`, params:{ varName:v, value:1 } },
-      { opcode:'data_setvariableto', label:`将 <span class="param-pill" data-key="varName">${v}</span> 设为 <span class="param-pill" data-key="value">0</span> 📦`, params:{ varName:v, value:0 } }
+      { opcode:'data_changevariableby', label:`将 <span class="param-pill param-pill-var" data-key="varName">${v}</span> 增加 <span class="param-pill" data-key="value">1</span> 🏆`, params:{ varName:v, value:1 } },
+      { opcode:'data_setvariableto', label:`将 <span class="param-pill param-pill-var" data-key="varName">${v}</span> 设为 <span class="param-pill" data-key="value">0</span> 📦`, params:{ varName:v, value:0 } },
+      { opcode:'data_showvariable', label:`显示变量 <span class="param-pill param-pill-var" data-key="varName">${v}</span> 👁️`, params:{ varName:v } },
+      { opcode:'data_hidevariable', label:`隐藏变量 <span class="param-pill param-pill-var" data-key="varName">${v}</span> 🙈`, params:{ varName:v } }
     ];
     cand = items[candidateIdx];
   } else {
@@ -1837,10 +1930,72 @@ function saveBlockParamDirect(blockId, paramKey, newVal) {
   notifyAndroidCodeChange();
 }
 
+// 变量选择器交互弹窗 (支持一键点击切换所有变量、下拉选取以及快捷新建)
+function openVariableSelectorModal(blockId, paramKey, currentVar) {
+  const varNames = Object.keys(projectVariables);
+  if (varNames.length === 0) {
+    openNewVariableDialog();
+    return;
+  }
+
+  let chipsHtml = '';
+  varNames.forEach(v => {
+    const isAct = (v === currentVar);
+    chipsHtml += `
+      <button type="button" class="modal-btn" style="background:${isAct ? '#ea580c' : '#fff7ed'};color:${isAct ? '#fff' : '#c2410c'};border:1.5px solid ${isAct ? '#c2410c' : '#fed7aa'};font-weight:800;font-size:12px;padding:8px 10px;display:flex;align-items:center;justify-content:center;gap:4px;border-radius:8px;" onclick="applyVariableSelection('${blockId}', '${paramKey}', '${v}')">
+        📦 ${v} ${isAct ? '✓' : ''}
+      </button>
+    `;
+  });
+
+  let optionsHtml = '';
+  varNames.forEach(v => {
+    optionsHtml += `<option value="${v}" ${v === currentVar ? 'selected' : ''}>${v}</option>`;
+  });
+
+  const dialogHtml = `
+    <div class="modal-dialog" style="max-width:380px;" onclick="event.stopPropagation()">
+      <div class="modal-header-bar">
+        <div class="modal-title">📦 选择要操作的变量</div>
+        <span class="del-btn" onclick="closeModal()" style="font-size:16px;">✕</span>
+      </div>
+      <div class="modal-scroll-body">
+        <div style="font-size:11.5px;color:#64748b;">点击下方任一变量即刻选用：</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          ${chipsHtml}
+        </div>
+        <div style="margin-top:6px;padding-top:8px;border-top:1px dashed #e2e8f0;display:flex;flex-direction:column;gap:6px;">
+          <div style="font-size:11px;font-weight:700;color:#334155;">或从下拉列表快速选择：</div>
+          <select id="varSelectDropdown" class="modal-input" onchange="applyVariableSelection('${blockId}', '${paramKey}', this.value)">
+            ${optionsHtml}
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer-bar" style="justify-content:space-between;">
+        <button class="modal-btn" style="background:#fff7ed;color:#ea580c;border:1px solid #fed7aa;" onclick="closeModal();openNewVariableDialog()">➕ 新建变量</button>
+        <button class="modal-btn modal-btn-cancel" onclick="closeModal()">关闭</button>
+      </div>
+    </div>
+  `;
+  openModal(dialogHtml);
+}
+
+function applyVariableSelection(blockId, paramKey, newVarName) {
+  currentSelectedVar = newVarName;
+  saveBlockParamDirect(blockId, paramKey, newVarName);
+  renderPalette('data');
+  closeModal();
+  logMessage(`📦 积木变量已切换为: 【${newVarName}】`);
+}
+
 // 修改积木参数通用弹窗
 function editBlockParam(blockId, paramKey, currentValue, optionsJson) {
   if (paramKey === 'condition') {
     openConditionCustomizer(blockId, currentValue);
+    return;
+  }
+  if (paramKey === 'varName') {
+    openVariableSelectorModal(blockId, paramKey, currentValue);
     return;
   }
 
@@ -1972,16 +2127,24 @@ function formatBlockLabel(b) {
     const isSensing = condStr.includes('边缘') || condStr.includes('空格') || condStr.includes('点击');
     return `如果 <span class="condition-slot ${isSensing ? 'sensing-cond' : ''}" data-condition-slot="true" data-block-id="${blockId}" ondragover="handleConditionDragOver(event)" ondragleave="handleConditionDragLeave(event)" ondrop="handleConditionDrop(event, '${blockId}')" onclick="event.stopPropagation();openConditionCustomizer('${blockId}', '${condStr}')">⟨ ${condStr} ⟩</span> 那么 ⚡`;
   } else if (b.opcode === 'operator_gt') {
-    return `<span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'varName', '${p.varName || 'x'}')">${p.varName || 'x'}</span> > <span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'val', '${p.val ?? 5}')">${p.val ?? 5}</span> 📈`;
+    const vName = p.varName || currentSelectedVar || Object.keys(projectVariables)[0] || 'x';
+    return `<span class="param-pill param-pill-var" onclick="event.stopPropagation();openVariableSelectorModal('${blockId}', 'varName', '${vName}')">${vName}</span> > <span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'val', '${p.val ?? 5}')">${p.val ?? 5}</span> 📈`;
   } else if (b.opcode === 'operator_lt') {
-    return `<span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'varName', '${p.varName || 'x'}')">${p.varName || 'x'}</span> < <span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'val', '${p.val ?? 10}')">${p.val ?? 10}</span> 📉`;
+    const vName = p.varName || currentSelectedVar || Object.keys(projectVariables)[0] || 'x';
+    return `<span class="param-pill param-pill-var" onclick="event.stopPropagation();openVariableSelectorModal('${blockId}', 'varName', '${vName}')">${vName}</span> < <span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'val', '${p.val ?? 10}')">${p.val ?? 10}</span> 📉`;
+  } else if (b.opcode === 'operator_equals') {
+    const vName = p.varName || currentSelectedVar || Object.keys(projectVariables)[0] || '得分';
+    return `<span class="param-pill param-pill-var" onclick="event.stopPropagation();openVariableSelectorModal('${blockId}', 'varName', '${vName}')">${vName}</span> = <span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'val', '${p.val ?? 100}')">${p.val ?? 100}</span> ⚖️`;
   } else if (b.opcode.startsWith('data_')) {
-    const varNames = Object.keys(projectVariables);
-    const varOptions = encodeURIComponent(JSON.stringify(varNames.length > 0 ? varNames : ['得分', 'x']));
+    const vName = p.varName || currentSelectedVar || Object.keys(projectVariables)[0] || '得分';
     if (b.opcode === 'data_setvariableto') {
-      return `将 <span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'varName', '${p.varName || '得分'}', '${varOptions}')">${p.varName || '得分'}</span> 设为 <span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'value', '${p.value ?? 0}')">${p.value ?? 0}</span> 📦`;
+      return `将 <span class="param-pill param-pill-var" onclick="event.stopPropagation();openVariableSelectorModal('${blockId}', 'varName', '${vName}')">${vName}</span> 设为 <span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'value', '${p.value ?? 0}')">${p.value ?? 0}</span> 📦`;
     } else if (b.opcode === 'data_changevariableby') {
-      return `将 <span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'varName', '${p.varName || '得分'}', '${varOptions}')">${p.varName || '得分'}</span> 增加 <span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'value', '${p.value ?? 1}')">${p.value ?? 1}</span> 🏆`;
+      return `将 <span class="param-pill param-pill-var" onclick="event.stopPropagation();openVariableSelectorModal('${blockId}', 'varName', '${vName}')">${vName}</span> 增加 <span class="param-pill" onclick="event.stopPropagation();editBlockParam('${blockId}', 'value', '${p.value ?? 1}')">${p.value ?? 1}</span> 🏆`;
+    } else if (b.opcode === 'data_showvariable') {
+      return `显示变量 <span class="param-pill param-pill-var" onclick="event.stopPropagation();openVariableSelectorModal('${blockId}', 'varName', '${vName}')">${vName}</span> 👁️`;
+    } else if (b.opcode === 'data_hidevariable') {
+      return `隐藏变量 <span class="param-pill param-pill-var" onclick="event.stopPropagation();openVariableSelectorModal('${blockId}', 'varName', '${vName}')">${vName}</span> 🙈`;
     }
   }
 
