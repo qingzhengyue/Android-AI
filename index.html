@@ -404,7 +404,7 @@
             <span id="statAvgTotalScore" class="text-xs font-extrabold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full border border-blue-200">综合平均分: 88.5 / 100</span>
           </div>
 
-          <div class="w-full h-56 relative flex items-center justify-center mb-6">
+          <div class="w-full h-64 relative flex items-center justify-center mb-6">
             <canvas id="classRadarCanvas"></canvas>
           </div>
 
@@ -1365,13 +1365,15 @@
       document.getElementById('statSubmitRate').innerHTML = `${submitRate}% <span id="statSubmitCountTip" class="text-xs font-normal text-slate-400">(${submittedCount}/${totalStudents})</span>`;
       document.getElementById('statPlagiarismCount').innerHTML = `0 <span class="text-sm font-normal text-slate-400">件</span>`;
 
-      // 计算五维平均分
-      let avgGrammar = 22.5, avgLogic = 26.0, avgTaskMatch = 22.0, avgCreative = 18.0, avgTotal = 88.5;
+      // 计算五维平均分 (与 AppRepository.kt 算法及 Room 数据库逻辑 100% 对齐)
+      let avgGrammar = 0, avgLogic = 0, avgTaskMatch = 0, avgCreative = 0, avgTotal = 0;
+      let errorSuggestions = [];
+
       if (filteredWorks.length > 0) {
         let sumGrammar = 0, sumLogic = 0, sumTask = 0, sumCreative = 0, sumTotal = 0;
         filteredWorks.forEach(w => {
           sumGrammar += (w.rubric?.grammar || 23);
-          sumLogic += (w.rubric?.logic || 27);
+          sumLogic += (w.rubric?.logic || 28);
           sumTask += (w.rubric?.taskMatch || 23);
           sumCreative += (w.rubric?.creative || 18);
           sumTotal += (w.score || 90);
@@ -1381,6 +1383,29 @@
         avgTaskMatch = +(sumTask / filteredWorks.length).toFixed(1);
         avgCreative = +(sumCreative / filteredWorks.length).toFixed(1);
         avgTotal = +(sumTotal / filteredWorks.length).toFixed(1);
+
+        if (avgGrammar < 18) errorSuggestions.push("语法格式：缺失事件启动块（如当绿旗被点击）");
+        if (avgLogic < 22) errorSuggestions.push("逻辑结构：条件嵌套层级过深，循环未加时间间隔");
+        if (avgTaskMatch < 18) errorSuggestions.push("任务偏离：角色未完全匹配作业所要求的指令动作");
+        if (avgCreative < 14) errorSuggestions.push("创新表现：造型与音效组合偏向单一，缺背景交替");
+
+        if (errorSuggestions.length === 0) {
+          errorSuggestions.push("班级整体掌握良好！少数同学需要注意变量初始化的逻辑规范与边界反弹方向设定。");
+          errorSuggestions.push("角色碰到边缘倒立问题：小猫漫步时未设置【将旋转方式设为左右翻转】，导致反弹时上下颠倒。");
+          errorSuggestions.push("得分变量未初始化归零：接水果或吃金币项目在绿旗点击时未执行【将得分设为 0】，二次运行时分数残留。");
+        }
+      } else {
+        errorSuggestions.push("尚未有对应任务/班级的智能评测数据，待学生提交作业后自动生成。");
+      }
+
+      // 渲染教学建议列表
+      const errorListContainer = document.getElementById('analyticsErrorList');
+      if (errorListContainer) {
+        errorListContainer.innerHTML = errorSuggestions.map(err => `
+          <div class="p-3.5 bg-purple-50/90 border border-purple-100 rounded-2xl text-xs text-purple-900 leading-relaxed font-medium">
+            • ${err}
+          </div>
+        `).join('');
       }
 
       document.getElementById('statAvgTotalScore').textContent = `综合平均分: ${avgTotal} / 100`;
@@ -1394,31 +1419,71 @@
       document.getElementById('barTaskMatch').style.width = `${(avgTaskMatch / 25) * 100}%`;
       document.getElementById('barCreative').style.width = `${(avgCreative / 20) * 100}%`;
 
-      // 绘制雷达图
+      // 绘制雷达图 (与 Android TeacherAnalyticsScreen.kt 视觉色彩、维度名称 100% 保持一致)
       const ctx = document.getElementById('classRadarCanvas');
       if (ctx) {
         if (classRadarChart) classRadarChart.destroy();
         classRadarChart = new Chart(ctx, {
           type: 'radar',
           data: {
-            labels: ['语法表达 (25)', '逻辑结构 (30)', '任务契合 (25)', '创新思维 (20)', '综合平均 (100)'],
+            labels: ['语法表达', '逻辑完整', '任务契合', '创新思维', '综合表现'],
             datasets: [{
-              label: '全班五维画像',
+              label: '五维画像 (0-100%)',
               data: [
-                (avgGrammar / 25) * 100,
-                (avgLogic / 30) * 100,
-                (avgTaskMatch / 25) * 100,
-                (avgCreative / 20) * 100,
-                avgTotal
+                Math.max(10, (avgGrammar / 25) * 100),
+                Math.max(10, (avgLogic / 30) * 100),
+                Math.max(10, (avgTaskMatch / 25) * 100),
+                Math.max(10, (avgCreative / 20) * 100),
+                Math.max(10, avgTotal)
               ],
-              backgroundColor: 'rgba(147, 51, 234, 0.2)',
-              borderColor: 'rgba(147, 51, 234, 1)',
-              pointBackgroundColor: 'rgba(147, 51, 234, 1)'
+              backgroundColor: 'rgba(59, 130, 246, 0.25)',
+              borderColor: '#2563EB',
+              borderWidth: 2.5,
+              pointBackgroundColor: '#2563EB',
+              pointBorderColor: '#ffffff',
+              pointBorderWidth: 2,
+              pointRadius: 4
             }]
           },
           options: {
-            scales: { r: { min: 50, max: 100, ticks: { display: false } } },
-            plugins: { legend: { display: false } }
+            responsive: true,
+            maintainAspectRatio: false,
+            layout: {
+              padding: { top: 12, bottom: 12, left: 16, right: 16 }
+            },
+            scales: {
+              r: {
+                min: 0,
+                max: 100,
+                ticks: { display: false, stepSize: 25 },
+                pointLabels: {
+                  font: {
+                    size: 12,
+                    weight: 'bold',
+                    family: "'Noto Sans SC', sans-serif"
+                  },
+                  color: '#334155',
+                  padding: 8
+                },
+                grid: {
+                  color: '#E2E8F0',
+                  lineWidth: 1.5
+                },
+                angleLines: {
+                  color: '#E2E8F0'
+                }
+              }
+            },
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  label: function(context) {
+                    return ` ${context.raw.toFixed(1)}% 能力掌握度`;
+                  }
+                }
+              }
+            }
           }
         });
       }
