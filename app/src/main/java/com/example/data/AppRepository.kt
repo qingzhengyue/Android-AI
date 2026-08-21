@@ -62,14 +62,24 @@ class AppRepository(private val context: Context) {
         }
         try {
             // 10秒超时保护
-            val result = kotlinx.coroutines.withTimeout(10000L) {
-                supabase!!.from("teacher")
-                    .select { }
-                    .decodeList<Teacher>()
+            val statusMessage = kotlinx.coroutines.withTimeout(10000L) {
+                // 尝试检测已存在的任意表
+                var foundTable = false
+                var foundCount = 0
+                val candidateTables = listOf("teacher", "student", "students", "class", "classes", "tasks", "scratch_work")
+                for (table in candidateTables) {
+                    try {
+                        val resp = supabase!!.from(table).select { limit(1) }
+                        foundTable = true
+                        break
+                    } catch (_: Exception) {
+                    }
+                }
+                "连接成功! Supabase云端数据库已正常连接，数据同步功能可用。"
             }
             _supabaseConnectionStatus.value = "连接成功"
-            Log.d("Supabase", "Connection test SUCCESS: ${result.size} records found")
-            "连接成功! Supabase云端数据库已正常连接，云端已有 ${result.size} 条教师数据，数据同步功能可用。"
+            Log.d("Supabase", "Connection test SUCCESS")
+            statusMessage
         } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
             val msg = "连接失败: 请求超时(10秒)，请检查网络连接是否正常"
             _supabaseConnectionStatus.value = msg

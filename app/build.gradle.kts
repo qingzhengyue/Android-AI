@@ -55,8 +55,8 @@ android {
     val cerebrasKey = (localProperties.getProperty("CEREBRAS_API_KEY") ?: System.getenv("CEREBRAS_API_KEY") ?: "").ifBlank { "csk-6h4pp6hne55etmhwy83pm2jdrtmy3rv5yxp5nedvyffn3w46" }
     buildConfigField("String", "CEREBRAS_API_KEY", "\"$cerebrasKey\"")
 
-    val supabaseUrl = "http://169.254.8.1:8000"
-    val supabaseKey = "sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH"
+    val supabaseUrl = (localProperties.getProperty("SUPABASE_URL") ?: System.getenv("SUPABASE_URL") ?: "").ifBlank { "https://qbjihpvcudxvgkaxqpmk.supabase.co" }
+    val supabaseKey = (localProperties.getProperty("SUPABASE_ANON_KEY") ?: System.getenv("SUPABASE_ANON_KEY") ?: "").ifBlank { "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFiamlocHZjdWR4dmdrYXhxcG1rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYxMDEzMTQsImV4cCI6MjEwMTY3NzMxNH0.XwmugLjDvj-45hAeAotsCzol77aypI_tEEMiVvHzH-I" }
     buildConfigField("String", "SUPABASE_URL", "\"$supabaseUrl\"")
     buildConfigField("String", "SUPABASE_ANON_KEY", "\"$supabaseKey\"")
   }

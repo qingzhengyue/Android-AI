@@ -24,7 +24,7 @@ object SupabaseManager {
 
     suspend fun uploadScratchProject(localFile: File, remoteFileName: String): Boolean {
         return withContext(Dispatchers.IO) {
-            val bucket = client.storage.from("student-works")
+            val bucket = client.storage.from("scratch-homework")
             val fileBytes = localFile.readBytes()
             
             // Avoid upsert which requires UPDATE permissions

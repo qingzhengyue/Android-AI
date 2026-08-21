@@ -27,7 +27,7 @@ class HomeworkStorageManager(private val context: Context) {
      */
     fun createSignedUrl(relativePath: String, expiresInSeconds: Long = 3600): String {
         val cleanPath = relativePath.removePrefix("scratch-homework/").trimStart('/')
-        val supabaseBaseUrl = "https://mzpchmcodrtmpspfnssk.supabase.co"
+        val supabaseBaseUrl = com.example.BuildConfig.SUPABASE_URL.trimEnd('/')
         // 生成符合 Supabase Storage REST API 规格的带 Token 临时可访问 URL
         val token = md5("$cleanPath-${System.currentTimeMillis() / (1000 * expiresAtInterval(expiresInSeconds))}")
         return "$supabaseBaseUrl/storage/v1/object/sign/scratch-homework/$cleanPath?token=$token&expiresIn=$expiresInSeconds"
