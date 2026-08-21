@@ -70,37 +70,19 @@ class WebPortalServer(private val context: Context) {
     }
 
     private fun getPortalHtml(): String {
-        return """
+        return try {
+            context.assets.open("web_portal.html").bufferedReader().use { it.readText() }
+        } catch (e: Exception) {
+            """
             <!DOCTYPE html>
             <html lang="zh-CN">
-            <head>
-            <meta charset="UTF-8">
-            <title>星梭智学 - PC端 教师管理与大屏中心</title>
-            <style>
-              body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f172a; color: #f8fafc; padding: 24px; }
-              header { border-bottom: 1px solid #334155; padding-bottom: 16px; margin-bottom: 24px; display:flex; justify-content:space-between; align-items:center; }
-              .card { background: #1e293b; border-radius: 12px; padding: 20px; border: 1px solid #334155; margin-bottom: 20px; }
-              .badge { background: #22c55e; color: #fff; padding: 4px 8px; border-radius: 6px; font-size: 12px; }
-              .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
-            </style>
-            </head>
-            <body>
-            <header>
-              <h1>🚀 星梭智学编程助教 - PC 端控制中心</h1>
-              <span class="badge">Supabase RLS 云端服务已连接</span>
-            </header>
-            <div class="grid">
-              <div class="card">
-                <h3>🧩 批量作业批改与离线下载</h3>
-                <p style="font-size:13px;color:#94a3b8;margin-top:8px;">支持批量导出学生作品 .sb3 文件与生成 HTML/zip 报告包。</p>
-              </div>
-              <div class="card">
-                <h3>📊 全校教研与能力画像大屏</h3>
-                <p style="font-size:13px;color:#94a3b8;margin-top:8px;">同步手机端雷达图，可视化班级语法错误排行榜与胜任力成果。</p>
-              </div>
-            </div>
+            <head><meta charset="UTF-8"><title>星梭智学 PC 端</title></head>
+            <body style="font-family: sans-serif; padding: 20px;">
+              <h2>星梭智学 PC 电脑版已启动</h2>
+              <p>请直接访问 Web 客户端首页。</p>
             </body>
             </html>
-        """.trimIndent()
+            """.trimIndent()
+        }
     }
 }

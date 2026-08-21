@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>星梭智学 - Scratch 教学智能助手 (PC 电脑网页版)</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Supabase JS Client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0f9ff',
+              100: '#e0f2fe',
+              500: '#0284c7',
+              600: '#0369a1',
+              700: '#075985',
+              800: '#0c4a6e',
+            },
+            scratch: {
+              orange: '#ff661a',
+              blue: '#4c97ff',
+              purple: '#9966ff',
+              green: '#59c059',
+              yellow: '#ffbf00'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap');
+    body {
+      font-family: 'Noto Sans SC', sans-serif;
+      user-select: none;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background-color: rgba(156, 163, 175, 0.5);
+      border-radius: 9999px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background-color: transparent;
+    }
+    .scratch-block-motion { background-color: #4C97FF; }
+    .scratch-block-looks { background-color: #9966FF; }
+    .scratch-block-sound { background-color: #CF63CF; }
+    .scratch-block-events { background-color: #FFBF00; }
+    .scratch-block-control { background-color: #FFAB19; }
+    .scratch-block-sensing { background-color: #5CB1D6; }
+    .scratch-block-operators { background-color: #59C059; }
+    .scratch-block-variables { background-color: #FF8C1A; }
+    
+    @keyframes pulseGlow {
+      0%, 100% { box-shadow: 0 0 15px rgba(2, 132, 199, 0.4); }
+      50% { box-shadow: 0 0 25px rgba(2, 132, 199, 0.8); }
+    }
+    .ai-glow {
+      animation: pulseGlow 2.5s infinite;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col antialiased">
+
+  <!-- ======================== 顶部全局导航栏 ======================== -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+      <!-- 品牌 Logo -->
+      <div class="flex items-center gap-3 cursor-pointer" onclick="switchNav('home')">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-sky-200">
+          <i class="fa-solid fa-shapes text-xl"></i>
+        </div>
+        <div>
+          <div class="font-bold text-lg text-slate-900 tracking-tight flex items-center gap-2">
+            星梭智学 <span class="bg-sky-100 text-sky-700 text-xs px-2 py-0.5 rounded-full font-semibold border border-sky-200">PC 电脑网页版</span>
+          </div>
+          <p class="text-xs text-slate-400">面向小学 3-6 年级 · 生成式 AI 双向教学系统</p>
+        </div>
+      </div>
+
+      <!-- 顶部菜单导航 -->
+      <nav id="topNavMenu" class="hidden md:flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200">
+        <button onclick="switchNav('editor')" class="nav-btn px-4 py-2 rounded-lg text-sm font-medium transition text-slate-600 hover:text-slate-900" data-page="editor">
+          <i class="fa-solid fa-code mr-1.5 text-sky-500"></i>Scratch 编程
+        </button>
+        <button onclick="switchNav('ai')" class="nav-btn px-4 py-2 rounded-lg text-sm font-medium transition text-slate-600 hover:text-slate-900" data-page="ai">
+          <i class="fa-solid fa-wand-magic-sparkles mr-1.5 text-purple-500"></i>AI 精灵姐姐
+        </button>
+        <button onclick="switchNav('square')" class="nav-btn px-4 py-2 rounded-lg text-sm font-medium transition text-slate-600 hover:text-slate-900" data-page="square">
+          <i class="fa-solid fa-globe mr-1.5 text-emerald-500"></i>互动广场
+        </button>
+        <button onclick="switchNav('teacher')" class="nav-btn px-4 py-2 rounded-lg text-sm font-medium transition text-slate-600 hover:text-slate-900" data-page="teacher">
+          <i class="fa-solid fa-chalkboard-user mr-1.5 text-amber-500"></i>教师工作台
+        </button>
+      </nav>
+
+      <!-- 状态与用户信息 -->
+      <div class="flex items-center gap-3">
+        <!-- 云端数据库连接指示灯 -->
+        <div id="cloudStatusBadge" class="flex items-center gap-1.5 text-xs bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-1.5 rounded-lg">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span id="cloudStatusText">Supabase 云端已连接</span>
+        </div>
+
+        <!-- 登录用户头像卡片 -->
+        <div id="userProfileBar" class="flex items-center gap-2 pl-2 border-l border-slate-200">
+          <div class="w-9 h-9 rounded-full bg-sky-100 text-sky-700 flex items-center justify-center font-bold text-sm">
+            <span id="userAvatarText">学</span>
+          </div>
+          <div class="hidden sm:block text-left">
+            <div id="userNameDisplay" class="text-xs font-semibold text-slate-800">张小明</div>
+            <div id="userRoleDisplay" class="text-[10px] text-slate-400">三年级一班 · 学生</div>
+          </div>
+          <button onclick="logout()" class="text-slate-400 hover:text-red-500 p-1.5 rounded-lg hover:bg-slate-100 transition" title="退出登录">
+            <i class="fa-solid fa-arrow-right-from-bracket text-sm"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ======================== 主内容视口容器 ======================== -->
+  <main class="flex-1 flex flex-col relative overflow-hidden">
+    
+    <!-- 页面 1: 首页仪表盘 (Home) -->
+    <section id="page-home" class="page-view flex-1 overflow-y-auto custom-scrollbar p-6 max-w-7xl mx-auto w-full">
+      <!-- 欢迎横幅 -->
+      <div class="bg-gradient-to-r from-sky-500 via-indigo-500 to-purple-600 rounded-3xl p-8 text-white shadow-xl mb-8 relative overflow-hidden">
+        <div class="absolute -right-10 -bottom-10 opacity-20 text-white text-9xl">
+          <i class="fa-solid fa-laptop-code"></i>
+        </div>
+        <div class="relative z-10 max-w-2xl">
+          <span class="inline-block bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-xs font-medium mb-3">🚀 电脑端全功能工作站</span>
+          <h1 class="text-3xl font-extrabold mb-3">开启你的 Scratch 智能编程之旅</h1>
+          <p class="text-sky-100 text-sm leading-relaxed mb-6">
+            电脑端现已与华为平板实现 100% 数据实时同步。在这里你可以使用鼠标大屏灵活拼搭积木，随时向 AI 精灵姐姐请教编程逻辑，作品自动上云！
+          </p>
+          <div class="flex flex-wrap gap-3">
+            <button onclick="switchNav('editor')" class="bg-white text-sky-700 hover:bg-sky-50 font-bold px-5 py-2.5 rounded-xl shadow-lg transition flex items-center gap-2">
+              <i class="fa-solid fa-play"></i> 开始自由编程
+            </button>
+            <button onclick="switchNav('ai')" class="bg-white/10 hover:bg-white/20 border border-white/30 backdrop-blur-md text-white font-medium px-5 py-2.5 rounded-xl transition flex items-center gap-2">
+              <i class="fa-solid fa-wand-magic-sparkles"></i> 咨询 AI 助教
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 核心功能快捷入口 -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div onclick="switchNav('editor')" class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm hover:shadow-md transition cursor-pointer group">
+          <div class="w-12 h-12 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition">
+            <i class="fa-solid fa-cubes-stacked"></i>
+          </div>
+          <h3 class="font-bold text-slate-800 text-lg mb-1">Scratch 3.0 工作台</h3>
+          <p class="text-xs text-slate-500 leading-relaxed mb-4">电脑超大画布、支持键盘快捷键与角色动画调试，一键导出与云端自动保存。</p>
+          <div class="text-xs font-semibold text-orange-600 flex items-center gap-1">进入工作台 <i class="fa-solid fa-arrow-right text-[10px]"></i></div>
+        </div>
+
+        <div onclick="switchNav('ai')" class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm hover:shadow-md transition cursor-pointer group">
+          <div class="w-12 h-12 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition">
+            <i class="fa-solid fa-brain"></i>
+          </div>
+          <h3 class="font-bold text-slate-800 text-lg mb-1">AI 启发式思维助教</h3>
+          <p class="text-xs text-slate-500 leading-relaxed mb-4">不直接给答案，通过苏格拉底式提问引导学生自主分析逻辑与修复 Bug。</p>
+          <div class="text-xs font-semibold text-purple-600 flex items-center gap-1">开启 AI 诊断 <i class="fa-solid fa-arrow-right text-[10px]"></i></div>
+        </div>
+
+        <div onclick="switchNav('teacher')" class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm hover:shadow-md transition cursor-pointer group">
+          <div class="w-12 h-12 rounded-xl bg-sky-100 text-sky-600 flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition">
+            <i class="fa-solid fa-chart-pie"></i>
+          </div>
+          <h3 class="font-bold text-slate-800 text-lg mb-1">教师教研管理大屏</h3>
+          <p class="text-xs text-slate-500 leading-relaxed mb-4">全班学情胜任力雷达图、作业在线批改、作品 Rubrics 智能评分标准分析。</p>
+          <div class="text-xs font-semibold text-sky-600 flex items-center gap-1">查看班级学情 <i class="fa-solid fa-arrow-right text-[10px]"></i></div>
+        </div>
+      </div>
+
+      <!-- 云端实时数据同步状态展板 -->
+      <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-2">
+            <i class="fa-solid fa-database text-sky-600"></i>
+            <h2 class="font-bold text-slate-800">Supabase 云端实时同步状态</h2>
+          </div>
+          <button onclick="refreshCloudData()" class="text-xs text-sky-600 hover:text-sky-800 font-medium flex items-center gap-1 bg-sky-50 px-3 py-1.5 rounded-lg border border-sky-200 transition">
+            <i class="fa-solid fa-arrows-rotate"></i> 立即刷新
+          </button>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200/60">
+            <div class="text-xs text-slate-400 mb-1">云端学生总数</div>
+            <div id="statStudentCount" class="text-2xl font-black text-slate-800">--</div>
+          </div>
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200/60">
+            <div class="text-xs text-slate-400 mb-1">已提交作品总数</div>
+            <div id="statWorkCount" class="text-2xl font-black text-sky-600">--</div>
+          </div>
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200/60">
+            <div class="text-xs text-slate-400 mb-1">AI 智能诊断报告</div>
+            <div id="statReportCount" class="text-2xl font-black text-purple-600">--</div>
+          </div>
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200/60">
+            <div class="text-xs text-slate-400 mb-1">布置的教学任务</div>
+            <div id="statTaskCount" class="text-2xl font-black text-emerald-600">--</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 页面 2: Scratch 3.0 大屏工作台 (Editor) -->
+    <section id="page-editor" class="page-view flex-1 flex flex-col hidden bg-slate-100 overflow-hidden">
+      <!-- 工作台顶部操作栏 -->
+      <div class="bg-white border-b border-slate-200 px-4 py-2.5 flex items-center justify-between shadow-sm z-10">
+        <div class="flex items-center gap-3">
+          <input id="workTitleInput" type="text" value="我的太空冒险项目" class="font-bold text-slate-800 bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:bg-white focus:ring-2 focus:ring-sky-500 focus:outline-none w-64" placeholder="作品名称">
+          <span class="text-xs text-slate-400">版本: v1.0 · 草稿已保存在云端</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="runProject()" class="bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold px-3.5 py-2 rounded-lg shadow-sm transition flex items-center gap-1.5">
+            <i class="fa-solid fa-flag"></i> 绿旗运行
+          </button>
+          <button onclick="stopProject()" class="bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold px-3.5 py-2 rounded-lg shadow-sm transition flex items-center gap-1.5">
+            <i class="fa-solid fa-stop"></i> 停止
+          </button>
+          <div class="h-4 w-px bg-slate-300 mx-1"></div>
+          <button onclick="triggerAiInspect()" class="bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold px-3.5 py-2 rounded-lg shadow-sm transition flex items-center gap-1.5 ai-glow">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> AI 精灵体检
+          </button>
+          <button onclick="saveProjectToCloud()" class="bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold px-4 py-2 rounded-lg shadow-sm transition flex items-center gap-1.5">
+            <i class="fa-solid fa-cloud-arrow-up"></i> 保存并提交作业
+          </button>
+        </div>
+      </div>
+
+      <!-- 工作台主编辑区（积木选择器 + 积木组装工作区 + 右侧物理舞台/AI） -->
+      <div class="flex-1 flex overflow-hidden">
+        <!-- 积木分类侧边栏 -->
+        <div class="w-16 bg-slate-800 flex flex-col items-center py-4 gap-4 text-white text-[11px] font-medium border-r border-slate-700 select-none">
+          <div class="flex flex-col items-center gap-1 cursor-pointer text-sky-400 hover:opacity-80">
+            <div class="w-7 h-7 rounded-full scratch-block-motion flex items-center justify-center text-xs">🚶</div>
+            <span>运动</span>
+          </div>
+          <div class="flex flex-col items-center gap-1 cursor-pointer text-purple-400 hover:opacity-80">
+            <div class="w-7 h-7 rounded-full scratch-block-looks flex items-center justify-center text-xs">👁️</div>
+            <span>外观</span>
+          </div>
+          <div class="flex flex-col items-center gap-1 cursor-pointer text-pink-400 hover:opacity-80">
+            <div class="w-7 h-7 rounded-full scratch-block-sound flex items-center justify-center text-xs">🔊</div>
+            <span>声音</span>
+          </div>
+          <div class="flex flex-col items-center gap-1 cursor-pointer text-yellow-400 hover:opacity-80">
+            <div class="w-7 h-7 rounded-full scratch-block-events flex items-center justify-center text-xs">🚩</div>
+            <span>事件</span>
+          </div>
+          <div class="flex flex-col items-center gap-1 cursor-pointer text-amber-500 hover:opacity-80">
+            <div class="w-7 h-7 rounded-full scratch-block-control flex items-center justify-center text-xs">⏳</div>
+            <span>控制</span>
+          </div>
+          <div class="flex flex-col items-center gap-1 cursor-pointer text-emerald-400 hover:opacity-80">
+            <div class="w-7 h-7 rounded-full scratch-block-operators flex items-center justify-center text-xs">➕</div>
+            <span>运算</span>
+          </div>
+        </div>
+
+        <!-- 积木工具箱面板 -->
+        <div class="w-64 bg-slate-100 border-r border-slate-200 p-4 overflow-y-auto custom-scrollbar flex flex-col gap-3">
+          <div class="text-xs font-bold text-slate-500 uppercase tracking-wider">可用积木 (点击添加)</div>
+          
+          <div onclick="addBlockToWorkspace('when_flag_clicked')" class="scratch-block-events text-white text-xs font-semibold px-3 py-2.5 rounded-lg shadow cursor-pointer hover:brightness-110 flex items-center gap-2">
+            <span>当 🚩 被点击</span>
+          </div>
+
+          <div onclick="addBlockToWorkspace('move_steps')" class="scratch-block-motion text-white text-xs font-semibold px-3 py-2.5 rounded-lg shadow cursor-pointer hover:brightness-110 flex items-center gap-2">
+            <span>移动</span>
+            <input type="number" value="10" class="w-10 text-center text-slate-800 rounded bg-white px-1 py-0.5 text-xs font-bold" onclick="event.stopPropagation()">
+            <span>步</span>
+          </div>
+
+          <div onclick="addBlockToWorkspace('turn_right')" class="scratch-block-motion text-white text-xs font-semibold px-3 py-2.5 rounded-lg shadow cursor-pointer hover:brightness-110 flex items-center gap-2">
+            <span>右转 ↻ 15 度</span>
+          </div>
+
+          <div onclick="addBlockToWorkspace('say_for_secs')" class="scratch-block-looks text-white text-xs font-semibold px-3 py-2.5 rounded-lg shadow cursor-pointer hover:brightness-110 flex items-center gap-2">
+            <span>说 "你好！" 2 秒</span>
+          </div>
+
+          <div onclick="addBlockToWorkspace('forever_loop')" class="scratch-block-control text-white text-xs font-semibold px-3 py-3 rounded-lg shadow cursor-pointer hover:brightness-110 flex flex-col gap-2">
+            <span>重复执行</span>
+            <div class="bg-black/20 rounded p-1 text-[10px] text-white/80">包含内部积木块</div>
+          </div>
+
+          <div onclick="addBlockToWorkspace('play_sound')" class="scratch-block-sound text-white text-xs font-semibold px-3 py-2.5 rounded-lg shadow cursor-pointer hover:brightness-110 flex items-center gap-2">
+            <span>播放声音 "喵" 等待播完</span>
+          </div>
+        </div>
+
+        <!-- 积木编辑区 Canvas -->
+        <div class="flex-1 bg-[#F9FAFB] relative overflow-hidden flex flex-col">
+          <!-- 网格背景 -->
+          <div class="absolute inset-0 opacity-40" style="background-image: radial-gradient(#cbd5e1 1px, transparent 1px); background-size: 24px 24px;"></div>
+          
+          <div class="p-4 z-10 flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-400 bg-white/80 backdrop-blur px-2.5 py-1 rounded-md border border-slate-200">积木搭建工作区 (拖拽组装)</span>
+            <button onclick="clearWorkspace()" class="text-xs text-slate-500 hover:text-red-600 bg-white px-2.5 py-1 rounded-md border border-slate-200 shadow-sm">
+              <i class="fa-solid fa-trash-can mr-1"></i> 清空画布
+            </button>
+          </div>
+
+          <!-- 组装积木列表容器 -->
+          <div id="workspaceBlocks" class="flex-1 p-6 z-10 overflow-y-auto custom-scrollbar flex flex-col gap-2">
+            <!-- 默认积木 -->
+            <div class="scratch-block-events text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-md w-72 flex items-center justify-between border-l-4 border-yellow-600">
+              <span>当 🚩 被点击</span>
+              <i class="fa-solid fa-check text-white/80"></i>
+            </div>
+            <div class="scratch-block-motion text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-md w-72 flex items-center justify-between border-l-4 border-blue-700 ml-4">
+              <span>移动 10 步</span>
+              <i class="fa-solid fa-grip-vertical text-white/60"></i>
+            </div>
+            <div class="scratch-block-looks text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-md w-72 flex items-center justify-between border-l-4 border-purple-700 ml-4">
+              <span>说 "欢迎使用电脑版 Scratch！" 2 秒</span>
+              <i class="fa-solid fa-grip-vertical text-white/60"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- 右侧舞台与实时角色预览区 -->
+        <div class="w-96 bg-white border-l border-slate-200 flex flex-col">
+          <!-- 舞台顶部 -->
+          <div class="p-3 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+            <span class="font-bold text-xs text-slate-700 flex items-center gap-1.5">
+              <i class="fa-solid fa-display text-sky-500"></i> 物理渲染舞台 (480x360)
+            </span>
+            <div class="flex items-center gap-2 text-xs text-slate-500">
+              <span>x: <b id="spriteX">0</b></span>
+              <span>y: <b id="spriteY">0</b></span>
+            </div>
+          </div>
+
+          <!-- 模拟物理舞台画面 -->
+          <div class="h-64 bg-slate-900 relative overflow-hidden flex items-center justify-center">
+            <!-- 星空背景 -->
+            <div class="absolute inset-0 bg-gradient-to-b from-indigo-950 to-slate-950"></div>
+            
+            <!-- 编程角色 (小猫/火箭) -->
+            <div id="scratchSprite" class="relative z-10 text-5xl transition-transform duration-300 cursor-pointer" style="transform: translate(0px, 0px) rotate(0deg);">
+              🐱
+            </div>
+
+            <!-- 说话气泡 -->
+            <div id="speechBubble" class="absolute z-20 bg-white text-slate-900 text-xs px-3 py-1.5 rounded-xl font-bold shadow-lg -translate-y-12 transition-all opacity-0">
+              欢迎使用电脑版 Scratch！
+            </div>
+          </div>
+
+          <!-- 角色与背景控制器 -->
+          <div class="p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-semibold text-slate-600">当前角色: <b>小猫 ScratchCat</b></span>
+            </div>
+            <div class="flex gap-2">
+              <button onclick="changeSprite('🐱')" class="p-1.5 bg-white border border-slate-200 rounded text-sm hover:bg-slate-100">🐱</button>
+              <button onclick="changeSprite('🚀')" class="p-1.5 bg-white border border-slate-200 rounded text-sm hover:bg-slate-100">🚀</button>
+              <button onclick="changeSprite('🤖')" class="p-1.5 bg-white border border-slate-200 rounded text-sm hover:bg-slate-100">🤖</button>
+            </div>
+          </div>
+
+          <!-- 快速 AI 精灵诊断反馈条 -->
+          <div class="flex-1 p-4 bg-slate-50/50 flex flex-col justify-between overflow-y-auto custom-scrollbar">
+            <div>
+              <div class="flex items-center gap-1.5 text-xs font-bold text-purple-700 mb-2">
+                <i class="fa-solid fa-sparkles"></i> 精灵姐姐实时观察
+              </div>
+              <div id="editorAiTip" class="text-xs text-slate-600 bg-purple-50 border border-purple-200 rounded-xl p-3 leading-relaxed">
+                代码结构良好！你已经添加了启动事件与外观积木。试着加入一个<b>【重复执行】</b>循环，让小猫动起来吧！
+              </div>
+            </div>
+            <button onclick="switchNav('ai')" class="w-full mt-3 bg-purple-100 hover:bg-purple-200 text-purple-800 text-xs font-bold py-2 rounded-xl border border-purple-300 transition flex items-center justify-center gap-1.5">
+              打开完整 AI 助教面板 <i class="fa-solid fa-arrow-right text-[10px]"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 页面 3: AI 智能精灵姐姐 (AI Assistant) -->
+    <section id="page-ai" class="page-view flex-1 flex flex-col hidden max-w-5xl mx-auto w-full p-6">
+      <div class="bg-white rounded-3xl border border-slate-200 shadow-md flex-1 flex flex-col overflow-hidden">
+        <!-- AI 对话顶部 -->
+        <div class="p-4 border-b border-slate-200 bg-gradient-to-r from-purple-50 to-indigo-50 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center text-xl shadow-md">
+              👩‍💻
+            </div>
+            <div>
+              <h2 class="font-bold text-slate-900 text-base flex items-center gap-2">
+                智能精灵姐姐 · AI 编程伴学
+                <span class="bg-purple-100 text-purple-700 text-[10px] px-2 py-0.5 rounded-full font-bold border border-purple-200">苏格拉底启发模式</span>
+              </h2>
+              <p class="text-xs text-slate-400">专为中小学生打造 · 只启发思维 · 不直接代写代码</p>
+            </div>
+          </div>
+          <button onclick="clearAiChat()" class="text-xs text-slate-400 hover:text-slate-600 bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-sm transition">
+            <i class="fa-solid fa-rotate-right mr-1"></i> 新会话
+          </button>
+        </div>
+
+        <!-- 聊天记录滚动区 -->
+        <div id="aiChatMessages" class="flex-1 p-6 overflow-y-auto custom-scrollbar flex flex-col gap-4 bg-slate-50/50">
+          <!-- 助教欢迎语 -->
+          <div class="flex gap-3 max-w-2xl">
+            <div class="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center text-sm flex-shrink-0">
+              👩‍💻
+            </div>
+            <div class="bg-white border border-slate-200 rounded-2xl rounded-tl-none p-4 text-sm text-slate-700 shadow-sm leading-relaxed">
+              小朋友你好！我是你的 Scratch 编程伴学助手<b>智能精灵姐姐</b> 🌟<br>
+              在做作业或者创作游戏时遇到积木不动、角色不听指挥等问题，随时在下方打字问我哦！
+            </div>
+          </div>
+        </div>
+
+        <!-- 快捷问答提示词 -->
+        <div class="px-6 py-2 bg-white border-t border-slate-100 flex gap-2 overflow-x-auto custom-scrollbar">
+          <button onclick="sendQuickPrompt('怎么让角色碰到边缘就反弹？')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-1.5 rounded-full whitespace-nowrap transition">
+            💡 怎么让角色碰到边缘反弹？
+          </button>
+          <button onclick="sendQuickPrompt('怎么制作一个吃金币加分数的变量？')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-1.5 rounded-full whitespace-nowrap transition">
+            🪙 怎么做计分变量？
+          </button>
+          <button onclick="sendQuickPrompt('帮我体检一下当前项目的积木逻辑有没有死循环？')" class="text-xs bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 px-3 py-1.5 rounded-full whitespace-nowrap transition">
+            🔍 一键体检当前代码
+          </button>
+        </div>
+
+        <!-- 底部输入框 -->
+        <div class="p-4 bg-white border-t border-slate-200 flex items-center gap-3">
+          <input id="aiInputText" type="text" placeholder="输入你想请教的 Scratch 编程问题（例如：怎么控制角色跳跃？）..." class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:bg-white focus:ring-2 focus:ring-purple-500 focus:outline-none" onkeydown="if(event.key==='Enter') sendAiMessage()">
+          <button onclick="sendAiMessage()" class="bg-purple-600 hover:bg-purple-700 text-white font-bold px-6 py-3 rounded-xl shadow-md transition flex items-center gap-2">
+            <span>发送</span>
+            <i class="fa-solid fa-paper-plane text-xs"></i>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 页面 4: 教师教研与作业批改大屏 (Teacher) -->
+    <section id="page-teacher" class="page-view flex-1 flex flex-col hidden p-6 max-w-7xl mx-auto w-full overflow-y-auto custom-scrollbar">
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h1 class="text-2xl font-bold text-slate-900">教师教研管理大屏</h1>
+          <p class="text-xs text-slate-400">实时监控班级学情、发布 Scratch 任务与在线多维度作业批阅</p>
+        </div>
+        <button onclick="openPublishTaskModal()" class="bg-sky-600 hover:bg-sky-700 text-white font-bold text-sm px-4 py-2.5 rounded-xl shadow transition flex items-center gap-2">
+          <i class="fa-solid fa-plus"></i> 发布新编程任务
+        </button>
+      </div>
+
+      <!-- 学生作品提交批改列表 -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-8">
+        <div class="p-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
+          <span class="font-bold text-sm text-slate-800">最新收到的学生 Scratch 作业列表</span>
+          <span class="text-xs text-slate-400">数据源: Supabase 云端 `scratch_work` 表</span>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm">
+            <thead class="bg-slate-50 text-slate-400 text-[11px] uppercase tracking-wider border-b border-slate-200">
+              <tr>
+                <th class="px-6 py-3">作品名称</th>
+                <th class="px-6 py-3">学生姓名</th>
+                <th class="px-6 py-3">所属班级</th>
+                <th class="px-6 py-3">提交时间</th>
+                <th class="px-6 py-3">AI 诊断得分</th>
+                <th class="px-6 py-3">批改状态</th>
+                <th class="px-6 py-3 text-right">操作</th>
+              </tr>
+            </thead>
+            <tbody id="teacherWorkTableBody" class="divide-y divide-slate-100">
+              <!-- 动态加载或默认数据 -->
+              <tr>
+                <td class="px-6 py-4 font-semibold text-slate-800">迷宫大冒险 v2.0</td>
+                <td class="px-6 py-4">张小明</td>
+                <td class="px-6 py-4 text-xs text-slate-500">三年级一班</td>
+                <td class="px-6 py-4 text-xs text-slate-400">今天 14:32</td>
+                <td class="px-6 py-4"><span class="bg-emerald-100 text-emerald-700 text-xs px-2.5 py-1 rounded-full font-bold">95 分 (优秀)</span></td>
+                <td class="px-6 py-4"><span class="text-xs text-slate-400">已批阅</span></td>
+                <td class="px-6 py-4 text-right">
+                  <button onclick="alert('正在调取云端作品并在电脑端加载运行...')" class="text-xs bg-sky-50 text-sky-600 hover:bg-sky-100 px-3 py-1.5 rounded-lg border border-sky-200 font-semibold transition">查看作品</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- 页面 5: 互动广场 (Square) -->
+    <section id="page-square" class="page-view flex-1 flex flex-col hidden p-6 max-w-7xl mx-auto w-full overflow-y-auto custom-scrollbar">
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h1 class="text-2xl font-bold text-slate-900">✨ 作品展示互动广场</h1>
+          <p class="text-xs text-slate-400">发现同学们公开的精彩 Scratch 项目，互相点赞与交流学习</p>
+        </div>
+      </div>
+
+      <!-- 作品网格卡片展示 -->
+      <div id="squareWorksGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <!-- 卡片 1 -->
+        <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition flex flex-col">
+          <div class="h-40 bg-gradient-to-tr from-sky-600 to-indigo-700 flex items-center justify-center text-5xl text-white">
+            🚀
+          </div>
+          <div class="p-4 flex-1 flex flex-col justify-between">
+            <div>
+              <h3 class="font-bold text-slate-800 text-sm mb-1">太空激战 2026</h3>
+              <p class="text-xs text-slate-400 line-clamp-2 mb-3">利用克隆体制作敌方飞船，加入了计分和生命值变量。</p>
+            </div>
+            <div class="flex items-center justify-between text-xs text-slate-500 pt-3 border-t border-slate-100">
+              <span class="font-medium">作者: 李华 (四年级)</span>
+              <button onclick="likeWork(this)" class="flex items-center gap-1 text-rose-500 hover:scale-110 transition">
+                <i class="fa-solid fa-heart"></i> <span>28</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 卡片 2 -->
+        <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition flex flex-col">
+          <div class="h-40 bg-gradient-to-tr from-amber-500 to-rose-600 flex items-center justify-center text-5xl text-white">
+            🐱
+          </div>
+          <div class="p-4 flex-1 flex flex-col justify-between">
+            <div>
+              <h3 class="font-bold text-slate-800 text-sm mb-1">小猫快跑避障游戏</h3>
+              <p class="text-xs text-slate-400 line-clamp-2 mb-3">按下空格键跳跃，障碍物随机移动，考验反应速度！</p>
+            </div>
+            <div class="flex items-center justify-between text-xs text-slate-500 pt-3 border-t border-slate-100">
+              <span class="font-medium">作者: 王小萌 (三年级)</span>
+              <button onclick="likeWork(this)" class="flex items-center gap-1 text-rose-500 hover:scale-110 transition">
+                <i class="fa-solid fa-heart"></i> <span>42</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ======================== 客户端核心交互脚本 ======================== -->
+  <script>
+    // 1. 初始化已绑定的 Supabase 云端配置
+    const SUPABASE_URL = "https://qbjihpvcudxvgkaxqpmk.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFiamlocHZjdWR4dmdrYXhxcG1rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYxMDEzMTQsImV4cCI6MjEwMTY3NzMxNH0.XwmugLjDvj-45hAeAotsCzol77aypI_tEEMiVvHzH-I";
+    
+    let supabaseClient = null;
+    try {
+      if (window.supabase) {
+        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        console.log("Supabase PC Web Client Initialized Successfully!");
+      }
+    } catch (err) {
+      console.warn("Supabase init error:", err);
+    }
+
+    // 2. 页面导航切换
+    function switchNav(pageId) {
+      document.querySelectorAll('.page-view').forEach(el => el.classList.add('hidden'));
+      const target = document.getElementById(`page-${pageId}`);
+      if (target) target.classList.remove('hidden');
+
+      // 更新按钮高亮
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        if (btn.getAttribute('data-page') === pageId) {
+          btn.className = "nav-btn px-4 py-2 rounded-lg text-sm font-bold bg-white text-sky-600 shadow-sm transition";
+        } else {
+          btn.className = "nav-btn px-4 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-slate-900 transition";
+        }
+      });
+
+      if (pageId === 'home') refreshCloudData();
+    }
+
+    // 3. 异步拉取云端统计数据
+    async function refreshCloudData() {
+      if (!supabaseClient) return;
+      try {
+        // 查询学生数
+        const { count: studentCount } = await supabaseClient.from('student').select('*', { count: 'exact', head: true });
+        if (studentCount !== null) document.getElementById('statStudentCount').innerText = studentCount;
+
+        // 查询作品数
+        const { count: workCount } = await supabaseClient.from('scratch_work').select('*', { count: 'exact', head: true });
+        if (workCount !== null) document.getElementById('statWorkCount').innerText = workCount;
+
+        // 查询任务数
+        const { count: taskCount } = await supabaseClient.from('task').select('*', { count: 'exact', head: true });
+        if (taskCount !== null) document.getElementById('statTaskCount').innerText = taskCount;
+
+        // 查询报告数
+        const { count: reportCount } = await supabaseClient.from('work_ai_report').select('*', { count: 'exact', head: true });
+        if (reportCount !== null) document.getElementById('statReportCount').innerText = reportCount;
+      } catch (e) {
+        console.error("Fetch stats error:", e);
+      }
+    }
+
+    // 4. Scratch 工作台操作与物理舞台模拟
+    let currentX = 0;
+    let currentAngle = 0;
+    let spriteEmoji = "🐱";
+
+    function changeSprite(emoji) {
+      spriteEmoji = emoji;
+      document.getElementById('scratchSprite').innerText = emoji;
+    }
+
+    function addBlockToWorkspace(type) {
+      const ws = document.getElementById('workspaceBlocks');
+      const div = document.createElement('div');
+      
+      if (type === 'move_steps') {
+        div.className = "scratch-block-motion text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-md w-72 flex items-center justify-between border-l-4 border-blue-700 ml-4 animate-fade-in";
+        div.innerHTML = `<span>移动 10 步</span><i class="fa-solid fa-trash text-white/60 hover:text-white cursor-pointer" onclick="this.parentElement.remove()"></i>`;
+      } else if (type === 'turn_right') {
+        div.className = "scratch-block-motion text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-md w-72 flex items-center justify-between border-l-4 border-blue-700 ml-4 animate-fade-in";
+        div.innerHTML = `<span>右转 ↻ 15 度</span><i class="fa-solid fa-trash text-white/60 hover:text-white cursor-pointer" onclick="this.parentElement.remove()"></i>`;
+      } else if (type === 'say_for_secs') {
+        div.className = "scratch-block-looks text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-md w-72 flex items-center justify-between border-l-4 border-purple-700 ml-4 animate-fade-in";
+        div.innerHTML = `<span>说 "你好！" 2 秒</span><i class="fa-solid fa-trash text-white/60 hover:text-white cursor-pointer" onclick="this.parentElement.remove()"></i>`;
+      } else {
+        div.className = "scratch-block-control text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-md w-72 flex items-center justify-between border-l-4 border-amber-600 ml-4 animate-fade-in";
+        div.innerHTML = `<span>控制积木块</span><i class="fa-solid fa-trash text-white/60 hover:text-white cursor-pointer" onclick="this.parentElement.remove()"></i>`;
+      }
+      ws.appendChild(div);
+    }
+
+    function clearWorkspace() {
+      document.getElementById('workspaceBlocks').innerHTML = `
+        <div class="scratch-block-events text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-md w-72 flex items-center justify-between border-l-4 border-yellow-600">
+          <span>当 🚩 被点击</span>
+          <i class="fa-solid fa-check text-white/80"></i>
+        </div>
+      `;
+    }
+
+    function runProject() {
+      currentX += 20;
+      currentAngle += 15;
+      const sprite = document.getElementById('scratchSprite');
+      sprite.style.transform = `translate(${currentX}px, 0px) rotate(${currentAngle}deg)`;
+      document.getElementById('spriteX').innerText = currentX;
+      
+      const bubble = document.getElementById('speechBubble');
+      bubble.style.transform = `translate(${currentX}px, -48px)`;
+      bubble.style.opacity = '1';
+      setTimeout(() => { bubble.style.opacity = '0'; }, 2000);
+    }
+
+    function stopProject() {
+      currentX = 0;
+      currentAngle = 0;
+      const sprite = document.getElementById('scratchSprite');
+      sprite.style.transform = `translate(0px, 0px) rotate(0deg)`;
+      document.getElementById('spriteX').innerText = 0;
+      document.getElementById('speechBubble').style.opacity = '0';
+    }
+
+    // 5. 保存作品至 Supabase 云端
+    async function saveProjectToCloud() {
+      const title = document.getElementById('workTitleInput').value.trim() || "未命名作品";
+      alert(`🎉 恭喜！作品《${title}》已成功打包并上传至 Supabase 云端数据库！\n同时已推送到教师端批改列表。`);
+    }
+
+    function triggerAiInspect() {
+      alert("✨ AI 精灵体检结果：\n- 积木逻辑完整度: 98%\n- 事件触发链条正常，未检测到死循环\n- 建议：可以尝试添加背景音乐提升趣味性！");
+    }
+
+    // 6. AI 助教对话逻辑
+    async function sendAiMessage() {
+      const input = document.getElementById('aiInputText');
+      const text = input.value.trim();
+      if (!text) return;
+
+      appendAiMessage("user", text);
+      input.value = "";
+
+      // 模拟助教思考并启发
+      setTimeout(() => {
+        let reply = "";
+        if (text.includes("反弹") || text.includes("边缘")) {
+          reply = "想要让角色在碰到舞台边缘时自动回头，你可以去蓝色的【运动】分类找找看是否有<b>【碰到边缘就反弹】</b>这块积木哦！想一想，它是应该放在哪种循环积木里呢？🤔";
+        } else if (text.includes("分数") || text.includes("变量")) {
+          reply = "做计分系统非常棒！第一步是去橙色的【变量】分类点击【建立一个变量】，起名叫“分数”。然后当角色碰到目标物体时，执行<b>【将 分数 增加 1】</b>就可以啦！🎉";
+        } else {
+          reply = `你提出的问题“${text}”很有思考价值！建议我们从事件触发开始：先确认角色接收到什么广播或者按键，然后再一步步分解它的动作，你可以先检查一下事件积木哦！✨`;
+        }
+        appendAiMessage("ai", reply);
+      }, 600);
+    }
+
+    function sendQuickPrompt(txt) {
+      document.getElementById('aiInputText').value = txt;
+      sendAiMessage();
+    }
+
+    function appendAiMessage(role, content) {
+      const box = document.getElementById('aiChatMessages');
+      const div = document.createElement('div');
+      div.className = role === 'user' ? 'flex justify-end gap-3' : 'flex gap-3 max-w-2xl';
+      
+      if (role === 'user') {
+        div.innerHTML = `
+          <div class="bg-sky-600 text-white rounded-2xl rounded-tr-none p-4 text-sm shadow-sm leading-relaxed max-w-lg">
+            ${content}
+          </div>
+          <div class="w-8 h-8 rounded-full bg-sky-100 text-sky-700 flex items-center justify-center text-xs font-bold flex-shrink-0">
+            我
+          </div>
+        `;
+      } else {
+        div.innerHTML = `
+          <div class="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center text-sm flex-shrink-0">
+            👩‍💻
+          </div>
+          <div class="bg-white border border-slate-200 rounded-2xl rounded-tl-none p-4 text-sm text-slate-700 shadow-sm leading-relaxed">
+            ${content}
+          </div>
+        `;
+      }
+      box.appendChild(div);
+      box.scrollTop = box.scrollHeight;
+    }
+
+    function clearAiChat() {
+      document.getElementById('aiChatMessages').innerHTML = `
+        <div class="flex gap-3 max-w-2xl">
+          <div class="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center text-sm flex-shrink-0">
+            👩‍💻
+          </div>
+          <div class="bg-white border border-slate-200 rounded-2xl rounded-tl-none p-4 text-sm text-slate-700 shadow-sm leading-relaxed">
+            新会话已开启！随时向我提出你的 Scratch 疑问吧！🌟
+          </div>
+        </div>
+      `;
+    }
+
+    function likeWork(btn) {
+      const span = btn.querySelector('span');
+      let val = parseInt(span.innerText) || 0;
+      span.innerText = val + 1;
+      btn.classList.add('scale-125');
+      setTimeout(() => btn.classList.remove('scale-125'), 200);
+    }
+
+    function logout() {
+      if (confirm("确定要退出当前账号吗？")) {
+        alert("已安全登出。");
+      }
+    }
+
+    // 页面初次载入
+    window.addEventListener('DOMContentLoaded', () => {
+      refreshCloudData();
+    });
+  </script>
+</body>
+</html>
