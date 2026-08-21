@@ -2535,91 +2535,99 @@ window.loadProject = function(jsonInput) {
     }
     
     activeBlocks = [];
-    if (obj && obj.targets && Array.isArray(obj.targets)) {
+    if (Array.isArray(obj)) {
+      activeBlocks = JSON.parse(JSON.stringify(obj));
+    } else if (obj && obj.targets && Array.isArray(obj.targets)) {
       obj.targets.forEach(t => {
         if (t.variables) {
           projectVariables = { ...projectVariables, ...t.variables };
         }
-        if (t && t.blocks && typeof t.blocks === 'object') {
-          const rawBlocks = t.blocks;
-          const childIds = new Set();
-          
-          // 1. 扫描所有 SUBSTACK 建立父子关系
-          for (let id in rawBlocks) {
-            const b = rawBlocks[id];
-            if (b && b.inputs && b.inputs.SUBSTACK) {
-              const subVal = b.inputs.SUBSTACK;
-              let rootChildId = null;
-              if (Array.isArray(subVal)) {
-                rootChildId = (subVal.length >= 2) ? subVal[1] : subVal[0];
-              } else if (typeof subVal === 'string') {
-                rootChildId = subVal;
-              }
-              
-              let curId = rootChildId;
-              while (curId && rawBlocks[curId]) {
-                childIds.add(curId);
-                curId = rawBlocks[curId].next;
-              }
-            }
-          }
-
-          // 递归抽取单块及参数
-          function convertRawBlock(id, b) {
-            const op = b.opcode || 'motion_movesteps';
-            const zhLabel = OP_TRANSLATE_MAP[op] || op;
-            const isCont = (op === 'control_repeat' || op === 'control_forever' || op === 'control_if');
-            const params = {};
+        if (t && t.blocks) {
+          if (Array.isArray(t.blocks)) {
+            activeBlocks = JSON.parse(JSON.stringify(t.blocks));
+          } else if (typeof t.blocks === 'object') {
+            const rawBlocks = t.blocks;
+            const childIds = new Set();
             
-            if (b.fields) {
-              for (let f in b.fields) {
-                const val = Array.isArray(b.fields[f]) ? b.fields[f][0] : b.fields[f];
-                if (f.toLowerCase().includes('style')) params.style = val;
-                else if (f.toLowerCase().includes('key')) params.key = val;
-                else params[f.toLowerCase()] = val;
-              }
-            }
-            if (b.inputs) {
-              for (let inp in b.inputs) {
-                if (inp !== 'SUBSTACK') {
-                  const arr = b.inputs[inp];
-                  const val = Array.isArray(arr) ? arr[arr.length - 1] : arr;
-                  if (inp === 'STEPS') params.steps = Number(val) || 10;
-                  else if (inp === 'DEGREES') params.degrees = Number(val) || 15;
-                  else if (inp === 'DX') params.dx = Number(val) || 10;
-                  else if (inp === 'DY') params.dy = Number(val) || 10;
+            // 1. 扫描所有 SUBSTACK 建立父子关系
+            for (let id in rawBlocks) {
+              const b = rawBlocks[id];
+              if (b && b.inputs && b.inputs.SUBSTACK) {
+                const subVal = b.inputs.SUBSTACK;
+                let rootChildId = null;
+                if (Array.isArray(subVal)) {
+                  rootChildId = (subVal.length >= 2) ? subVal[1] : subVal[0];
+                } else if (typeof subVal === 'string') {
+                  rootChildId = subVal;
+                }
+                
+                let curId = rootChildId;
+                while (curId && rawBlocks[curId]) {
+                  childIds.add(curId);
+                  curId = rawBlocks[curId].next;
                 }
               }
             }
 
-            const children = [];
-            if (isCont && b.inputs && b.inputs.SUBSTACK) {
-              const subVal = b.inputs.SUBSTACK;
-              let curId = Array.isArray(subVal) ? ((subVal.length >= 2) ? subVal[1] : subVal[0]) : subVal;
-              while (curId && rawBlocks[curId]) {
-                children.push(convertRawBlock(curId, rawBlocks[curId]));
-                curId = rawBlocks[curId].next;
+            // 递归抽取单块及参数
+            function convertRawBlock(id, b) {
+              const op = b.opcode || 'motion_movesteps';
+              const zhLabel = OP_TRANSLATE_MAP[op] || op;
+              const isCont = (op === 'control_repeat' || op === 'control_forever' || op === 'control_if');
+              const params = {};
+              
+              if (b.fields) {
+                for (let f in b.fields) {
+                  const val = Array.isArray(b.fields[f]) ? b.fields[f][0] : b.fields[f];
+                  if (f.toLowerCase().includes('style')) params.style = val;
+                  else if (f.toLowerCase().includes('key')) params.key = val;
+                  else params[f.toLowerCase()] = val;
+                }
               }
+              if (b.inputs) {
+                for (let inp in b.inputs) {
+                  if (inp !== 'SUBSTACK') {
+                    const arr = b.inputs[inp];
+                    const val = Array.isArray(arr) ? arr[arr.length - 1] : arr;
+                    if (inp === 'STEPS') params.steps = Number(val) || 10;
+                    else if (inp === 'DEGREES') params.degrees = Number(val) || 15;
+                    else if (inp === 'DX') params.dx = Number(val) || 10;
+                    else if (inp === 'DY') params.dy = Number(val) || 10;
+                  }
+                }
+              }
+
+              const children = [];
+              if (isCont && b.inputs && b.inputs.SUBSTACK) {
+                const subVal = b.inputs.SUBSTACK;
+                let curId = Array.isArray(subVal) ? ((subVal.length >= 2) ? subVal[1] : subVal[0]) : subVal;
+                while (curId && rawBlocks[curId]) {
+                  children.push(convertRawBlock(curId, rawBlocks[curId]));
+                  curId = rawBlocks[curId].next;
+                }
+              }
+
+              return {
+                id: id,
+                opcode: op,
+                label: zhLabel,
+                isContainer: isCont,
+                params: params,
+                children: children
+              };
             }
 
-            return {
-              id: id,
-              opcode: op,
-              label: zhLabel,
-              isContainer: isCont,
-              params: params,
-              children: children
-            };
-          }
-
-          // 2. 将顶层积木放入 activeBlocks
-          for (let id in rawBlocks) {
-            if (!childIds.has(id)) {
-              activeBlocks.push(convertRawBlock(id, rawBlocks[id]));
+            // 2. 将顶层积木放入 activeBlocks
+            for (let id in rawBlocks) {
+              if (!childIds.has(id)) {
+                activeBlocks.push(convertRawBlock(id, rawBlocks[id]));
+              }
             }
           }
         }
       });
+    } else if (obj && obj.blocks && Array.isArray(obj.blocks)) {
+      activeBlocks = JSON.parse(JSON.stringify(obj.blocks));
     }
     
     updateWorkspaceUI();
@@ -2629,6 +2637,11 @@ window.loadProject = function(jsonInput) {
     logMessage('❌ 解析作业 JSON 异常: ' + e.message);
   }
 };
+
+window.runProject = runScratchBlocks;
+window.stopProject = stopScratchBlocks;
+window.runGreenFlag = runScratchBlocks;
+window.stopAll = stopScratchBlocks;
 
 window.onload = function() {
   renderPalette('motion');
@@ -2677,6 +2690,8 @@ window.onload = function() {
     }
     setTimeout(tryFetchAndLoad, 200);
     setTimeout(tryFetchAndLoad, 600);
+  }
+
   // 监听来自父级网页 (index.html / web_portal.html) 的 postMessage 指令
   window.addEventListener('message', function(event) {
     if (!event.data || typeof event.data !== 'object') return;
@@ -2701,9 +2716,9 @@ window.onload = function() {
           codeSummary: summary
         }, '*');
       }
-    } else if (type === 'RUN_GREEN_FLAG') {
+    } else if (type === 'RUN_GREEN_FLAG' || type === 'RUN_PROJECT') {
       if (typeof window.runGreenFlag === 'function') window.runGreenFlag();
-    } else if (type === 'STOP_ALL') {
+    } else if (type === 'STOP_ALL' || type === 'STOP_PROJECT') {
       if (typeof window.stopAll === 'function') window.stopAll();
     }
   });
