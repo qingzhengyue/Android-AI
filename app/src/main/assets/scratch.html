@@ -945,26 +945,12 @@ function selectActiveVariable(varName) {
 }
 
 function promptDeleteVariable(varName) {
-  const dialogHtml = `
-    <div class="modal-dialog" style="max-width:320px;" onclick="event.stopPropagation()">
-      <div class="modal-header-bar">
-        <div class="modal-title" style="color:#ef4444;">🗑️ 删除变量</div>
-        <span class="del-btn" onclick="closeModal()" style="font-size:16px;">✕</span>
-      </div>
-      <div class="modal-scroll-body">
-        <div style="font-size:13px;color:#334155;font-weight:700;">确定要删除变量 <span style="color:#ea580c;background:#fff7ed;padding:2px 6px;border-radius:4px;border:1px solid #fed7aa;">📦 ${varName}</span> 吗？</div>
-        <div style="font-size:11px;color:#94a3b8;margin-top:4px;">删除后，舞台监控和积木库中将不再保留该变量。</div>
-      </div>
-      <div class="modal-footer-bar" style="justify-content:flex-end;gap:8px;">
-        <button class="modal-btn modal-btn-cancel" onclick="closeModal()">取消</button>
-        <button class="modal-btn" style="background:#ef4444;color:#fff;box-shadow:0 2px 6px rgba(239,68,68,0.35);" onclick="executeDeleteVariable('${varName}')">确认删除</button>
-      </div>
-    </div>
-  `;
-  openModal(dialogHtml);
+  executeDeleteVariable(varName);
 }
 
 function executeDeleteVariable(varName) {
+  if (!varName) return;
+  
   delete projectVariables[varName];
   delete visibleVariables[varName];
   
@@ -982,7 +968,8 @@ function executeDeleteVariable(varName) {
 }
 
 function deleteVariable(varName) {
-  promptDeleteVariable(varName);
+  if (!varName) return;
+  executeDeleteVariable(varName);
 }
 
 // 全中文、精准映射的 Scratch 3.0 Opcode 映射字典 (绝对杜绝任何英文 Opcode 泄露)

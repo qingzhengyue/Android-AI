@@ -521,13 +521,32 @@
 
     <!-- 5. 互动作品广场 -->
     <section id="page-square" class="page-view flex-1 hidden overflow-y-auto custom-scrollbar p-6 max-w-7xl mx-auto w-full">
-      <div class="flex items-center justify-between mb-6">
+      <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
         <div>
           <h2 class="text-2xl font-bold text-slate-900">作品互动广场</h2>
-          <p class="text-xs text-slate-500 mt-1">探索班级与全校同学创作的精彩 Scratch 游戏与动画，互相点赞交流</p>
+          <p class="text-xs text-slate-500 mt-1">探索全校同学创作的多样化 Scratch 游戏与动画，差异化五维评分与互动交流</p>
+        </div>
+
+        <!-- 差异化评分等级与排序筛选 -->
+        <div class="flex flex-wrap items-center gap-3">
+          <div class="flex items-center gap-1.5 bg-white border border-slate-200 p-1 rounded-2xl shadow-sm">
+            <button onclick="setSquareTierFilter('all')" id="tierBtn-all" class="tier-chip active text-xs font-bold px-3 py-1.5 rounded-xl bg-sky-600 text-white transition">全部评级</button>
+            <button onclick="setSquareTierFilter('legend')" id="tierBtn-legend" class="tier-chip text-xs font-bold px-3 py-1.5 rounded-xl text-slate-600 hover:bg-amber-50 hover:text-amber-700 transition">🏆 殿堂级 (95+)</button>
+            <button onclick="setSquareTierFilter('excellent')" id="tierBtn-excellent" class="tier-chip text-xs font-bold px-3 py-1.5 rounded-xl text-slate-600 hover:bg-purple-50 hover:text-purple-700 transition">🥇 卓越 (90-94)</button>
+            <button onclick="setSquareTierFilter('good')" id="tierBtn-good" class="tier-chip text-xs font-bold px-3 py-1.5 rounded-xl text-slate-600 hover:bg-emerald-50 hover:text-emerald-700 transition">🥈 良好 (80-89)</button>
+            <button onclick="setSquareTierFilter('progress')" id="tierBtn-progress" class="tier-chip text-xs font-bold px-3 py-1.5 rounded-xl text-slate-600 hover:bg-blue-50 hover:text-blue-700 transition">🥉 进阶 (70-79)</button>
+            <button onclick="setSquareTierFilter('needWork')" id="tierBtn-needWork" class="tier-chip text-xs font-bold px-3 py-1.5 rounded-xl text-slate-600 hover:bg-slate-100 hover:text-slate-700 transition">🛠️ 待打磨 (<70)</button>
+          </div>
+
+          <select id="squareSortSelect" onchange="renderOpenHall()" class="bg-white border border-slate-200 text-xs font-bold text-slate-700 px-3 py-2 rounded-xl shadow-sm focus:outline-none">
+            <option value="score_desc">💯 按综合评分由高到低</option>
+            <option value="likes_desc">🔥 按点赞热度从多到少</option>
+            <option value="time_desc">⏰ 按最新提交时间</option>
+          </select>
         </div>
       </div>
-      <div id="openHallWorksList" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+      <div id="openHallWorksList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <!-- 动态由 JS 渲染 -->
       </div>
     </section>
@@ -734,16 +753,31 @@
 
     <!-- 9. 教师端: 在线作业批改中心 -->
     <section id="page-teacher-grading" class="page-view flex-1 hidden overflow-y-auto custom-scrollbar p-6 max-w-7xl mx-auto w-full">
-      <div class="flex items-center justify-between mb-6">
+      <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
         <div>
           <h2 class="text-2xl font-bold text-slate-900">作业在线批改与评审中心</h2>
-          <p class="text-xs text-slate-500 mt-1">查看学生提交的实际 Scratch 积木工程，参考 AI 五维诊断评分并给出个性化评语</p>
+          <p class="text-xs text-slate-500 mt-1">查看学生提交的实际 Scratch 积木工程、支持转换为 Python 代码审查，参考 AI 五维诊断评分并给出个性化评语</p>
         </div>
-        <select id="gradingStatusFilter" onchange="renderGradingWorks()" class="bg-white border border-slate-200 text-xs font-medium text-slate-700 px-3 py-2 rounded-xl shadow-sm focus:outline-none">
-          <option value="all">全部提交作品</option>
-          <option value="pending">待批改作品</option>
-          <option value="graded">已完成批改</option>
-        </select>
+        
+        <!-- 班级类型筛选与批改状态筛选 -->
+        <div class="flex flex-wrap items-center gap-3">
+          <select id="gradingClassFilter" onchange="renderGradingWorks()" class="bg-white border border-slate-200 text-xs font-bold text-slate-700 px-3 py-2 rounded-xl shadow-sm focus:outline-none">
+            <option value="all">🏫 全部班级</option>
+            <option value="1">三年级一班</option>
+            <option value="2">四年级二班</option>
+          </select>
+
+          <select id="gradingStatusFilter" onchange="renderGradingWorks()" class="bg-white border border-slate-200 text-xs font-medium text-slate-700 px-3 py-2 rounded-xl shadow-sm focus:outline-none">
+            <option value="all">📋 全部批改状态</option>
+            <option value="pending">⏳ 待批改作品</option>
+            <option value="graded">✅ 已完成批改</option>
+          </select>
+
+          <div class="relative">
+            <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-xs text-slate-400"></i>
+            <input id="gradingSearchInput" oninput="renderGradingWorks()" type="text" placeholder="搜索学生姓名/作品名..." class="bg-white border border-slate-200 text-xs text-slate-700 pl-8 pr-3 py-2 rounded-xl shadow-sm focus:outline-none w-44">
+          </div>
+        </div>
       </div>
 
       <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden" id="teacherGradingTableContainer">
@@ -912,52 +946,130 @@
     </div>
   </div>
 
-  <!-- 3. 教师批改作业模态框 -->
+  <!-- 3. 教师批改作业模态框 (深度支持 Scratch 积木树视图与 Python 源码转换) -->
   <div id="gradingModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center hidden p-4">
-    <div class="bg-white rounded-3xl max-w-2xl w-full p-6 shadow-2xl border border-slate-200 max-h-[90vh] overflow-y-auto custom-scrollbar">
-      <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
+    <div class="bg-white rounded-3xl max-w-4xl w-full p-6 shadow-2xl border border-slate-200 max-h-[92vh] flex flex-col">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100 flex-shrink-0">
         <div>
-          <h3 id="gradingModalTitle" class="text-lg font-bold text-slate-900">批改作业: 《张小帅的猫咪漫步作品》</h3>
-          <p class="text-xs text-slate-400 mt-0.5">实时调阅学生积木工程代码与 AI 预评分报告</p>
+          <h3 id="gradingModalTitle" class="text-lg font-bold text-slate-900 flex items-center gap-2">
+            <span>批改作业: 《张小帅的猫咪漫步作品》</span>
+          </h3>
+          <p id="gradingModalSubtitle" class="text-xs text-slate-400 mt-0.5">三年级一班 · 学号 3101 · 提交于 2026-08-20 14:30</p>
         </div>
-        <button onclick="closeGradingModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+        <button onclick="closeGradingModal()" class="text-slate-400 hover:text-slate-600 text-lg w-8 h-8 rounded-full hover:bg-slate-100 flex items-center justify-center transition"><i class="fa-solid fa-xmark"></i></button>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
-        <!-- 左侧: 积木代码解析 -->
-        <div class="flex flex-col gap-3">
-          <div class="text-xs font-bold text-slate-700">学生提交代码概要</div>
-          <div id="gradingWorkSummary" class="bg-slate-900 text-sky-300 font-mono text-xs p-4 rounded-2xl h-44 overflow-y-auto custom-scrollbar leading-relaxed whitespace-pre-wrap"></div>
-          <div class="p-3 bg-purple-50 rounded-xl border border-purple-100 text-xs">
-            <span class="font-bold text-purple-800">AI 预估五维分数: <b id="gradingAiScore">92</b> 分</span>
-            <div id="gradingAiComment" class="text-[11px] text-purple-700 mt-1"></div>
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 mt-4 flex-1 min-h-0 overflow-y-auto custom-scrollbar pr-1">
+        <!-- 左侧 (7列): 3-Tab 视图检查器 (积木视图 / Python代码 / AI报告) -->
+        <div class="lg:col-span-7 flex flex-col gap-3 min-h-[380px]">
+          <!-- 标签切换导航 -->
+          <div class="flex items-center gap-1.5 bg-slate-100 p-1 rounded-2xl flex-shrink-0">
+            <button type="button" onclick="switchGradingTab('blocks')" id="gradingTabBtn-blocks" class="grading-tab-btn flex-1 py-1.5 px-3 text-xs font-bold rounded-xl bg-white text-sky-700 shadow-sm transition flex items-center justify-center gap-1.5">
+              <i class="fa-solid fa-shapes text-sky-600"></i>
+              <span>🧩 Scratch积木视图</span>
+            </button>
+            <button type="button" onclick="switchGradingTab('python')" id="gradingTabBtn-python" class="grading-tab-btn flex-1 py-1.5 px-3 text-xs font-bold rounded-xl text-slate-600 hover:text-slate-900 transition flex items-center justify-center gap-1.5">
+              <i class="fa-brands fa-python text-emerald-600"></i>
+              <span>🐍 转化为Python代码</span>
+            </button>
+            <button type="button" onclick="switchGradingTab('ai')" id="gradingTabBtn-ai" class="grading-tab-btn flex-1 py-1.5 px-3 text-xs font-bold rounded-xl text-slate-600 hover:text-slate-900 transition flex items-center justify-center gap-1.5">
+              <i class="fa-solid fa-wand-magic-sparkles text-purple-600"></i>
+              <span>📊 AI五维诊断</span>
+            </button>
+          </div>
+
+          <!-- 内容面板 1: Scratch 积木树视图 -->
+          <div id="gradingTabContent-blocks" class="grading-tab-pane flex-1 bg-slate-50 border border-slate-200 rounded-2xl p-3.5 overflow-y-auto custom-scrollbar flex flex-col gap-2 min-h-[300px]">
+            <div class="flex items-center justify-between text-[11px] text-slate-500 pb-1 border-b border-slate-200/80 mb-1">
+              <span class="font-bold flex items-center gap-1"><i class="fa-solid fa-cube text-sky-500"></i> Scratch 3.0 语法积木树结构</span>
+              <span class="text-[10px] bg-sky-100 text-sky-700 px-2 py-0.5 rounded-full font-mono">Visual Blocks Tree</span>
+            </div>
+            <div id="gradingScratchBlocksContainer" class="space-y-2 text-xs">
+              <!-- 动态由 JS 渲染积木卡片 -->
+            </div>
+          </div>
+
+          <!-- 内容面板 2: Python 转换源代码视图 -->
+          <div id="gradingTabContent-python" class="grading-tab-pane hidden flex-1 bg-slate-900 text-slate-100 border border-slate-800 rounded-2xl p-3.5 overflow-y-auto custom-scrollbar flex flex-col gap-2 min-h-[300px]">
+            <div class="flex items-center justify-between text-[11px] text-slate-400 pb-2 border-b border-slate-800 flex-shrink-0">
+              <span class="font-bold flex items-center gap-1.5 text-emerald-400"><i class="fa-brands fa-python text-emerald-400"></i> Python 3.10 等价逻辑转换源码</span>
+              <button onclick="copyGradingPythonCode()" class="bg-slate-800 hover:bg-slate-700 text-emerald-300 text-[10px] px-2.5 py-1 rounded-lg border border-slate-700 flex items-center gap-1 transition">
+                <i class="fa-regular fa-copy"></i> 复制代码
+              </button>
+            </div>
+            <pre id="gradingPythonCodePre" class="font-mono text-xs text-sky-300 leading-relaxed whitespace-pre overflow-x-auto flex-1 custom-scrollbar"></pre>
+          </div>
+
+          <!-- 内容面板 3: AI 五维诊断视图 -->
+          <div id="gradingTabContent-ai" class="grading-tab-pane hidden flex-1 bg-purple-50/60 border border-purple-100 rounded-2xl p-4 overflow-y-auto custom-scrollbar flex flex-col gap-3 min-h-[300px]">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-purple-900 flex items-center gap-1.5"><i class="fa-solid fa-chart-pie text-purple-600"></i> AI 五维 Rubric 量化评分</span>
+              <span class="text-xs font-black text-purple-700 bg-white border border-purple-200 px-2.5 py-0.5 rounded-full">综合得分: <b id="gradingAiScore" class="text-sm">92</b> 分</span>
+            </div>
+
+            <!-- 维度条 -->
+            <div class="grid grid-cols-2 gap-2 text-[11px]">
+              <div class="bg-white p-2.5 rounded-xl border border-purple-100">
+                <div class="text-slate-500 flex justify-between"><span>语法表达</span><b id="gradingGrammarScore" class="text-purple-700">23/25分</b></div>
+                <div class="w-full bg-slate-100 h-1.5 rounded-full mt-1.5 overflow-hidden"><div id="gradingGrammarBar" class="bg-purple-600 h-full rounded-full" style="width:92%"></div></div>
+              </div>
+              <div class="bg-white p-2.5 rounded-xl border border-purple-100">
+                <div class="text-slate-500 flex justify-between"><span>逻辑完整</span><b id="gradingLogicScore" class="text-purple-700">28/30分</b></div>
+                <div class="w-full bg-slate-100 h-1.5 rounded-full mt-1.5 overflow-hidden"><div id="gradingLogicBar" class="bg-purple-600 h-full rounded-full" style="width:93%"></div></div>
+              </div>
+              <div class="bg-white p-2.5 rounded-xl border border-purple-100">
+                <div class="text-slate-500 flex justify-between"><span>任务契合</span><b id="gradingTaskScore" class="text-purple-700">23/25分</b></div>
+                <div class="w-full bg-slate-100 h-1.5 rounded-full mt-1.5 overflow-hidden"><div id="gradingTaskBar" class="bg-purple-600 h-full rounded-full" style="width:92%"></div></div>
+              </div>
+              <div class="bg-white p-2.5 rounded-xl border border-purple-100">
+                <div class="text-slate-500 flex justify-between"><span>创新思维</span><b id="gradingCreativeScore" class="text-purple-700">18/20分</b></div>
+                <div class="w-full bg-slate-100 h-1.5 rounded-full mt-1.5 overflow-hidden"><div id="gradingCreativeBar" class="bg-purple-600 h-full rounded-full" style="width:90%"></div></div>
+              </div>
+            </div>
+
+            <div class="p-3 bg-white rounded-xl border border-purple-100 text-xs">
+              <div class="font-bold text-purple-900 mb-1 flex items-center gap-1"><i class="fa-solid fa-lightbulb text-amber-500"></i> AI 智能代码诊断意见：</div>
+              <div id="gradingAiComment" class="text-slate-600 leading-relaxed text-[11px]"></div>
+            </div>
           </div>
         </div>
 
-        <!-- 右侧: 教师评分表单 -->
-        <div class="flex flex-col gap-4 bg-slate-50 p-5 rounded-2xl border border-slate-200">
-          <div>
-            <label class="text-xs font-bold text-slate-700 block mb-1">教师最终打分 (0-100)</label>
-            <input id="gradingTeacherScoreInput" type="number" value="92" min="0" max="100" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm font-bold text-slate-800">
-          </div>
-          <div>
-            <label class="text-xs font-bold text-slate-700 block mb-1">评阅结论</label>
-            <select id="gradingStatusSelect" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2 text-xs font-bold text-slate-800">
-              <option value="approved">优秀 / 审核通过</option>
-              <option value="returned">退回重做 (需要继续完善)</option>
-            </select>
-          </div>
+        <!-- 右侧 (5列): 教师打分与个性化指导表单 -->
+        <div class="lg:col-span-5 flex flex-col gap-3.5 bg-slate-50 p-4 rounded-2xl border border-slate-200 flex-shrink-0">
           <div>
             <div class="flex items-center justify-between mb-1">
-              <label class="text-xs font-bold text-slate-700">教师指导评语</label>
-              <button type="button" onclick="generateAiTeacherFeedback()" class="text-[11px] bg-purple-100 hover:bg-purple-200 text-purple-800 font-bold px-2.5 py-1 rounded-lg border border-purple-200 flex items-center gap-1 transition shadow-sm" title="根据当前学生代码优缺点与评分智能一键生成鼓励性评语">
-                <i class="fa-solid fa-wand-magic-sparkles text-purple-600"></i> AI 智能一键生成评语
+              <label class="text-xs font-bold text-slate-700">教师最终打分 (0-100分)</label>
+              <div class="flex items-center gap-1">
+                <button type="button" onclick="setGradingScorePreset(95)" class="text-[10px] bg-white border border-slate-200 px-1.5 py-0.5 rounded text-slate-600 hover:bg-sky-50 hover:text-sky-700 font-bold">95优</button>
+                <button type="button" onclick="setGradingScorePreset(85)" class="text-[10px] bg-white border border-slate-200 px-1.5 py-0.5 rounded text-slate-600 hover:bg-emerald-50 hover:text-emerald-700 font-bold">85良</button>
+                <button type="button" onclick="setGradingScorePreset(75)" class="text-[10px] bg-white border border-slate-200 px-1.5 py-0.5 rounded text-slate-600 hover:bg-amber-50 hover:text-amber-700 font-bold">75及格</button>
+                <button type="button" onclick="setGradingScorePreset(60)" class="text-[10px] bg-white border border-slate-200 px-1.5 py-0.5 rounded text-slate-600 hover:bg-rose-50 hover:text-rose-700 font-bold">60重做</button>
+              </div>
+            </div>
+            <input id="gradingTeacherScoreInput" type="number" value="92" min="0" max="100" class="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2 text-sm font-black text-slate-900 focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-100">
+          </div>
+
+          <div>
+            <label class="text-xs font-bold text-slate-700 block mb-1">评审结论</label>
+            <select id="gradingStatusSelect" class="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-sky-500">
+              <option value="approved">✅ 审核通过 / 成绩优秀 (录入学生成长档案)</option>
+              <option value="returned">↩️ 退回重做 (需要学生在工作台继续修改完善)</option>
+            </select>
+          </div>
+
+          <div class="flex-1 flex flex-col">
+            <div class="flex items-center justify-between mb-1">
+              <label class="text-xs font-bold text-slate-700">教师个性化指导评语</label>
+              <button type="button" onclick="generateAiTeacherFeedback()" class="text-[10px] bg-purple-100 hover:bg-purple-200 text-purple-800 font-bold px-2 py-1 rounded-lg border border-purple-200 flex items-center gap-1 transition shadow-sm" title="根据当前学生代码优缺点与评分智能一键生成鼓励性评语">
+                <i class="fa-solid fa-wand-magic-sparkles text-purple-600"></i> AI 一键生成评语
               </button>
             </div>
-            <textarea id="gradingTeacherFeedback" rows="4" class="w-full bg-white border border-slate-200 rounded-xl p-3 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500" placeholder="写下对该同学积木逻辑的肯定与修改建议..."></textarea>
+            <textarea id="gradingTeacherFeedback" rows="5" class="w-full bg-white border border-slate-200 rounded-xl p-3 text-xs text-slate-800 focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-100 leading-relaxed resize-none flex-1" placeholder="写下对该同学积木逻辑的肯定与具体指导建议..."></textarea>
           </div>
-          <button onclick="submitTeacherGrading()" class="bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs py-3 rounded-xl shadow transition mt-auto">
-            <i class="fa-solid fa-check mr-1"></i> 确认保存批改结果并同步云端
+
+          <button onclick="submitTeacherGrading()" class="bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs py-2.5 rounded-xl shadow-md transition flex items-center justify-center gap-1.5">
+            <i class="fa-solid fa-check"></i>
+            <span>保存批改结果并回传学生端</span>
           </button>
         </div>
       </div>
@@ -1263,10 +1375,10 @@
           gameType: "cat_walk",
           likes: 128,
           status: "approved",
-          score: 92,
+          score: 91,
           submitTime: "2026-08-20 14:30",
           codeSummary: "[1] 当 🟢 被点击;\n[2] 将旋转方式设为 [左右翻转];\n[3] 重复执行 [无限循环] -> 嵌套内部包含[移动 10 步, 下一个造型, 等待 0.1 秒, 碰到边缘就反弹];",
-          rubric: { grammar: 23, logic: 28, taskMatch: 23, creative: 18 },
+          rubric: { grammar: 23, logic: 27, taskMatch: 23, creative: 18 },
           aiFeedback: "双向弹跳与造型切换逻辑写得非常规范生动，积木无死循环阻塞，角色物理动作流畅。",
           teacherFeedback: "双向弹跳与造型切换逻辑写得非常规范生动，小猫咪十分欢快！",
           comments: [
@@ -1287,11 +1399,11 @@
           gameType: "fruit_catch",
           likes: 256,
           status: "pending",
-          score: 88,
+          score: 81,
           submitTime: "2026-08-20 16:15",
           codeSummary: "[1] 当 🟢 被点击;\n[2] 将变量 [得分] 设为 0;\n[3] 碗角色: 重复执行 -> 如果 [按下右箭头] 那么 [将 x 坐标增加 12]; 如果 [按下左箭头] 那么 [将 x 坐标增加 -12];\n[4] 苹果角色: 重复执行 -> [将 y 坐标增加 -6]; 如果 [碰到 碗] 那么 [将变量 [得分] 增加 1, 移到 x: (随机数) y: 140];",
-          rubric: { grammar: 22, logic: 26, taskMatch: 22, creative: 18 },
-          aiFeedback: "建议在碰到水果时让变量【得分】增加 1 并播放 Pop 音效，游戏趣味性更佳。",
+          rubric: { grammar: 21, logic: 24, taskMatch: 21, creative: 15 },
+          aiFeedback: "建议在碰到水果时让变量【得分】增加 1 并播放 Pop 音效，并在开始时初始化水果掉落速度，游戏趣味性更佳。",
           teacherFeedback: "接水果与方向键控制响应灵敏，得分变量逻辑清晰！",
           comments: [
             { user: "张小帅", text: "太好玩了！我用左右键接了 12 个苹果！🍎", time: "5分钟前" },
@@ -1311,11 +1423,11 @@
           gameType: "cat_dance",
           likes: 89,
           status: "approved",
-          score: 85,
+          score: 76,
           submitTime: "2026-08-20 18:00",
           codeSummary: "[1] 当 🟢 被点击;\n[2] 重复执行 [无限循环] -> [右转 15 度, 等待 0.2 秒, 左转 30 度, 等待 0.2 秒, 右转 15 度, 等待 0.2 秒];\n[3] 当角色被点击 -> [播放声音 Meow, 说 '哎哟不错哦! 🎵' 1 秒];",
-          rubric: { grammar: 21, logic: 25, taskMatch: 21, creative: 18 },
-          aiFeedback: "小猫节奏摇摆富有创意，建议结合音频积木强化音画互动体验。",
+          rubric: { grammar: 19, logic: 22, taskMatch: 20, creative: 15 },
+          aiFeedback: "小猫节奏摇摆富有创意，建议结合音频积木强化音画互动体验，并在运动中添加位移积木。",
           teacherFeedback: "基础旋转与节拍逻辑已搭建，很有音乐律动感！",
           comments: [
             { user: "张小帅", text: "摇摆的节奏感绝了，超酷！😎", time: "15分钟前" },
@@ -1335,10 +1447,10 @@
           gameType: "basketball",
           likes: 198,
           status: "approved",
-          score: 95,
+          score: 94,
           submitTime: "2026-08-20 19:10",
           codeSummary: "[1] 当 🟢 被点击;\n[2] 将变量 [得分] 设为 0, 将变量 [垂直速度] 设为 12;\n[3] 重复执行 -> [将 y 坐标增加 垂直速度, 将变量 [垂直速度] 增加 -1]; 如果 [y 坐标 < -100] 那么 [将垂直速度设为 12];\n[4] 如果 [碰到 篮筐] 那么 [将变量 [得分] 增加 2, 说 '进球! 🎉' 1 秒];",
-          rubric: { grammar: 24, logic: 29, taskMatch: 24, creative: 18 },
+          rubric: { grammar: 24, logic: 28, taskMatch: 24, creative: 18 },
           aiFeedback: "重力加速度与反弹算法极为严谨，模拟出了真实的物理抛物线效果！",
           teacherFeedback: "巧妙利用变量实现物理抛物线，思维极具创造力！",
           comments: [
@@ -1359,12 +1471,12 @@
           gameType: "ski_rush",
           likes: 342,
           status: "approved",
-          score: 96,
+          score: 98,
           submitTime: "2026-08-20 20:00",
           codeSummary: "[1] 当 🟢 被点击;\n[2] 重复执行 -> 如果 [按下左箭头] 那么 [左转 10 度, 将 x 增加 -8]; 如果 [按下右箭头] 那么 [右转 10 度, 将 x 增加 8];\n[3] 障碍物松树: 重复执行 -> [将 y 增加 -10]; 如果 [y 坐标 < -160] 那么 [移到 x: (随机数) y: 160, 将变量 [得分] 增加 1];",
-          rubric: { grammar: 25, logic: 29, taskMatch: 24, creative: 18 },
-          aiFeedback: "动态雪道渲染与双向避障响应迅速，障碍物重置逻辑严丝合缝。",
-          teacherFeedback: "综合运用坐标位移与条件判断，滑雪动态生动逼真！",
+          rubric: { grammar: 25, logic: 29, taskMatch: 25, creative: 19 },
+          aiFeedback: "殿堂级优秀作品！动态雪道渲染与双向避障响应迅速，障碍物重置逻辑严丝合缝，交互极佳。",
+          teacherFeedback: "综合运用坐标位移与条件判断，滑雪动态生动逼真！堪称全校范本！",
           comments: [
             { user: "张小帅", text: "滑雪速度感太强了，避障超刺激！⛷️", time: "3分钟前" },
             { user: "蔡徐坤", text: "障碍物的随机生成机制设计得非常棒！", time: "14分钟前" },
@@ -1383,11 +1495,11 @@
           gameType: "space_ship",
           likes: 165,
           status: "approved",
-          score: 91,
+          score: 86,
           submitTime: "2026-08-20 20:45",
           codeSummary: "[1] 当 🟢 被点击;\n[2] 重复执行 -> [面向 鼠标指针, 移动 4 步];\n[3] 当按下 [空格] 键 -> [克隆 [激光子弹], 播放声音 Laser];\n[4] 当作为克隆体启动时 -> 重复执行 [将 y 坐标增加 15, 如果碰到陨石则删除此克隆体, 将变量 [得分] 增加 1];",
-          rubric: { grammar: 23, logic: 28, taskMatch: 22, creative: 18 },
-          aiFeedback: "克隆体机制运用娴熟，激光发射与碰撞销毁生命周期控制得当。",
+          rubric: { grammar: 22, logic: 26, taskMatch: 21, creative: 17 },
+          aiFeedback: "克隆体机制运用娴熟，激光发射与碰撞销毁生命周期控制得当，建议在消灭陨石时增加爆炸动画特效。",
           teacherFeedback: "事件驱动与克隆体生命周期管理得当，逻辑完整！",
           comments: [
             { user: "谷爱凌", text: "星际飞行的操控感非常丝滑！🚀", time: "18分钟前" },
@@ -1397,26 +1509,93 @@
         },
         {
           id: 7,
-          workName: "林华华的深海小鱼吐泡泡",
+          workName: "林华华的基础小猫走动",
           studentName: "林华华",
           studentNumber: "3107",
           studentId: 7,
           taskId: 1,
           classId: 1,
           className: "三年级一班",
-          gameType: "underwater_fish",
-          likes: 112,
-          status: "approved",
-          score: 90,
+          gameType: "cat_walk",
+          likes: 42,
+          status: "pending",
+          score: 68,
           submitTime: "2026-08-20 21:15",
-          codeSummary: "[1] 当 🟢 被点击;\n[2] 重复执行 -> [移动 6 步, 下一个造型, 等待 0.08 秒, 碰到边缘就反弹];\n[3] 当角色被点击 -> [克隆 [水泡], 播放声音 Bubble, 将大小设为 120%, 等待 0.2 秒后复原];",
-          rubric: { grammar: 23, logic: 27, taskMatch: 22, creative: 18 },
-          aiFeedback: "深海生态与角色动画极为生动，点击交互音效反馈自然。",
-          teacherFeedback: "造型切换平滑，克隆气泡向上漂浮的代码很巧妙！",
+          codeSummary: "[1] 当 🟢 被点击;\n[2] 重复执行 [无限循环] -> [移动 10 步];",
+          rubric: { grammar: 18, logic: 20, taskMatch: 17, creative: 13 },
+          aiFeedback: "小猫能够向前移动，但缺少了【碰到边缘就反弹】与【将旋转方式设为左右翻转】积木，小猫很快会跑出舞台边界。",
+          teacherFeedback: "已实现基础移动，请补充边缘反弹和造型切换积木继续完善！",
           comments: [
-            { user: "李小美", text: "水草小鱼的动画配合特别治愈！🐠", time: "30分钟前" },
-            { user: "张小帅", text: "吐泡泡的克隆体飘升效果很精巧！🫧", time: "1小时前" },
-            { user: "王老师", text: "造型切换自然，反弹与事件监听结合得很好。", time: "2小时前" }
+            { user: "李小美", text: "加上边缘反弹就更棒啦，加油！💪", time: "30分钟前" },
+            { user: "张小帅", text: "可以参考我的旋转方式设为左右翻转哦！", time: "1小时前" }
+          ]
+        },
+        {
+          id: 8,
+          workName: "王小飞的太空星际救援",
+          studentName: "王小飞",
+          studentNumber: "4201",
+          studentId: 26,
+          taskId: 4,
+          classId: 2,
+          className: "四年级二班",
+          gameType: "space_ship",
+          likes: 175,
+          status: "pending",
+          score: 92,
+          submitTime: "2026-08-20 21:40",
+          codeSummary: "[1] 当 🟢 被点击;\n[2] 将变量 [氧气值] 设为 100;\n[3] 重复执行 -> [面向 鼠标指针, 移动 5 步, 等待 0.1 秒, 将变量 [氧气值] 增加 -1];\n[4] 如果 [碰到 空间站] 那么 [将变量 [氧气值] 设为 100, 播放声音 Win];",
+          rubric: { grammar: 23, logic: 28, taskMatch: 23, creative: 18 },
+          aiFeedback: "氧气倒计时与补给站机制构思精妙，双变量联动控制逻辑非常清晰！",
+          teacherFeedback: "太空生存机制富有创意，变量设计极具巧思！",
+          comments: [
+            { user: "易烊千玺", text: "氧气倒计时的紧张感太棒了！👨‍🚀", time: "10分钟前" },
+            { user: "邓紫棋", text: "空间站补给音效很带感！", time: "25分钟前" }
+          ]
+        },
+        {
+          id: 9,
+          workName: "易烊千玺的迷宫黑线反弹寻宝",
+          studentName: "易烊千玺",
+          studentNumber: "4203",
+          studentId: 28,
+          taskId: 3,
+          classId: 2,
+          className: "四年级二班",
+          gameType: "maze_runner",
+          likes: 280,
+          status: "approved",
+          score: 97,
+          submitTime: "2026-08-20 22:10",
+          codeSummary: "[1] 当 🟢 被点击;\n[2] 移到 x: -200 y: 140;\n[3] 重复执行 -> 如果 [按下右箭头] 那么 [将 x 增加 6]; 如果 [按下左箭头] 那么 [将 x 增加 -6]; 如果 [按下上箭头] 那么 [将 y 增加 6]; 如果 [按下下箭头] 那么 [将 y 增加 -6];\n[4] 如果 [碰到 黑色迷宫墙壁] 那么 [移动 -15 步, 播放声音 Bonk]; 如果 [碰到 金币宝箱] 那么 [说 '闯关胜利! 🏆' 2 秒, 停止全部脚本];",
+          rubric: { grammar: 25, logic: 29, taskMatch: 24, creative: 19 },
+          aiFeedback: "黑线颜色侦测与碰撞物理后退逻辑极为精炼，关卡胜利判定与音效联动极具沉浸感！",
+          teacherFeedback: "四向方向键与颜色碰撞后退逻辑结构极其工整，表现极其优异！",
+          comments: [
+            { user: "王小飞", text: "迷宫难度刚刚好，黑线反弹太灵敏了！🎮", time: "5分钟前" },
+            { user: "赵丽颖", text: "走到宝箱时的烟花特效太赞了！", time: "15分钟前" }
+          ]
+        },
+        {
+          id: 10,
+          workName: "邓紫棋的音乐小猫节奏练习",
+          studentName: "邓紫棋",
+          studentNumber: "4221",
+          studentId: 46,
+          taskId: 4,
+          classId: 2,
+          className: "四年级二班",
+          gameType: "cat_dance",
+          likes: 65,
+          status: "approved",
+          score: 74,
+          submitTime: "2026-08-20 22:30",
+          codeSummary: "[1] 当 🟢 被点击;\n[2] 重复执行 [无限循环] -> [播放声音 Drum, 等待 0.5 秒, 播放声音 Snare, 等待 0.5 秒];",
+          rubric: { grammar: 19, logic: 21, taskMatch: 19, creative: 15 },
+          aiFeedback: "节奏循环清晰，建议加入角色跳跃或者造型切换外观积木，实现音画同步律动。",
+          teacherFeedback: "节拍音效设定准确，可加入按键触发不同音符的交互！",
+          comments: [
+            { user: "易烊千玺", text: "鼓点节奏很有感觉！🥁", time: "12分钟前" }
           ]
         }
       ]
@@ -2128,46 +2307,130 @@
       document.getElementById('lightboxImg').style.transform = 'scale(1)';
     }
 
-    // --- 9. 互动广场与在线试玩 ---
+    // --- 9. 互动广场与在线试玩 (支持五维评分精细分层与差异化展示) ---
+    let currentSquareTier = 'all';
+
+    function setSquareTierFilter(tier) {
+      currentSquareTier = tier;
+      document.querySelectorAll('.tier-chip').forEach(btn => {
+        btn.classList.remove('bg-sky-600', 'text-white');
+        btn.classList.add('text-slate-600');
+      });
+      const activeBtn = document.getElementById(`tierBtn-${tier}`);
+      if (activeBtn) {
+        activeBtn.classList.remove('text-slate-600');
+        activeBtn.classList.add('bg-sky-600', 'text-white');
+      }
+      renderOpenHall();
+    }
+
     function renderOpenHall() {
       const container = document.getElementById('openHallWorksList');
       if (!container) return;
-      container.innerHTML = state.works.map(w => {
-        // 保障每位学生作业具有真实且独一无二的点赞数与个性化展示
-        const likeCount = w.likes !== undefined ? w.likes : (50 + (w.id * 37) % 250);
-        w.likes = likeCount;
 
-        // 根据作品类型展示专属标签与图标
+      const sortMode = document.getElementById('squareSortSelect')?.value || 'score_desc';
+
+      let filteredWorks = [...state.works];
+
+      // 分层筛选
+      if (currentSquareTier === 'legend') {
+        filteredWorks = filteredWorks.filter(w => w.score >= 95);
+      } else if (currentSquareTier === 'excellent') {
+        filteredWorks = filteredWorks.filter(w => w.score >= 90 && w.score < 95);
+      } else if (currentSquareTier === 'good') {
+        filteredWorks = filteredWorks.filter(w => w.score >= 80 && w.score < 90);
+      } else if (currentSquareTier === 'progress') {
+        filteredWorks = filteredWorks.filter(w => w.score >= 70 && w.score < 80);
+      } else if (currentSquareTier === 'needWork') {
+        filteredWorks = filteredWorks.filter(w => w.score < 70);
+      }
+
+      // 排序
+      if (sortMode === 'score_desc') {
+        filteredWorks.sort((a, b) => b.score - a.score);
+      } else if (sortMode === 'likes_desc') {
+        filteredWorks.sort((a, b) => b.likes - a.likes);
+      } else if (sortMode === 'time_desc') {
+        filteredWorks.sort((a, b) => b.id - a.id);
+      }
+
+      if (filteredWorks.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-full py-12 text-center text-slate-400 bg-white rounded-3xl border border-slate-200">
+            <i class="fa-solid fa-shapes text-3xl mb-2 text-slate-300"></i>
+            <p class="text-xs">该评级分类下暂无学生作品，可切换其他评级或全部查看</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = filteredWorks.map(w => {
+        // 分数等级标识与星级
+        let tierBadge = '';
+        let starHtml = '';
+        if (w.score >= 95) {
+          tierBadge = '<span class="bg-amber-100 text-amber-900 border border-amber-300 text-[10px] px-2 py-0.5 rounded-full font-black flex items-center gap-1 shadow-sm">🏆 殿堂级 ' + w.score + '分</span>';
+          starHtml = '⭐⭐⭐⭐⭐';
+        } else if (w.score >= 90) {
+          tierBadge = '<span class="bg-purple-100 text-purple-900 border border-purple-300 text-[10px] px-2 py-0.5 rounded-full font-black flex items-center gap-1 shadow-sm">🥇 卓越之作 ' + w.score + '分</span>';
+          starHtml = '⭐⭐⭐⭐<span class="text-slate-300">★</span>';
+        } else if (w.score >= 80) {
+          tierBadge = '<span class="bg-emerald-100 text-emerald-900 border border-emerald-300 text-[10px] px-2 py-0.5 rounded-full font-black flex items-center gap-1 shadow-sm">🥈 良好进阶 ' + w.score + '分</span>';
+          starHtml = '⭐⭐⭐⭐';
+        } else if (w.score >= 70) {
+          tierBadge = '<span class="bg-blue-100 text-blue-900 border border-blue-300 text-[10px] px-2 py-0.5 rounded-full font-black flex items-center gap-1 shadow-sm">🥉 潜力探索 ' + w.score + '分</span>';
+          starHtml = '⭐⭐⭐<span class="text-slate-300">★★</span>';
+        } else {
+          tierBadge = '<span class="bg-slate-100 text-slate-700 border border-slate-300 text-[10px] px-2 py-0.5 rounded-full font-black flex items-center gap-1 shadow-sm">🛠️ 待打磨 ' + w.score + '分</span>';
+          starHtml = '⭐⭐<span class="text-slate-300">★★★</span>';
+        }
+
+        // 专属游戏标签
         const gameTagMap = {
-          cat_walk: '<span class="bg-amber-100 text-amber-700 text-[10px] px-2 py-0.5 rounded-full font-bold">🐱 角色漫步</span>',
-          fruit_catch: '<span class="bg-emerald-100 text-emerald-700 text-[10px] px-2 py-0.5 rounded-full font-bold">🍎 接水果小游戏</span>',
-          cat_dance: '<span class="bg-purple-100 text-purple-700 text-[10px] px-2 py-0.5 rounded-full font-bold">🎵 节奏音效</span>',
-          basketball: '<span class="bg-orange-100 text-orange-700 text-[10px] px-2 py-0.5 rounded-full font-bold">🏀 物理重力抛物</span>',
-          ski_rush: '<span class="bg-cyan-100 text-cyan-700 text-[10px] px-2 py-0.5 rounded-full font-bold">⛷️ 极速避障</span>',
-          space_ship: '<span class="bg-indigo-100 text-indigo-700 text-[10px] px-2 py-0.5 rounded-full font-bold">🚀 太空射击克隆</span>',
-          underwater_fish: '<span class="bg-teal-100 text-teal-700 text-[10px] px-2 py-0.5 rounded-full font-bold">🐠 水族馆动画</span>'
+          cat_walk: '<span class="bg-amber-50 text-amber-700 border border-amber-200 text-[10px] px-2 py-0.5 rounded-full font-bold">🐱 角色漫步</span>',
+          fruit_catch: '<span class="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] px-2 py-0.5 rounded-full font-bold">🍎 接水果小游戏</span>',
+          cat_dance: '<span class="bg-purple-50 text-purple-700 border border-purple-200 text-[10px] px-2 py-0.5 rounded-full font-bold">🎵 节奏音效</span>',
+          basketball: '<span class="bg-orange-50 text-orange-700 border border-orange-200 text-[10px] px-2 py-0.5 rounded-full font-bold">🏀 物理重力抛物</span>',
+          ski_rush: '<span class="bg-cyan-50 text-cyan-700 border border-cyan-200 text-[10px] px-2 py-0.5 rounded-full font-bold">⛷️ 极速避障</span>',
+          space_ship: '<span class="bg-indigo-50 text-indigo-700 border border-indigo-200 text-[10px] px-2 py-0.5 rounded-full font-bold">🚀 太空星际探险</span>',
+          maze_runner: '<span class="bg-teal-50 text-teal-700 border border-teal-200 text-[10px] px-2 py-0.5 rounded-full font-bold">🎮 迷宫黑线反弹</span>'
         };
-        const tagHtml = gameTagMap[w.gameType] || '<span class="bg-sky-100 text-sky-700 text-[10px] px-2 py-0.5 rounded-full font-bold">🎮 Scratch创意</span>';
+        const tagHtml = gameTagMap[w.gameType] || '<span class="bg-sky-50 text-sky-700 border border-sky-200 text-[10px] px-2 py-0.5 rounded-full font-bold">🎮 Scratch创意</span>';
+
+        const r = w.rubric || { grammar: 22, logic: 26, taskMatch: 22, creative: 18 };
 
         return `
           <div class="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm hover:shadow-md transition flex flex-col justify-between">
             <div>
               <div class="flex items-center justify-between mb-3">
                 <div class="flex items-center gap-2">
-                  <div class="w-7 h-7 rounded-full bg-sky-100 text-sky-700 flex items-center justify-center font-bold text-xs">学</div>
+                  <div class="w-8 h-8 rounded-full bg-sky-100 text-sky-700 flex items-center justify-center font-bold text-xs">
+                    ${w.studentName.slice(0, 1)}
+                  </div>
                   <div>
                     <div class="text-xs font-bold text-slate-900">${w.studentName}</div>
-                    <div class="text-[10px] text-slate-400">${w.className}</div>
+                    <div class="text-[10px] text-slate-400">${w.className} · 学号 ${w.studentNumber || ''}</div>
                   </div>
                 </div>
-                <div class="flex items-center gap-1.5">
+                <div class="flex items-center gap-1">
                   ${tagHtml}
-                  <span class="text-xs font-black text-purple-600 bg-purple-50 px-2 py-0.5 rounded-lg">${w.score} 分</span>
                 </div>
               </div>
-              <h4 class="font-bold text-sm text-slate-800 mb-2">${w.workName}</h4>
+
+              <div class="flex items-center justify-between mb-2">
+                <h4 class="font-bold text-sm text-slate-800 line-clamp-1">${w.workName}</h4>
+                ${tierBadge}
+              </div>
+
+              <!-- 星级与五维微型指标 -->
+              <div class="flex items-center justify-between mb-3 bg-slate-50 p-2 rounded-xl border border-slate-100 text-[10px] text-slate-500">
+                <span class="tracking-widest">${starHtml}</span>
+                <span class="font-mono">语:${r.grammar} 逻:${r.logic} 契:${r.taskMatch} 创:${r.creative}</span>
+              </div>
+
               <div class="bg-slate-900 text-sky-300 font-mono text-[11px] p-3 rounded-xl mb-4 h-20 overflow-hidden leading-relaxed whitespace-pre-wrap">${w.codeSummary}</div>
             </div>
+
             <div class="flex items-center justify-between pt-3 border-t border-slate-100 text-xs gap-2">
               <button onclick="openWorkPlayModal(${w.id})" class="bg-orange-500 hover:bg-orange-600 text-white font-bold px-3 py-1.5 rounded-xl shadow-sm transition flex items-center gap-1">
                 <i class="fa-solid fa-gamepad"></i> 在线试玩
@@ -3186,20 +3449,74 @@
       renderTeacherTasks();
     }
 
-    // --- 13. 教师端: 在线作业批改与 AI 一键评语生成 ---
+    // --- 13. 教师端: 在线作业批改、班级筛选、Scratch 积木树与 Python 转化视图 ---
     let activeGradingWorkId = 1;
+    let currentGradingTab = 'blocks';
+
+    function switchGradingTab(tab) {
+      currentGradingTab = tab;
+      const tabs = ['blocks', 'python', 'ai'];
+      tabs.forEach(t => {
+        const btn = document.getElementById(`gradingTabBtn-${t}`);
+        const pane = document.getElementById(`gradingTab-${t}`);
+        if (t === tab) {
+          if (btn) {
+            btn.classList.add('bg-white', 'text-sky-700', 'shadow-sm');
+            btn.classList.remove('text-slate-600');
+          }
+          if (pane) pane.classList.remove('hidden');
+        } else {
+          if (btn) {
+            btn.classList.remove('bg-white', 'text-sky-700', 'shadow-sm');
+            btn.classList.add('text-slate-600');
+          }
+          if (pane) pane.classList.add('hidden');
+        }
+      });
+    }
+
     function renderGradingWorks() {
       const container = document.getElementById('teacherGradingTableContainer');
       if (!container) return;
-      const filter = document.getElementById('gradingStatusFilter').value;
-      const works = state.works.filter(w => filter === 'all' ? true : filter === 'graded' ? w.status === 'approved' : w.status === 'pending');
+
+      const classFilter = document.getElementById('gradingClassFilter')?.value || 'all';
+      const statusFilter = document.getElementById('gradingStatusFilter')?.value || 'all';
+      const searchKeyword = document.getElementById('gradingSearchInput')?.value.trim().toLowerCase() || '';
+
+      let works = state.works.filter(w => {
+        // 班级筛选
+        if (classFilter !== 'all' && w.classId !== parseInt(classFilter)) {
+          return false;
+        }
+        // 状态筛选
+        if (statusFilter === 'graded' && w.status !== 'approved') return false;
+        if (statusFilter === 'pending' && w.status !== 'pending') return false;
+        // 搜索关键词 (学生姓名、学号、作品名)
+        if (searchKeyword) {
+          const matchName = w.studentName.toLowerCase().includes(searchKeyword);
+          const matchNum = (w.studentNumber || '').toLowerCase().includes(searchKeyword);
+          const matchWork = w.workName.toLowerCase().includes(searchKeyword);
+          if (!matchName && !matchNum && !matchWork) return false;
+        }
+        return true;
+      });
+
+      if (works.length === 0) {
+        container.innerHTML = `
+          <div class="p-12 text-center text-slate-400">
+            <i class="fa-solid fa-folder-open text-3xl mb-2 text-slate-300"></i>
+            <p class="text-xs">未找到符合筛选条件的作业记录</p>
+          </div>
+        `;
+        return;
+      }
 
       container.innerHTML = `
         <table class="w-full text-left text-xs">
           <thead class="bg-slate-50 border-b border-slate-200 text-slate-400 font-bold uppercase tracking-wider">
             <tr>
               <th class="p-4">作品名称</th>
-              <th class="p-4">学生姓名 (学号)</th>
+              <th class="p-4">班级 / 学生 (学号)</th>
               <th class="p-4">提交时间</th>
               <th class="p-4">AI 预评分</th>
               <th class="p-4">批改状态</th>
@@ -3208,19 +3525,30 @@
           </thead>
           <tbody class="divide-y divide-slate-100">
             ${works.map(w => `
-              <tr class="hover:bg-slate-50">
-                <td class="p-4 font-bold text-slate-800">${w.workName}</td>
-                <td class="p-4">${w.studentName} <span class="text-slate-400 font-mono text-[11px]">(${w.studentNumber || ''})</span></td>
-                <td class="p-4 text-slate-400">${w.submitTime}</td>
-                <td class="p-4"><span class="font-black text-purple-600">${w.score} 分</span></td>
+              <tr class="hover:bg-slate-50 transition">
                 <td class="p-4">
-                  <span class="px-2.5 py-1 rounded-full font-bold ${w.status === 'approved' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'}">
+                  <div class="font-bold text-slate-800">${w.workName}</div>
+                  <div class="text-[10px] text-slate-400 font-mono">${w.gameType || 'scratch'}</div>
+                </td>
+                <td class="p-4">
+                  <div class="flex items-center gap-1.5 mb-0.5">
+                    <span class="bg-sky-50 text-sky-700 border border-sky-200 px-1.5 py-0.5 rounded text-[10px] font-bold">${w.className}</span>
+                    <span class="font-bold text-slate-700">${w.studentName}</span>
+                  </div>
+                  <div class="text-slate-400 font-mono text-[10px]">学号: ${w.studentNumber || ''}</div>
+                </td>
+                <td class="p-4 text-slate-400 font-mono">${w.submitTime}</td>
+                <td class="p-4">
+                  <span class="font-black text-purple-600 bg-purple-50 px-2 py-1 rounded-lg border border-purple-100">${w.score} 分</span>
+                </td>
+                <td class="p-4">
+                  <span class="px-2.5 py-1 rounded-full font-bold text-[11px] ${w.status === 'approved' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'}">
                     ${w.status === 'approved' ? '已完成批改' : '待批改'}
                   </span>
                 </td>
                 <td class="p-4 text-right">
-                  <button onclick="openGradingModal(${w.id})" class="bg-sky-600 text-white font-bold px-3 py-1.5 rounded-lg hover:bg-sky-700 shadow-sm">
-                    评审批改
+                  <button onclick="openGradingModal(${w.id})" class="bg-sky-600 text-white font-bold px-3.5 py-1.5 rounded-xl hover:bg-sky-700 shadow-sm transition flex items-center gap-1 ml-auto">
+                    <i class="fa-solid fa-pen-to-square"></i> 评审批改
                   </button>
                 </td>
               </tr>
@@ -3230,16 +3558,325 @@
       `;
     }
 
+    function renderScratchBlocks(work) {
+      if (work.gameType === 'cat_walk') {
+        return `
+          <!-- 事件帽子积木 -->
+          <div class="inline-block bg-amber-500 text-white font-bold text-xs px-3.5 py-1.5 rounded-t-xl rounded-b-md shadow-sm mb-1 flex items-center gap-2">
+            <span>当 🟢 绿旗被点击</span>
+          </div>
+          <!-- 堆叠积木 -->
+          <div class="flex flex-col gap-1 pl-2 border-l-4 border-amber-400 ml-3">
+            <div class="bg-sky-500 text-white font-bold text-xs px-3 py-1.5 rounded-lg shadow-sm w-fit flex items-center gap-1.5">
+              <span>将旋转方式设为</span>
+              <span class="bg-sky-700 text-[10px] px-2 py-0.5 rounded-md font-mono">左右翻转 ▼</span>
+            </div>
+            <!-- 循环 C-Block -->
+            <div class="bg-amber-600 text-white font-bold text-xs p-2.5 rounded-xl shadow-sm space-y-1.5 mt-1">
+              <div class="flex items-center gap-1">
+                <span>重复执行 [无限循环]</span>
+              </div>
+              <div class="pl-3 border-l-4 border-amber-300 space-y-1 py-1">
+                <div class="bg-sky-500 text-white font-bold text-xs px-2.5 py-1 rounded-md shadow-sm w-fit flex items-center gap-1">
+                  <span>移动</span> <span class="bg-white text-slate-800 px-1.5 py-0.5 rounded font-mono text-[10px]">10</span> <span>步</span>
+                </div>
+                <div class="bg-purple-500 text-white font-bold text-xs px-2.5 py-1 rounded-md shadow-sm w-fit flex items-center gap-1">
+                  <span>下一个造型</span>
+                </div>
+                <div class="bg-amber-500 text-white font-bold text-xs px-2.5 py-1 rounded-md shadow-sm w-fit flex items-center gap-1">
+                  <span>等待</span> <span class="bg-white text-slate-800 px-1.5 py-0.5 rounded font-mono text-[10px]">0.1</span> <span>秒</span>
+                </div>
+                <div class="bg-sky-500 text-white font-bold text-xs px-2.5 py-1 rounded-md shadow-sm w-fit flex items-center gap-1">
+                  <span>碰到边缘就反弹</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      } else if (work.gameType === 'fruit_catch') {
+        return `
+          <!-- 碗角色脚本 -->
+          <div class="mb-4">
+            <div class="text-[11px] font-bold text-slate-500 mb-1">角色: 碗 (Bowl)</div>
+            <div class="inline-block bg-amber-500 text-white font-bold text-xs px-3.5 py-1.5 rounded-t-xl rounded-b-md shadow-sm mb-1">
+              当 🟢 绿旗被点击
+            </div>
+            <div class="flex flex-col gap-1 pl-2 border-l-4 border-amber-400 ml-3">
+              <div class="bg-orange-500 text-white font-bold text-xs px-3 py-1.5 rounded-lg shadow-sm w-fit flex items-center gap-1.5">
+                <span>将变量</span> <span class="bg-orange-700 text-[10px] px-1.5 py-0.5 rounded font-mono">[得分]</span> <span>设为</span> <span class="bg-white text-slate-800 px-1.5 py-0.5 rounded font-mono text-[10px]">0</span>
+              </div>
+              <div class="bg-amber-600 text-white font-bold text-xs p-2.5 rounded-xl shadow-sm space-y-1.5 mt-1">
+                <div>重复执行 [无限循环]</div>
+                <div class="pl-3 border-l-4 border-amber-300 space-y-1 py-1">
+                  <!-- 如果分支 1 -->
+                  <div class="bg-amber-700 text-white font-bold text-xs p-2 rounded-lg space-y-1">
+                    <div class="flex items-center gap-1">
+                      <span>如果</span> <span class="bg-emerald-600 text-emerald-100 text-[10px] px-1.5 py-0.5 rounded">&lt;按下 [右箭头] 键?&gt;</span> <span>那么</span>
+                    </div>
+                    <div class="pl-3 border-l-2 border-amber-300">
+                      <div class="bg-sky-500 text-white font-bold text-xs px-2 py-1 rounded shadow-sm w-fit">将 x 坐标增加 12</div>
+                    </div>
+                  </div>
+                  <!-- 如果分支 2 -->
+                  <div class="bg-amber-700 text-white font-bold text-xs p-2 rounded-lg space-y-1">
+                    <div class="flex items-center gap-1">
+                      <span>如果</span> <span class="bg-emerald-600 text-emerald-100 text-[10px] px-1.5 py-0.5 rounded">&lt;按下 [左箭头] 键?&gt;</span> <span>那么</span>
+                    </div>
+                    <div class="pl-3 border-l-2 border-amber-300">
+                      <div class="bg-sky-500 text-white font-bold text-xs px-2 py-1 rounded shadow-sm w-fit">将 x 坐标增加 -12</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- 苹果角色脚本 -->
+          <div>
+            <div class="text-[11px] font-bold text-slate-500 mb-1">角色: 苹果 (Apple)</div>
+            <div class="inline-block bg-amber-500 text-white font-bold text-xs px-3.5 py-1.5 rounded-t-xl rounded-b-md shadow-sm mb-1">
+              当 🟢 绿旗被点击
+            </div>
+            <div class="flex flex-col gap-1 pl-2 border-l-4 border-amber-400 ml-3">
+              <div class="bg-amber-600 text-white font-bold text-xs p-2.5 rounded-xl shadow-sm space-y-1.5">
+                <div>重复执行</div>
+                <div class="pl-3 border-l-4 border-amber-300 space-y-1.5 py-1">
+                  <div class="bg-sky-500 text-white font-bold text-xs px-2.5 py-1 rounded shadow-sm w-fit">将 y 坐标增加 -6</div>
+                  <div class="bg-amber-700 text-white font-bold text-xs p-2 rounded-lg space-y-1">
+                    <div class="flex items-center gap-1">
+                      <span>如果</span> <span class="bg-emerald-600 text-emerald-100 text-[10px] px-1.5 py-0.5 rounded">&lt;碰到 [碗] ?&gt;</span> <span>那么</span>
+                    </div>
+                    <div class="pl-3 border-l-2 border-amber-300 space-y-1">
+                      <div class="bg-orange-500 text-white font-bold text-xs px-2 py-0.5 rounded shadow-sm w-fit">将变量 [得分] 增加 1</div>
+                      <div class="bg-pink-500 text-white font-bold text-xs px-2 py-0.5 rounded shadow-sm w-fit">播放声音 [Pop]</div>
+                      <div class="bg-sky-500 text-white font-bold text-xs px-2 py-0.5 rounded shadow-sm w-fit">移到 x: 在 -200 到 200 间随机数 y: 150</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      } else {
+        // 通用积木视图解析器
+        const lines = work.codeSummary.split('\n');
+        return `
+          <div class="inline-block bg-amber-500 text-white font-bold text-xs px-3.5 py-1.5 rounded-t-xl rounded-b-md shadow-sm mb-2">
+            当 🟢 绿旗被点击
+          </div>
+          <div class="flex flex-col gap-2 pl-2 border-l-4 border-amber-400 ml-3">
+            ${lines.map(l => {
+              if (l.includes('变量')) {
+                return `<div class="bg-orange-500 text-white font-bold text-xs px-3 py-1.5 rounded-lg shadow-sm w-fit">${l}</div>`;
+              } else if (l.includes('循环') || l.includes('如果') || l.includes('重复')) {
+                return `<div class="bg-amber-600 text-white font-bold text-xs px-3 py-1.5 rounded-lg shadow-sm w-fit">${l}</div>`;
+              } else if (l.includes('声音') || l.includes('播放')) {
+                return `<div class="bg-pink-500 text-white font-bold text-xs px-3 py-1.5 rounded-lg shadow-sm w-fit">${l}</div>`;
+              } else if (l.includes('造型') || l.includes('说')) {
+                return `<div class="bg-purple-500 text-white font-bold text-xs px-3 py-1.5 rounded-lg shadow-sm w-fit">${l}</div>`;
+              } else {
+                return `<div class="bg-sky-500 text-white font-bold text-xs px-3 py-1.5 rounded-lg shadow-sm w-fit">${l}</div>`;
+              }
+            }).join('')}
+          </div>
+        `;
+      }
+    }
+
+    function generatePythonCode(work) {
+      if (work.gameType === 'cat_walk') {
+        return `"""
+Scratch 转化 Python 代码工程
+作品: 《${work.workName}》
+作者: ${work.studentName} (${work.className} · 学号: ${work.studentNumber || ''})
+引擎: Scratch-Python Bridge Runtime v2.4
+"""
+
+import time
+from scratch_engine import Sprite, Stage, Event
+
+stage = Stage(width=480, height=360, title="${work.workName}")
+cat = Sprite(name="小猫咪", x=0, y=0, costume="costume1")
+
+@stage.on(Event.GREEN_FLAG_CLICKED)
+def on_start():
+    # 初始化角色旋转方式为左右翻转
+    cat.set_rotation_style("left-right")
+    
+    # 主物理动画循环
+    while True:
+        cat.move(10)               # 前进 10 步
+        cat.next_costume()          # 切换造型产生奔跑动画
+        cat.if_on_edge_bounce()     # 碰到边缘自动反弹
+        time.sleep(0.1)            # 帧率节拍控制
+
+if __name__ == "__main__":
+    stage.run()
+`;
+      } else if (work.gameType === 'fruit_catch') {
+        return `"""
+Scratch 转化 Python 代码工程
+作品: 《${work.workName}》
+作者: ${work.studentName} (${work.className} · 学号: ${work.studentNumber || ''})
+"""
+
+import random
+import time
+from scratch_engine import Sprite, Stage, Key, Sound
+
+stage = Stage(width=480, height=360)
+score = 0
+
+bowl = Sprite(name="接物碗", x=0, y=-140)
+apple = Sprite(name="苹果", x=random.randint(-200, 200), y=150)
+
+@stage.on_green_flag
+def main():
+    global score
+    score = 0
+    print("游戏开始，初始得分:", score)
+    
+    while stage.is_running():
+        # 玩家键盘控制逻辑
+        if stage.is_key_pressed(Key.RIGHT):
+            bowl.change_x(12)
+        if stage.is_key_pressed(Key.LEFT):
+            bowl.change_x(-12)
+            
+        # 苹果自由落体
+        apple.change_y(-6)
+        
+        # 碰撞与得分判定
+        if apple.is_touching(bowl):
+            score += 1
+            Sound.play("pop.wav")
+            # 重置苹果至顶端随机位置
+            apple.goto(x=random.randint(-200, 200), y=150)
+            print(f"得分增加！当前总分: {score}")
+            
+        elif apple.y < -180:
+            # 掉出屏幕重置
+            apple.goto(x=random.randint(-200, 200), y=150)
+            
+        time.sleep(0.02)
+`;
+      } else if (work.gameType === 'space_ship') {
+        return `"""
+Scratch 转化 Python 代码工程
+作品: 《${work.workName}》
+作者: ${work.studentName} (${work.className})
+"""
+
+import time
+import random
+from scratch_engine import Sprite, Stage, Key, Sound
+
+stage = Stage(title="${work.workName}")
+ship = Sprite("飞船", x=0, y=-120)
+lasers = []
+score = 0
+
+@stage.on_green_flag
+def start_game():
+    global score
+    score = 0
+    while True:
+        # 飞船跟随鼠标指针
+        ship.point_towards_mouse()
+        ship.move(4)
+        
+        # 克隆体激光飞行
+        for laser in lasers[:]:
+            laser.change_y(15)
+            if laser.y > 180:
+                lasers.remove(laser)
+                laser.delete()
+        time.sleep(0.03)
+
+@stage.on_key(Key.SPACE)
+def shoot():
+    Sound.play("laser.wav")
+    new_laser = ship.clone("激光子弹")
+    lasers.append(new_laser)
+`;
+      } else {
+        return `"""
+Scratch 积木脚本自动映射为 Python 逻辑代码
+作品: 《${work.workName}》
+作者: ${work.studentName} (${work.className})
+"""
+
+import time
+from scratch_engine import Sprite, Stage
+
+stage = Stage()
+sprite = Sprite(name="${work.studentName}的角色")
+
+@stage.on_green_flag
+def run():
+    print("=== Scratch 程序启动 ===")
+    # 逻辑代码映射
+    while stage.is_running():
+        sprite.move(6)
+        sprite.if_on_edge_bounce()
+        time.sleep(0.05)
+
+if __name__ == "__main__":
+    stage.run()
+`;
+      }
+    }
+
     function openGradingModal(workId) {
       activeGradingWorkId = workId;
       const work = state.works.find(w => w.id === workId) || state.works[0];
+      
       document.getElementById('gradingModalTitle').textContent = `批改作业: 《${work.workName}》 (${work.studentName})`;
       document.getElementById('gradingWorkSummary').textContent = work.codeSummary;
       document.getElementById('gradingAiScore').textContent = work.score;
       document.getElementById('gradingAiComment').textContent = work.aiFeedback;
+      
+      const r = work.rubric || { grammar: 22, logic: 26, taskMatch: 22, creative: 18 };
+      document.getElementById('gradingAiGrammar').textContent = `${r.grammar}/25`;
+      document.getElementById('gradingAiLogic').textContent = `${r.logic}/30`;
+      document.getElementById('gradingAiMatch').textContent = `${r.taskMatch}/25`;
+      document.getElementById('gradingAiCreative').textContent = `${r.creative}/20`;
+
+      // 渲染 Scratch 积木树
+      const blocksTreeEl = document.getElementById('gradingBlocksTree');
+      if (blocksTreeEl) {
+        blocksTreeEl.innerHTML = renderScratchBlocks(work);
+      }
+
+      // 生成并渲染 Python 转化代码
+      const pythonEl = document.getElementById('gradingPythonCode');
+      if (pythonEl) {
+        pythonEl.textContent = generatePythonCode(work);
+      }
+
       document.getElementById('gradingTeacherScoreInput').value = work.score;
       document.getElementById('gradingTeacherFeedback').value = work.teacherFeedback || "双向弹跳与造型切换逻辑写得非常规范生动，表现卓越！";
+      document.getElementById('gradingStatusSelect').value = work.status === 'approved' ? 'approved' : 'pending';
+
+      switchGradingTab('blocks');
       document.getElementById('gradingModal').classList.remove('hidden');
+    }
+
+    function copyGradingPythonCode() {
+      const pythonCode = document.getElementById('gradingPythonCode')?.textContent || '';
+      if (navigator.clipboard && pythonCode) {
+        navigator.clipboard.writeText(pythonCode).then(() => {
+          alert("📋 Python 代码已成功复制到剪贴板！");
+        }).catch(() => {
+          alert("已选中代码，请按 Ctrl+C 复制");
+        });
+      } else {
+        alert("已准备好代码内容");
+      }
+    }
+
+    function setGradingScorePreset(score) {
+      document.getElementById('gradingTeacherScoreInput').value = score;
+      generateAiTeacherFeedback();
     }
 
     function closeGradingModal() { document.getElementById('gradingModal').classList.add('hidden'); }
@@ -3292,15 +3929,23 @@
         document.getElementById('rosterClassSelector'),
         document.getElementById('analyticsClassSelector'),
         document.getElementById('newTaskClassSelect'),
-        document.getElementById('loginStudentClass')
+        document.getElementById('loginStudentClass'),
+        document.getElementById('gradingClassFilter')
       ];
 
       const currentRosterVal = document.getElementById('rosterClassSelector') ? document.getElementById('rosterClassSelector').value : null;
+      const currentGradingClassVal = document.getElementById('gradingClassFilter') ? document.getElementById('gradingClassFilter').value : 'all';
 
       selectors.forEach(sel => {
         if (!sel) return;
         const isAnalytics = sel.id === 'analyticsClassSelector';
-        let html = isAnalytics ? '<option value="-1">🏫 全部班级汇总</option>' : '';
+        const isGradingFilter = sel.id === 'gradingClassFilter';
+        let html = '';
+        if (isAnalytics) {
+          html = '<option value="-1">🏫 全部班级汇总</option>';
+        } else if (isGradingFilter) {
+          html = '<option value="all">🏫 全部班级作业</option>';
+        }
         state.classes.forEach(c => {
           const archiveTag = c.isArchived ? ' [已归档]' : '';
           html += `<option value="${c.classId}">${c.className} (${c.studentCount}人)${archiveTag}</option>`;
@@ -3310,6 +3955,9 @@
 
       if (currentRosterVal && document.getElementById('rosterClassSelector')) {
         document.getElementById('rosterClassSelector').value = currentRosterVal;
+      }
+      if (currentGradingClassVal && document.getElementById('gradingClassFilter')) {
+        document.getElementById('gradingClassFilter').value = currentGradingClassVal;
       }
     }
 
