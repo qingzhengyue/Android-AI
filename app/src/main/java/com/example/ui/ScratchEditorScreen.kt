@@ -727,14 +727,6 @@ fun InteractiveScratchProgrammingScreen(viewModel: MainViewModel, onBackToHall: 
                     
                     setOnTouchListener { v, event ->
                         v.parent?.requestDisallowInterceptTouchEvent(true)
-                        if (event.action == android.view.MotionEvent.ACTION_DOWN) {
-                            if (showAiAssistSheet) {
-                                showAiAssistSheet = false
-                            }
-                            if (showMagicBoxDrawer) {
-                                showMagicBoxDrawer = false
-                            }
-                        }
                         val pointerCount = event.pointerCount
                         if (pointerCount >= 2) {
                             settings.setSupportZoom(true)
