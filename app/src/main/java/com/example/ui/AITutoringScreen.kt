@@ -1,8 +1,12 @@
 package com.example.ui
 
+import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.ImageDecoder
+import android.graphics.Matrix
+import android.media.ExifInterface
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
@@ -10,6 +14,7 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
@@ -20,6 +25,9 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.rememberTransformableState
+import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -40,16 +48,22 @@ import androidx.compose.material.icons.rounded.ArrowUpward
 import androidx.compose.material.icons.rounded.AutoAwesome
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Menu
+import androidx.compose.material.icons.rounded.ZoomIn
+import androidx.compose.material.icons.rounded.ZoomOut
+import androidx.compose.material.icons.rounded.RestartAlt
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
@@ -60,6 +74,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.AiAssistRecord
 import kotlinx.coroutines.launch
+import java.io.ByteArrayOutputStream
+import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -105,20 +121,20 @@ fun AITutoringScreen(viewModel: MainViewModel) {
 
     // 3. 待发送的图片 Bitmap
     var attachedImageBitmap by remember { mutableStateOf<Bitmap?>(null) }
+    var tempPhotoUri by remember { mutableStateOf<Uri?>(null) }
 
-    // 相册选择器
+    // 相册选择器 (读取原图高清采样)
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         uri?.let {
             try {
-                val bitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                    ImageDecoder.decodeBitmap(ImageDecoder.createSource(context.contentResolver, it))
+                val bitmap = loadHighQualityBitmap(context, it)
+                if (bitmap != null) {
+                    attachedImageBitmap = bitmap
                 } else {
-                    @Suppress("DEPRECATION")
-                    MediaStore.Images.Media.getBitmap(context.contentResolver, it)
+                    Toast.makeText(context, "读取相册图片失败", Toast.LENGTH_SHORT).show()
                 }
-                attachedImageBitmap = bitmap
             } catch (e: Exception) {
                 e.printStackTrace()
                 Toast.makeText(context, "读取相册图片失败", Toast.LENGTH_SHORT).show()
@@ -126,14 +142,37 @@ fun AITutoringScreen(viewModel: MainViewModel) {
         }
     }
 
-    // 相机拍摄 launcher
+    // 高清相机拍摄 launcher (保存至 Uri 以便获得完整原始分辨率)
     val cameraLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.TakePicturePreview()
-    ) { bitmap: Bitmap? ->
-        if (bitmap != null) {
-            attachedImageBitmap = bitmap
-        } else {
-            Toast.makeText(context, "未拍摄照片", Toast.LENGTH_SHORT).show()
+        contract = ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success) {
+            tempPhotoUri?.let { uri ->
+                val bitmap = loadHighQualityBitmap(context, uri)
+                if (bitmap != null) {
+                    attachedImageBitmap = bitmap
+                } else {
+                    Toast.makeText(context, "解析拍照图片失败", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
+    fun launchCameraFlow() {
+        try {
+            val photoDir = File(context.cacheDir, "camera_photos").apply { mkdirs() }
+            val photoFile = File(photoDir, "captured_${System.currentTimeMillis()}.jpg")
+            val uri = FileProvider.getUriForFile(
+                context,
+                "${context.packageName}.fileprovider",
+                photoFile
+            )
+            tempPhotoUri = uri
+            cameraLauncher.launch(uri)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Toast.makeText(context, "启动硬件相机失败，已为你切换至相册选图", Toast.LENGTH_SHORT).show()
+            galleryLauncher.launch("image/*")
         }
     }
 
@@ -142,13 +181,7 @@ fun AITutoringScreen(viewModel: MainViewModel) {
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         if (isGranted) {
-            try {
-                cameraLauncher.launch(null)
-            } catch (e: Exception) {
-                e.printStackTrace()
-                Toast.makeText(context, "启动硬件相机失败，已为你切换至相册选图", Toast.LENGTH_SHORT).show()
-                galleryLauncher.launch("image/*")
-            }
+            launchCameraFlow()
         } else {
             Toast.makeText(context, "未获得相机权限，已为你引导至相册选图", Toast.LENGTH_SHORT).show()
             galleryLauncher.launch("image/*")
@@ -391,13 +424,7 @@ fun AITutoringScreen(viewModel: MainViewModel) {
                         ) == PackageManager.PERMISSION_GRANTED
 
                         if (hasCameraPerm) {
-                            try {
-                                cameraLauncher.launch(null)
-                            } catch (e: Exception) {
-                                e.printStackTrace()
-                                Toast.makeText(context, "未启动硬件相机，已为你切至相册导入", Toast.LENGTH_SHORT).show()
-                                galleryLauncher.launch("image/*")
-                            }
+                            launchCameraFlow()
                         } else {
                             cameraPermissionLauncher.launch(android.Manifest.permission.CAMERA)
                         }
@@ -1133,10 +1160,10 @@ fun ChatFlowContent(
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                     Box(
                         modifier = Modifier
-                            .fillMaxWidth(0.85f)
-                            .shadow(elevation = 1.dp, shape = RoundedCornerShape(22.dp, 22.dp, 4.dp, 22.dp))
+                            .fillMaxWidth(0.88f)
+                            .shadow(elevation = 2.dp, shape = RoundedCornerShape(22.dp, 22.dp, 4.dp, 22.dp))
                             .background(UserBubbleBg, RoundedCornerShape(22.dp, 22.dp, 4.dp, 22.dp))
-                            .padding(horizontal = 14.dp, vertical = 12.dp)
+                            .padding(12.dp)
                     ) {
                         Column(
                             modifier = Modifier.fillMaxWidth(),
@@ -1146,9 +1173,9 @@ fun ChatFlowContent(
                                 Box(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .heightIn(max = 220.dp)
-                                        .clip(RoundedCornerShape(14.dp))
-                                        .background(Color(0x22000000))
+                                        .heightIn(min = 160.dp, max = 320.dp)
+                                        .clip(RoundedCornerShape(16.dp))
+                                        .background(Color(0x33000000))
                                         .clickable { fullScreenPreviewBitmap = imageBitmap }
                                 ) {
                                     Image(
@@ -1156,33 +1183,33 @@ fun ChatFlowContent(
                                         contentDescription = "用户上传的问题照片",
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .heightIn(max = 220.dp),
-                                        contentScale = ContentScale.Crop
+                                            .heightIn(min = 160.dp, max = 320.dp),
+                                        contentScale = ContentScale.Fit
                                     )
-                                    // 缩放提示微标
+                                    // 放大提示浮层
                                     Surface(
-                                        color = Color.Black.copy(alpha = 0.55f),
-                                        shape = RoundedCornerShape(8.dp),
+                                        color = Color.Black.copy(alpha = 0.65f),
+                                        shape = RoundedCornerShape(12.dp),
                                         modifier = Modifier
                                             .align(Alignment.BottomEnd)
-                                            .padding(6.dp)
+                                            .padding(8.dp)
                                     ) {
                                         Row(
-                                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp),
+                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                                             verticalAlignment = Alignment.CenterVertically
                                         ) {
                                             Icon(
-                                                imageVector = Icons.Default.ZoomIn,
-                                                contentDescription = "查看大图",
+                                                imageVector = Icons.Rounded.ZoomIn,
+                                                contentDescription = "点击放大查看原图",
                                                 tint = Color.White,
-                                                modifier = Modifier.size(13.dp)
+                                                modifier = Modifier.size(15.dp)
                                             )
-                                            Spacer(modifier = Modifier.width(3.dp))
+                                            Spacer(modifier = Modifier.width(4.dp))
                                             Text(
-                                                text = "查看大图",
+                                                text = "点击放大高清查看",
                                                 color = Color.White,
-                                                fontSize = 10.5.sp,
-                                                fontWeight = FontWeight.Medium
+                                                fontSize = 11.sp,
+                                                fontWeight = FontWeight.Bold
                                             )
                                         }
                                     }
@@ -1194,7 +1221,8 @@ fun ChatFlowContent(
                                     text = cleanText,
                                     color = Color.White,
                                     fontSize = 14.5.sp,
-                                    lineHeight = 22.sp
+                                    lineHeight = 22.sp,
+                                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
                                 )
                             }
                         }
@@ -1205,7 +1233,7 @@ fun ChatFlowContent(
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Start) {
                     Box(
                         modifier = Modifier
-                            .fillMaxWidth(0.9f)
+                            .fillMaxWidth(0.92f)
                             .shadow(elevation = 2.dp, shape = RoundedCornerShape(22.dp, 22.dp, 22.dp, 4.dp))
                             .background(AiBubbleBg, RoundedCornerShape(22.dp, 22.dp, 22.dp, 4.dp))
                             .padding(horizontal = 16.dp, vertical = 14.dp)
@@ -1244,75 +1272,267 @@ fun ChatFlowContent(
             }
         }
 
-        // 全屏大图查看 Dialog
+        // 全屏高清大图查看 Dialog (支持手势双指缩放、拖拽平移、双击放大)
         fullScreenPreviewBitmap?.let { bitmap ->
-            androidx.compose.ui.window.Dialog(
-                onDismissRequest = { fullScreenPreviewBitmap = null },
-                properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)
+            ZoomableImageDialog(
+                bitmap = bitmap,
+                onDismiss = { fullScreenPreviewBitmap = null }
+            )
+        }
+    }
+}
+
+/**
+ * 支持双指缩放、拖拽平移的高清大图对话框
+ */
+@Composable
+fun ZoomableImageDialog(
+    bitmap: Bitmap,
+    onDismiss: () -> Unit
+) {
+    var scale by remember { mutableStateOf(1f) }
+    var offset by remember { mutableStateOf(Offset.Zero) }
+
+    val transformableState = rememberTransformableState { zoomChange, offsetChange, _ ->
+        scale = (scale * zoomChange).coerceIn(1f, 5f)
+        if (scale > 1f) {
+            val maxOffsetX = (bitmap.width * scale - bitmap.width) / 2f
+            val maxOffsetY = (bitmap.height * scale - bitmap.height) / 2f
+            offset = Offset(
+                x = (offset.x + offsetChange.x).coerceIn(-maxOffsetX.coerceAtLeast(300f), maxOffsetX.coerceAtLeast(300f)),
+                y = (offset.y + offsetChange.y).coerceIn(-maxOffsetY.coerceAtLeast(600f), maxOffsetY.coerceAtLeast(600f))
+            )
+        } else {
+            offset = Offset.Zero
+        }
+    }
+
+    androidx.compose.ui.window.Dialog(
+        onDismissRequest = onDismiss,
+        properties = androidx.compose.ui.window.DialogProperties(
+            usePlatformDefaultWidth = false,
+            decorFitsSystemWindows = false
+        )
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color(0xF50B0F19))
+        ) {
+            // 中间可自由缩放和平移的高清图片
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .pointerInput(Unit) {
+                        detectTapGestures(
+                            onDoubleTap = {
+                                if (scale > 1.2f) {
+                                    scale = 1f
+                                    offset = Offset.Zero
+                                } else {
+                                    scale = 2.5f
+                                }
+                            }
+                        )
+                    }
+                    .transformable(state = transformableState),
+                contentAlignment = Alignment.Center
             ) {
-                Box(
+                Image(
+                    bitmap = bitmap.asImageBitmap(),
+                    contentDescription = "高清原图详情",
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.92f))
-                        .clickable { fullScreenPreviewBitmap = null }
-                        .padding(16.dp),
-                    contentAlignment = Alignment.Center
+                        .padding(horizontal = 8.dp, vertical = 70.dp)
+                        .graphicsLayer {
+                            scaleX = scale
+                            scaleY = scale
+                            translationX = offset.x
+                            translationY = offset.y
+                        },
+                    contentScale = ContentScale.Fit
+                )
+            }
+
+            // 顶部操作工具栏
+            Surface(
+                color = Color.Black.copy(alpha = 0.65f),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.TopCenter)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .statusBarsPadding()
+                        .padding(horizontal = 16.dp, vertical = 10.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 8.dp, vertical = 8.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = "📷 照片高清详情",
+                            color = Color.White,
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Surface(
+                            color = PrimaryIndigo.copy(alpha = 0.85f),
+                            shape = RoundedCornerShape(6.dp)
                         ) {
                             Text(
-                                text = "📷 上传图片原图预览",
+                                text = "${(scale * 100).toInt()}%",
                                 color = Color.White,
-                                fontSize = 15.sp,
-                                fontWeight = FontWeight.Bold
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                             )
-                            IconButton(
-                                onClick = { fullScreenPreviewBitmap = null },
-                                modifier = Modifier
-                                    .size(36.dp)
-                                    .background(Color.White.copy(alpha = 0.2f), CircleShape)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Rounded.Close,
-                                    contentDescription = "关闭",
-                                    tint = Color.White,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                            }
+                        }
+                    }
+
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // 放大
+                        IconButton(
+                            onClick = { scale = (scale + 0.5f).coerceAtMost(5f) },
+                            modifier = Modifier
+                                .size(36.dp)
+                                .background(Color.White.copy(alpha = 0.15f), CircleShape)
+                        ) {
+                            Icon(Icons.Rounded.ZoomIn, contentDescription = "放大", tint = Color.White, modifier = Modifier.size(18.dp))
                         }
 
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        Image(
-                            bitmap = bitmap.asImageBitmap(),
-                            contentDescription = "原图大图",
+                        // 缩小
+                        IconButton(
+                            onClick = {
+                                scale = (scale - 0.5f).coerceAtLeast(1f)
+                                if (scale == 1f) offset = Offset.Zero
+                            },
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .weight(1f, fill = false)
-                                .clip(RoundedCornerShape(16.dp)),
-                            contentScale = ContentScale.Fit
-                        )
+                                .size(36.dp)
+                                .background(Color.White.copy(alpha = 0.15f), CircleShape)
+                        ) {
+                            Icon(Icons.Rounded.ZoomOut, contentDescription = "缩小", tint = Color.White, modifier = Modifier.size(18.dp))
+                        }
 
-                        Spacer(modifier = Modifier.height(16.dp))
+                        // 还原
+                        IconButton(
+                            onClick = {
+                                scale = 1f
+                                offset = Offset.Zero
+                            },
+                            modifier = Modifier
+                                .size(36.dp)
+                                .background(Color.White.copy(alpha = 0.15f), CircleShape)
+                        ) {
+                            Icon(Icons.Rounded.RestartAlt, contentDescription = "还原比例", tint = Color.White, modifier = Modifier.size(18.dp))
+                        }
 
-                        Text(
-                            text = "点击屏幕任意位置可返回对话",
-                            color = Color.White.copy(alpha = 0.7f),
-                            fontSize = 12.sp
-                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+
+                        // 关闭
+                        IconButton(
+                            onClick = onDismiss,
+                            modifier = Modifier
+                                .size(36.dp)
+                                .background(Color.White.copy(alpha = 0.25f), CircleShape)
+                        ) {
+                            Icon(Icons.Rounded.Close, contentDescription = "关闭", tint = Color.White, modifier = Modifier.size(20.dp))
+                        }
                     }
                 }
             }
+
+            // 底部操作引导提示
+            Surface(
+                color = Color.Black.copy(alpha = 0.65f),
+                shape = RoundedCornerShape(20.dp),
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .navigationBarsPadding()
+                    .padding(bottom = 16.dp)
+            ) {
+                Text(
+                    text = "💡 支持双指缩放 · 拖拽平移 · 双击快速放大/还原",
+                    color = Color.White.copy(alpha = 0.85f),
+                    fontSize = 12.sp,
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 7.dp)
+                )
+            }
         }
+    }
+}
+
+/**
+ * 智能加载高清晰度原图，校准 EXIF 拍摄角度并控制内存
+ */
+fun loadHighQualityBitmap(context: Context, uri: Uri, maxDimension: Int = 1800): Bitmap? {
+    return try {
+        // 1. 获取图片原始宽高
+        val options = BitmapFactory.Options().apply {
+            inJustDecodeBounds = true
+        }
+        context.contentResolver.openInputStream(uri)?.use { inputStream ->
+            BitmapFactory.decodeStream(inputStream, null, options)
+        }
+
+        val originalWidth = options.outWidth
+        val originalHeight = options.outHeight
+        if (originalWidth <= 0 || originalHeight <= 0) return null
+
+        // 2. 计算最优 inSampleSize 保持高清晰度
+        var sampleSize = 1
+        val maxSide = maxOf(originalWidth, originalHeight)
+        while (maxSide / (sampleSize * 2) >= maxDimension) {
+            sampleSize *= 2
+        }
+
+        // 3. 解码高清晰度 Bitmap
+        val decodeOptions = BitmapFactory.Options().apply {
+            inSampleSize = sampleSize
+            inPreferredConfig = Bitmap.Config.ARGB_8888
+        }
+        val decodedBitmap = context.contentResolver.openInputStream(uri)?.use { inputStream ->
+            BitmapFactory.decodeStream(inputStream, null, decodeOptions)
+        } ?: return null
+
+        // 4. 读取 EXIF 旋转角度并纠正
+        val orientation = try {
+            context.contentResolver.openInputStream(uri)?.use { inputStream ->
+                val exif = ExifInterface(inputStream)
+                exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)
+            } ?: ExifInterface.ORIENTATION_NORMAL
+        } catch (e: Exception) {
+            ExifInterface.ORIENTATION_NORMAL
+        }
+
+        val rotationAngle = when (orientation) {
+            ExifInterface.ORIENTATION_ROTATE_90 -> 90f
+            ExifInterface.ORIENTATION_ROTATE_180 -> 180f
+            ExifInterface.ORIENTATION_ROTATE_270 -> 270f
+            else -> 0f
+        }
+
+        if (rotationAngle != 0f) {
+            val matrix = Matrix().apply { postRotate(rotationAngle) }
+            val rotatedBitmap = Bitmap.createBitmap(
+                decodedBitmap, 0, 0,
+                decodedBitmap.width, decodedBitmap.height,
+                matrix, true
+            )
+            if (rotatedBitmap != decodedBitmap) {
+                decodedBitmap.recycle()
+            }
+            rotatedBitmap
+        } else {
+            decodedBitmap
+        }
+    } catch (e: Exception) {
+        e.printStackTrace()
+        null
     }
 }
 
