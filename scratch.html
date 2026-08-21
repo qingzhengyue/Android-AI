@@ -401,21 +401,25 @@ html, body {
   font-size: 13px;
   font-weight: 900;
   cursor: pointer;
-  padding: 3px 6px;
+  padding: 2px 7px;
   border-radius: 4px;
   transition: all 0.15s;
   pointer-events: auto !important;
   user-select: none;
   touch-action: manipulation;
-  z-index: 20;
+  z-index: 30;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   line-height: 1;
+  border: none;
+  background: rgba(0,0,0,0.25);
+  color: #ffffff;
 }
 .del-btn:hover, .del-btn:active {
   opacity: 1;
-  background: rgba(0,0,0,0.35);
+  background: rgba(239, 68, 68, 0.9) !important;
+  color: #ffffff !important;
   transform: scale(1.15);
 }
 
@@ -1030,6 +1034,7 @@ function replaceDeletedVariableInBlocks(blocks, oldVar, newVar) {
 
 function executeDeleteVariable(varName) {
   if (!varName) return;
+  varName = String(varName);
   
   delete projectVariables[varName];
   delete visibleVariables[varName];
@@ -1329,53 +1334,55 @@ function initTouchDragSupport() {
   document.addEventListener('touchmove', handlePaletteTouchMove, { passive: false });
   document.addEventListener('touchend', handlePaletteTouchEnd, { passive: false });
   document.addEventListener('touchcancel', handlePaletteTouchEnd, { passive: false });
+}
 
-  // 全局强力删除委托处理 (在捕获阶段执行，杜绝任何事件冒泡被拦截的问题)
-  function handleAnyDeleteClick(e) {
-    const target = e.target;
-    if (!target) return;
+// 全局强力删除委托处理 (在捕获阶段与冒泡阶段全面兜底，杜绝任何事件拦截问题)
+function handleAnyDeleteClick(e) {
+  const target = e.target;
+  if (!target) return;
 
-    // 1. 删除循环体内子积木
-    const childDel = target.closest('[data-action="delete-child-block"]');
-    if (childDel) {
-      e.stopPropagation();
-      e.preventDefault();
-      const parentId = childDel.getAttribute('data-parent-id');
-      const childId = childDel.getAttribute('data-child-id');
-      if (parentId && childId) {
-        removeChildBlock(parentId, childId);
-      }
-      return;
+  // 1. 删除循环体内子积木
+  const childDel = target.closest('[data-action="delete-child-block"]');
+  if (childDel) {
+    e.stopPropagation();
+    e.preventDefault();
+    const parentId = childDel.getAttribute('data-parent-id');
+    const childId = childDel.getAttribute('data-child-id');
+    if (childId) {
+      removeChildBlock(parentId, childId);
     }
-
-    // 2. 删除主画布积木
-    const blockDel = target.closest('[data-action="delete-block"]') || (target.classList.contains('del-btn') ? target : null);
-    if (blockDel && !target.closest('.modal-dialog')) {
-      e.stopPropagation();
-      e.preventDefault();
-      const blockId = blockDel.getAttribute('data-block-id');
-      if (blockId) {
-        removeBlock(blockId);
-      }
-      return;
-    }
-
-    // 3. 删除变量
-    const varDel = target.closest('[data-action="delete-variable"]') || target.closest('.del-var-btn');
-    if (varDel) {
-      e.stopPropagation();
-      e.preventDefault();
-      const vName = varDel.getAttribute('data-var');
-      if (vName) {
-        deleteVariable(vName);
-      }
-      return;
-    }
+    return;
   }
 
-  document.addEventListener('click', handleAnyDeleteClick, true);
-  document.addEventListener('touchend', handleAnyDeleteClick, true);
+  // 2. 删除主画布积木
+  const blockDel = target.closest('[data-action="delete-block"]') || (target.classList && target.classList.contains('del-btn') ? target : null);
+  if (blockDel && !target.closest('.modal-dialog')) {
+    e.stopPropagation();
+    e.preventDefault();
+    const blockId = blockDel.getAttribute('data-block-id');
+    if (blockId) {
+      removeBlock(blockId);
+    }
+    return;
+  }
+
+  // 3. 删除变量
+  const varDel = target.closest('[data-action="delete-variable"]') || (target.classList && target.classList.contains('del-var-btn') ? target : null);
+  if (varDel) {
+    e.stopPropagation();
+    e.preventDefault();
+    const vName = varDel.getAttribute('data-var');
+    if (vName) {
+      deleteVariable(vName);
+    }
+    return;
+  }
 }
+
+// 立即绑定全局事件，无需等待 window.onload
+['click', 'pointerup', 'touchend'].forEach(evtName => {
+  document.addEventListener(evtName, handleAnyDeleteClick, true);
+});
 
 function handlePaletteTouchStart(e) {
   const targetBlock = e.target.closest('.scratch-block');
@@ -1940,25 +1947,30 @@ function confirmAddChildDynamic(containerId, category, candidateIdx) {
 
 function removeChildBlock(containerId, childId) {
   if (!childId) return;
-  const parent = findBlockById(containerId);
-  if (parent && parent.children) {
-    const idx = parent.children.findIndex(c => c.id === childId);
-    if (idx !== -1) {
-      const removed = parent.children.splice(idx, 1)[0];
-      updateWorkspaceUI();
-      logMessage('🗑️ 从循环体内移除积木: ' + (OP_TRANSLATE_MAP[removed?.opcode] || removed?.opcode || ''));
-      try { notifyAndroidCodeChange(); } catch(e){}
-      return;
+  childId = String(childId);
+  if (containerId) {
+    const parent = findBlockById(containerId);
+    if (parent && parent.children) {
+      const idx = parent.children.findIndex(c => String(c.id) === childId);
+      if (idx !== -1) {
+        const removed = parent.children.splice(idx, 1)[0];
+        updateWorkspaceUI();
+        logMessage('🗑️ 从循环体内移除积木: ' + (OP_TRANSLATE_MAP[removed?.opcode] || removed?.opcode || ''));
+        try { notifyAndroidCodeChange(); } catch(e){}
+        return;
+      }
     }
   }
-  // 兜底递归查找移除
+  // 兜底递归全树深度查找移除
   removeBlock(childId);
 }
 
 function removeBlock(blockId) {
   if (!blockId) return;
+  blockId = String(blockId);
+
   // 1. 顶层主列表直接匹配
-  const topIdx = activeBlocks.findIndex(b => b.id === blockId);
+  const topIdx = activeBlocks.findIndex(b => String(b.id) === blockId);
   if (topIdx !== -1) {
     const removed = activeBlocks.splice(topIdx, 1)[0];
     updateWorkspaceUI();
@@ -1967,7 +1979,29 @@ function removeBlock(blockId) {
     return;
   }
 
-  // 2. 深度递归嵌套列表查找
+  // 2. 深度递归嵌套列表遍历查找与删除
+  function removeRecursive(list) {
+    if (!list || !Array.isArray(list)) return false;
+    for (let i = 0; i < list.length; i++) {
+      if (String(list[i].id) === blockId) {
+        const removed = list.splice(i, 1)[0];
+        updateWorkspaceUI();
+        logMessage('🗑️ 移除积木: ' + (OP_TRANSLATE_MAP[removed?.opcode] || removed?.opcode || ''));
+        try { notifyAndroidCodeChange(); } catch(e){}
+        return true;
+      }
+      if (list[i].children && Array.isArray(list[i].children)) {
+        if (removeRecursive(list[i].children)) return true;
+      }
+    }
+    return false;
+  }
+
+  if (removeRecursive(activeBlocks)) {
+    return;
+  }
+
+  // 3. 兜底通过 findBlockParentList
   const res = findBlockParentList(blockId);
   if (res && res.list) {
     const removed = res.list.splice(res.index, 1)[0];
@@ -1977,6 +2011,9 @@ function removeBlock(blockId) {
     return;
   }
 }
+
+window.removeBlock = removeBlock;
+window.removeChildBlock = removeChildBlock;
 
 function clearWorkspace() {
   stopScratchBlocks();
@@ -2241,7 +2278,7 @@ function renderBlockHtml(b, parentIndex = null) {
               <span class="step-number-tag">${cIdx + 1}</span>
               <span>${renderBlockInnerHtml(cBlock)}</span>
             </div>
-            <span class="del-btn" data-action="delete-child-block" data-parent-id="${b.id}" data-child-id="${cBlock.id}" onclick="event.stopPropagation();event.preventDefault();removeChildBlock('${b.id}', '${cBlock.id}')" title="删除此积木">✕</span>
+            <button type="button" class="del-btn" data-action="delete-child-block" data-parent-id="${b.id}" data-child-id="${cBlock.id}" onclick="event.stopPropagation();event.preventDefault();removeChildBlock('${b.id}', '${cBlock.id}')" title="删除此积木">✕</button>
           </div>
         `;
       });
@@ -2253,7 +2290,7 @@ function renderBlockHtml(b, parentIndex = null) {
       <div class="c-block-container" id="block_ui_${b.id}">
         <div class="c-block-header ${cls}">
           <span>${formattedLabel}</span>
-          <span class="del-btn" data-action="delete-block" data-block-id="${b.id}" onclick="event.stopPropagation();event.preventDefault();removeBlock('${b.id}')" title="删除此积木">✕</span>
+          <button type="button" class="del-btn" data-action="delete-block" data-block-id="${b.id}" onclick="event.stopPropagation();event.preventDefault();removeBlock('${b.id}')" title="删除此积木">✕</button>
         </div>
         <div class="c-block-body" id="container_body_${b.id}" data-container-body="true" data-container-id="${b.id}" ondragover="handleContainerDragOver(event, '${b.id}')" ondragleave="handleContainerDragLeave(event, '${b.id}')" ondrop="handleContainerDrop(event, '${b.id}')">
           ${childrenHtml}
@@ -2267,7 +2304,7 @@ function renderBlockHtml(b, parentIndex = null) {
   return `
     <div class="scratch-block ${cls} block-row" id="block_ui_${b.id}">
       <span>${formattedLabel}</span>
-      <span class="del-btn" data-action="delete-block" data-block-id="${b.id}" onclick="event.stopPropagation();event.preventDefault();removeBlock('${b.id}')" title="删除此积木">✕</span>
+      <button type="button" class="del-btn" data-action="delete-block" data-block-id="${b.id}" onclick="event.stopPropagation();event.preventDefault();removeBlock('${b.id}')" title="删除此积木">✕</button>
     </div>
   `;
 }
@@ -2989,7 +3026,7 @@ window.stopProject = stopScratchBlocks;
 window.runGreenFlag = runScratchBlocks;
 window.stopAll = stopScratchBlocks;
 
-window.onload = function() {
+function initApp() {
   renderPalette('motion');
   initTouchDragSupport();
   
@@ -3037,38 +3074,50 @@ window.onload = function() {
     setTimeout(tryFetchAndLoad, 200);
     setTimeout(tryFetchAndLoad, 600);
   }
+}
 
-  // 监听来自父级网页 (index.html / web_portal.html) 的 postMessage 指令
-  window.addEventListener('message', function(event) {
-    if (!event.data || typeof event.data !== 'object') return;
-    const { type, projectJson, requestId } = event.data;
-    if (type === 'LOAD_PROJECT') {
-      if (projectJson) {
-        window.loadProject(projectJson);
-      }
-    } else if (type === 'CLEAR_WORKSPACE') {
-      activeBlocks = [];
-      updateWorkspaceUI();
-      logMessage('🗑️ 画布已清空');
-      notifyAndroidCodeChange();
-    } else if (type === 'GET_PROJECT_JSON') {
-      const jsonStr = window.getProjectJson ? window.getProjectJson() : '{}';
-      const summary = window.getProjectCodeSummary ? window.getProjectCodeSummary() : '';
-      if (window.parent) {
-        window.parent.postMessage({
-          type: 'PROJECT_JSON_RESPONSE',
-          requestId: requestId,
-          projectJson: jsonStr,
-          codeSummary: summary
-        }, '*');
-      }
-    } else if (type === 'RUN_GREEN_FLAG' || type === 'RUN_PROJECT') {
-      if (typeof window.runGreenFlag === 'function') window.runGreenFlag();
-    } else if (type === 'STOP_ALL' || type === 'STOP_PROJECT') {
-      if (typeof window.stopAll === 'function') window.stopAll();
+// 多重生命周期保底触发
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+  initApp();
+} else {
+  document.addEventListener('DOMContentLoaded', initApp);
+}
+window.onload = initApp;
+
+// 监听来自父级网页 (index.html / web_portal.html) 的 postMessage 指令
+window.addEventListener('message', function(event) {
+  if (!event.data || typeof event.data !== 'object') return;
+  const { type, projectJson, requestId, blockId, varName } = event.data;
+  if (type === 'LOAD_PROJECT') {
+    if (projectJson) {
+      window.loadProject(projectJson);
     }
-  });
-};
+  } else if (type === 'CLEAR_WORKSPACE') {
+    activeBlocks = [];
+    updateWorkspaceUI();
+    logMessage('🗑️ 画布已清空');
+    notifyAndroidCodeChange();
+  } else if (type === 'DELETE_BLOCK' || type === 'REMOVE_BLOCK') {
+    if (blockId) removeBlock(blockId);
+  } else if (type === 'DELETE_VARIABLE') {
+    if (varName) deleteVariable(varName);
+  } else if (type === 'GET_PROJECT_JSON') {
+    const jsonStr = window.getProjectJson ? window.getProjectJson() : '{}';
+    const summary = window.getProjectCodeSummary ? window.getProjectCodeSummary() : '';
+    if (window.parent) {
+      window.parent.postMessage({
+        type: 'PROJECT_JSON_RESPONSE',
+        requestId: requestId,
+        projectJson: jsonStr,
+        codeSummary: summary
+      }, '*');
+    }
+  } else if (type === 'RUN_GREEN_FLAG' || type === 'RUN_PROJECT') {
+    if (typeof window.runGreenFlag === 'function') window.runGreenFlag();
+  } else if (type === 'STOP_ALL' || type === 'STOP_PROJECT') {
+    if (typeof window.stopAll === 'function') window.stopAll();
+  }
+});
 </script>
 </body>
 </html>
