@@ -153,6 +153,60 @@ html, body {
 }
 .new-var-btn:active { transform: scale(0.96); }
 
+/* 变量管理行与删除按钮样式 */
+.var-item-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  background: #fff7ed;
+  padding: 4px 6px;
+  border-radius: 8px;
+  border: 1.5px solid #fed7aa;
+  margin-bottom: 5px;
+  cursor: pointer;
+  transition: all 0.15s;
+  position: relative;
+}
+.var-item-row:hover {
+  border-color: #ea580c;
+  background: #ffedd5;
+}
+.var-item-row.active-var-item {
+  border-color: #ea580c;
+  background: #ffedd5;
+  box-shadow: 0 0 0 2px rgba(234, 88, 12, 0.25);
+}
+.del-var-btn {
+  color: #ef4444;
+  font-size: 13px;
+  font-weight: 900;
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  min-height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  cursor: pointer;
+  background: #fee2e2;
+  border: 1px solid #fecaca;
+  transition: all 0.15s;
+  line-height: 1;
+  margin-left: auto;
+  user-select: none;
+  touch-action: manipulation;
+  z-index: 10;
+  padding: 0;
+}
+.del-var-btn:hover, .del-var-btn:active {
+  color: #ffffff;
+  background: #ef4444;
+  border-color: #dc2626;
+  transform: scale(1.08);
+}
+
 /* 积木外观样式 */
 .scratch-block {
   display: inline-flex;
@@ -948,6 +1002,18 @@ function promptDeleteVariable(varName) {
   executeDeleteVariable(varName);
 }
 
+function replaceDeletedVariableInBlocks(blocks, oldVar, newVar) {
+  if (!blocks || !Array.isArray(blocks)) return;
+  blocks.forEach(b => {
+    if (b.params && b.params.varName === oldVar) {
+      b.params.varName = newVar || (Object.keys(projectVariables)[0] || '变量');
+    }
+    if (b.children && b.children.length > 0) {
+      replaceDeletedVariableInBlocks(b.children, oldVar, newVar);
+    }
+  });
+}
+
 function executeDeleteVariable(varName) {
   if (!varName) return;
   
@@ -958,6 +1024,8 @@ function executeDeleteVariable(varName) {
   if (currentSelectedVar === varName) {
     currentSelectedVar = remaining.length > 0 ? remaining[0] : '';
   }
+  
+  replaceDeletedVariableInBlocks(activeBlocks, varName, currentSelectedVar);
   
   closeModal();
   updateStageVarHUD();
@@ -1194,11 +1262,12 @@ function renderPalette(catKey) {
       varNames.forEach(vName => {
         const isChecked = visibleVariables[vName] ? 'checked' : '';
         const isSelected = (vName === currentSelectedVar);
-        html += `<div class="var-item-row ${isSelected ? 'active-var-item' : ''}" onclick="selectActiveVariable('${vName}')">
-          <input type="checkbox" ${isChecked} onclick="event.stopPropagation()" onchange="toggleVariableVisibility('${vName}', this.checked)" title="在舞台显示/隐藏变量HUD">
+        const safeVName = vName.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+        html += `<div class="var-item-row ${isSelected ? 'active-var-item' : ''}" onclick="selectActiveVariable('${safeVName}')">
+          <input type="checkbox" ${isChecked} onclick="event.stopPropagation()" onchange="toggleVariableVisibility('${safeVName}', this.checked)" title="在舞台显示/隐藏变量HUD">
           <span style="font-weight:800;color:${isSelected ? '#c2410c' : '#ea580c'};flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;">📦 ${vName}</span>
           ${isSelected ? '<span style="font-size:9px;background:#ea580c;color:#fff;padding:1px 4px;border-radius:3px;font-weight:800;">选用</span>' : ''}
-          <span class="del-var-btn" onclick="event.stopPropagation();deleteVariable('${vName}')" title="删除变量 ${vName}">✕</span>
+          <button type="button" class="del-var-btn" onclick="event.stopPropagation();event.preventDefault();deleteVariable('${safeVName}')" onmousedown="event.stopPropagation()" ontouchend="event.stopPropagation();event.preventDefault();deleteVariable('${safeVName}')" title="删除变量 ${vName}">✕</button>
         </div>`;
       });
 
@@ -1946,7 +2015,7 @@ function saveBlockParamDirect(blockId, paramKey, newVal) {
   notifyAndroidCodeChange();
 }
 
-// 变量选择器交互弹窗 (支持一键点击切换所有变量、下拉选取以及快捷新建)
+// 变量选择器交互弹窗 (支持一键点击切换所有变量、快捷删除、下拉选取以及快捷新建)
 function openVariableSelectorModal(blockId, paramKey, currentVar) {
   const varNames = Object.keys(projectVariables);
   if (varNames.length === 0) {
@@ -1957,10 +2026,14 @@ function openVariableSelectorModal(blockId, paramKey, currentVar) {
   let chipsHtml = '';
   varNames.forEach(v => {
     const isAct = (v === currentVar);
+    const safeV = v.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
     chipsHtml += `
-      <button type="button" class="modal-btn" style="background:${isAct ? '#ea580c' : '#fff7ed'};color:${isAct ? '#fff' : '#c2410c'};border:1.5px solid ${isAct ? '#c2410c' : '#fed7aa'};font-weight:800;font-size:12px;padding:8px 10px;display:flex;align-items:center;justify-content:center;gap:4px;border-radius:8px;" onclick="applyVariableSelection('${blockId}', '${paramKey}', '${v}')">
-        📦 ${v} ${isAct ? '✓' : ''}
-      </button>
+      <div style="display:flex;align-items:center;background:${isAct ? '#ffedd5' : '#fff7ed'};border:1.5px solid ${isAct ? '#ea580c' : '#fed7aa'};border-radius:8px;padding:3px 6px;gap:4px;">
+        <button type="button" class="modal-btn" style="flex:1;background:transparent;border:none;color:${isAct ? '#c2410c' : '#7c2d12'};font-weight:800;font-size:11.5px;padding:5px 0;display:flex;align-items:center;justify-content:flex-start;gap:3px;box-shadow:none;" onclick="applyVariableSelection('${blockId}', '${paramKey}', '${safeV}')">
+          📦 ${v} ${isAct ? '✓' : ''}
+        </button>
+        <button type="button" onclick="event.stopPropagation();deleteVariableFromModal('${safeV}', '${blockId}', '${paramKey}')" title="删除变量 ${v}" style="background:#fee2e2;color:#ef4444;border:1px solid #fecaca;border-radius:4px;width:22px;height:22px;min-width:22px;min-height:22px;font-size:12px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;">✕</button>
+      </div>
     `;
   });
 
@@ -1976,7 +2049,7 @@ function openVariableSelectorModal(blockId, paramKey, currentVar) {
         <span class="del-btn" onclick="closeModal()" style="font-size:16px;">✕</span>
       </div>
       <div class="modal-scroll-body">
-        <div style="font-size:11.5px;color:#64748b;">点击下方任一变量即刻选用：</div>
+        <div style="font-size:11.5px;color:#64748b;">点击下方任一变量即刻选用，或点击 ✕ 删除：</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
           ${chipsHtml}
         </div>
@@ -1994,6 +2067,18 @@ function openVariableSelectorModal(blockId, paramKey, currentVar) {
     </div>
   `;
   openModal(dialogHtml);
+}
+
+function deleteVariableFromModal(varName, blockId, paramKey) {
+  executeDeleteVariable(varName);
+  const remaining = Object.keys(projectVariables);
+  if (remaining.length > 0) {
+    const nextVar = remaining[0];
+    applyVariableSelection(blockId, paramKey, nextVar);
+    openVariableSelectorModal(blockId, paramKey, nextVar);
+  } else {
+    closeModal();
+  }
 }
 
 function applyVariableSelection(blockId, paramKey, newVarName) {

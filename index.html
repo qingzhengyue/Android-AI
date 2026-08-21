@@ -759,9 +759,13 @@
           <p class="text-xs text-slate-500 mt-1">查看学生提交的实际 Scratch 积木工程、支持转换为 Python 代码审查，参考 AI 五维诊断评分并给出个性化评语</p>
         </div>
         
-        <!-- 班级类型筛选与批改状态筛选 -->
+        <!-- 班级类型筛选按钮组与状态筛选 -->
         <div class="flex flex-wrap items-center gap-3">
-          <select id="gradingClassFilter" onchange="renderGradingWorks()" class="bg-white border border-slate-200 text-xs font-bold text-slate-700 px-3 py-2 rounded-xl shadow-sm focus:outline-none">
+          <div id="gradingClassButtonGroup" class="flex flex-wrap items-center gap-1.5 bg-slate-100 p-1 rounded-2xl border border-slate-200 shadow-inner">
+            <!-- 动态生成班级筛选按钮 -->
+          </div>
+
+          <select id="gradingClassFilter" onchange="syncGradingClassFilterFromDropdown()" class="hidden sm:inline-block bg-white border border-slate-200 text-xs font-bold text-slate-700 px-3 py-2 rounded-xl shadow-sm focus:outline-none">
             <option value="all">🏫 全部班级</option>
             <option value="1">三年级一班</option>
             <option value="2">四年级二班</option>
@@ -3475,11 +3479,55 @@
       });
     }
 
+    let currentGradingClassFilter = 'all';
+
+    function setGradingClassFilter(classId) {
+      currentGradingClassFilter = classId ? classId.toString() : 'all';
+      const dropdown = document.getElementById('gradingClassFilter');
+      if (dropdown) dropdown.value = currentGradingClassFilter;
+      renderGradingClassButtons();
+      renderGradingWorks();
+    }
+
+    function syncGradingClassFilterFromDropdown() {
+      const dropdown = document.getElementById('gradingClassFilter');
+      if (dropdown) {
+        currentGradingClassFilter = dropdown.value;
+      }
+      renderGradingClassButtons();
+      renderGradingWorks();
+    }
+
+    function renderGradingClassButtons() {
+      const container = document.getElementById('gradingClassButtonGroup');
+      if (!container) return;
+
+      const totalWorks = state.works.length;
+      let html = `
+        <button type="button" onclick="setGradingClassFilter('all')" class="text-xs font-bold px-3 py-1.5 rounded-xl transition flex items-center gap-1.5 ${currentGradingClassFilter === 'all' ? 'bg-sky-600 text-white shadow-sm' : 'text-slate-600 hover:bg-white/80'}">
+          <i class="fa-solid fa-inbox"></i> 全部班级 <span class="text-[10px] px-1.5 py-0.2 rounded-full ${currentGradingClassFilter === 'all' ? 'bg-sky-500 text-white' : 'bg-slate-200 text-slate-700'}">${totalWorks}</span>
+        </button>
+      `;
+
+      state.classes.forEach(c => {
+        const isSel = (currentGradingClassFilter === c.classId.toString());
+        const count = state.works.filter(w => w.classId === c.classId).length;
+        html += `
+          <button type="button" onclick="setGradingClassFilter('${c.classId}')" class="text-xs font-bold px-3 py-1.5 rounded-xl transition flex items-center gap-1.5 ${isSel ? 'bg-sky-600 text-white shadow-sm' : 'text-slate-600 hover:bg-white/80'}">
+            <i class="fa-solid fa-graduation-cap"></i> ${c.className} <span class="text-[10px] px-1.5 py-0.2 rounded-full ${isSel ? 'bg-sky-500 text-white' : 'bg-slate-200 text-slate-700'}">${count}</span>
+          </button>
+        `;
+      });
+
+      container.innerHTML = html;
+    }
+
     function renderGradingWorks() {
+      renderGradingClassButtons();
       const container = document.getElementById('teacherGradingTableContainer');
       if (!container) return;
 
-      const classFilter = document.getElementById('gradingClassFilter')?.value || 'all';
+      const classFilter = currentGradingClassFilter;
       const statusFilter = document.getElementById('gradingStatusFilter')?.value || 'all';
       const searchKeyword = document.getElementById('gradingSearchInput')?.value.trim().toLowerCase() || '';
 
@@ -3959,6 +4007,7 @@ if __name__ == "__main__":
       if (currentGradingClassVal && document.getElementById('gradingClassFilter')) {
         document.getElementById('gradingClassFilter').value = currentGradingClassVal;
       }
+      renderGradingClassButtons();
     }
 
     function renderTeacherClasses() {
