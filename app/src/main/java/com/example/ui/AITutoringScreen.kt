@@ -629,8 +629,9 @@ fun DrawerHistoryListItem(
             Spacer(modifier = Modifier.width(12.dp))
 
             Column(modifier = Modifier.weight(1f)) {
+                val (cleanTitle, _) = remember(record.requestContent) { parseMessageContent(record.requestContent) }
                 Text(
-                    text = record.requestContent.ifBlank { "提问记录" },
+                    text = cleanTitle.ifBlank { if (isScratchModule) "Scratch 答疑" else "📷 图片提问" },
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     fontSize = 13.5.sp,
@@ -1107,6 +1108,7 @@ fun ChatFlowContent(
     isLoading: Boolean
 ) {
     val listState = rememberLazyListState()
+    var fullScreenPreviewBitmap by remember { mutableStateOf<Bitmap?>(null) }
 
     LaunchedEffect(chatHistory.size) {
         if (chatHistory.isNotEmpty()) {
@@ -1114,72 +1116,230 @@ fun ChatFlowContent(
         }
     }
 
-    LazyColumn(
-        state = listState,
-        modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 20.dp),
-        verticalArrangement = Arrangement.spacedBy(18.dp)
-    ) {
-        items(chatHistory) { msg ->
-            // 用户提问气泡
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth(0.85f)
-                        .shadow(elevation = 1.dp, shape = RoundedCornerShape(22.dp, 22.dp, 4.dp, 22.dp))
-                        .background(UserBubbleBg, RoundedCornerShape(22.dp, 22.dp, 4.dp, 22.dp))
-                        .padding(horizontal = 16.dp, vertical = 12.dp)
-                ) {
-                    Text(
-                        text = msg.requestContent,
-                        color = Color.White,
-                        fontSize = 14.5.sp,
-                        lineHeight = 22.sp
-                    )
+    Box(modifier = modifier.fillMaxSize()) {
+        LazyColumn(
+            state = listState,
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(18.dp)
+        ) {
+            items(chatHistory) { msg ->
+                val (cleanText, imgBase64) = remember(msg.requestContent) { parseMessageContent(msg.requestContent) }
+                val imageBitmap = remember(imgBase64) {
+                    imgBase64?.let { decodeBase64ToBitmap(it) }
                 }
-            }
 
-            // AI 回复气泡
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Start) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth(0.9f)
-                        .shadow(elevation = 2.dp, shape = RoundedCornerShape(22.dp, 22.dp, 22.dp, 4.dp))
-                        .background(AiBubbleBg, RoundedCornerShape(22.dp, 22.dp, 22.dp, 4.dp))
-                        .padding(horizontal = 16.dp, vertical = 14.dp)
-                ) {
-                    Text(
-                        text = msg.aiResult,
-                        color = Color(0xFF1F2937),
-                        fontSize = 14.5.sp,
-                        lineHeight = 23.sp
-                    )
+                // 用户提问气泡
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth(0.85f)
+                            .shadow(elevation = 1.dp, shape = RoundedCornerShape(22.dp, 22.dp, 4.dp, 22.dp))
+                            .background(UserBubbleBg, RoundedCornerShape(22.dp, 22.dp, 4.dp, 22.dp))
+                            .padding(horizontal = 14.dp, vertical = 12.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            if (imageBitmap != null) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .heightIn(max = 220.dp)
+                                        .clip(RoundedCornerShape(14.dp))
+                                        .background(Color(0x22000000))
+                                        .clickable { fullScreenPreviewBitmap = imageBitmap }
+                                ) {
+                                    Image(
+                                        bitmap = imageBitmap.asImageBitmap(),
+                                        contentDescription = "用户上传的问题照片",
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .heightIn(max = 220.dp),
+                                        contentScale = ContentScale.Crop
+                                    )
+                                    // 缩放提示微标
+                                    Surface(
+                                        color = Color.Black.copy(alpha = 0.55f),
+                                        shape = RoundedCornerShape(8.dp),
+                                        modifier = Modifier
+                                            .align(Alignment.BottomEnd)
+                                            .padding(6.dp)
+                                    ) {
+                                        Row(
+                                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.ZoomIn,
+                                                contentDescription = "查看大图",
+                                                tint = Color.White,
+                                                modifier = Modifier.size(13.dp)
+                                            )
+                                            Spacer(modifier = Modifier.width(3.dp))
+                                            Text(
+                                                text = "查看大图",
+                                                color = Color.White,
+                                                fontSize = 10.5.sp,
+                                                fontWeight = FontWeight.Medium
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+
+                            if (cleanText.isNotBlank()) {
+                                Text(
+                                    text = cleanText,
+                                    color = Color.White,
+                                    fontSize = 14.5.sp,
+                                    lineHeight = 22.sp
+                                )
+                            }
+                        }
+                    }
                 }
-            }
-        }
 
-        if (isLoading) {
-            item {
+                // AI 回复气泡
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Start) {
                     Box(
                         modifier = Modifier
-                            .background(Color.White, RoundedCornerShape(16.dp))
-                            .border(1.dp, Color(0xFFE5E7EB), RoundedCornerShape(16.dp))
-                            .padding(horizontal = 14.dp, vertical = 10.dp)
+                            .fillMaxWidth(0.9f)
+                            .shadow(elevation = 2.dp, shape = RoundedCornerShape(22.dp, 22.dp, 22.dp, 4.dp))
+                            .background(AiBubbleBg, RoundedCornerShape(22.dp, 22.dp, 22.dp, 4.dp))
+                            .padding(horizontal = 16.dp, vertical = 14.dp)
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(14.dp),
-                                color = PrimaryIndigo,
-                                strokeWidth = 2.dp
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text("精灵姐姐正在思考解答...", color = Color(0xFF6B7280), fontSize = 13.sp)
+                        Text(
+                            text = msg.aiResult,
+                            color = Color(0xFF1F2937),
+                            fontSize = 14.5.sp,
+                            lineHeight = 23.sp
+                        )
+                    }
+                }
+            }
+
+            if (isLoading) {
+                item {
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Start) {
+                        Box(
+                            modifier = Modifier
+                                .background(Color.White, RoundedCornerShape(16.dp))
+                                .border(1.dp, Color(0xFFE5E7EB), RoundedCornerShape(16.dp))
+                                .padding(horizontal = 14.dp, vertical = 10.dp)
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(14.dp),
+                                    color = PrimaryIndigo,
+                                    strokeWidth = 2.dp
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text("精灵姐姐正在思考解答...", color = Color(0xFF6B7280), fontSize = 13.sp)
+                            }
                         }
                     }
                 }
             }
         }
+
+        // 全屏大图查看 Dialog
+        fullScreenPreviewBitmap?.let { bitmap ->
+            androidx.compose.ui.window.Dialog(
+                onDismissRequest = { fullScreenPreviewBitmap = null },
+                properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.92f))
+                        .clickable { fullScreenPreviewBitmap = null }
+                        .padding(16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 8.dp, vertical = 8.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "📷 上传图片原图预览",
+                                color = Color.White,
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                            IconButton(
+                                onClick = { fullScreenPreviewBitmap = null },
+                                modifier = Modifier
+                                    .size(36.dp)
+                                    .background(Color.White.copy(alpha = 0.2f), CircleShape)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Rounded.Close,
+                                    contentDescription = "关闭",
+                                    tint = Color.White,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        Image(
+                            bitmap = bitmap.asImageBitmap(),
+                            contentDescription = "原图大图",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .weight(1f, fill = false)
+                                .clip(RoundedCornerShape(16.dp)),
+                            contentScale = ContentScale.Fit
+                        )
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        Text(
+                            text = "点击屏幕任意位置可返回对话",
+                            color = Color.White.copy(alpha = 0.7f),
+                            fontSize = 12.sp
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * 提取 requestContent 中的图片 Base64 编码和纯文本
+ */
+fun parseMessageContent(raw: String): Pair<String, String?> {
+    val prefix = "[ATTACHED_IMG:"
+    val endIndex = raw.indexOf("]")
+    if (raw.startsWith(prefix) && endIndex != -1) {
+        val base64 = raw.substring(prefix.length, endIndex)
+        val text = raw.substring(endIndex + 1).trim()
+        return text to base64
+    }
+    return raw to null
+}
+
+/**
+ * 安全解码 Base64 为 Bitmap
+ */
+fun decodeBase64ToBitmap(base64Str: String): Bitmap? {
+    return try {
+        val cleanBase64 = if (base64Str.contains(",")) base64Str.substringAfter(",") else base64Str
+        val decodedBytes = android.util.Base64.decode(cleanBase64, android.util.Base64.DEFAULT)
+        android.graphics.BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.size)
+    } catch (e: Exception) {
+        null
     }
 }
 

@@ -1325,13 +1325,18 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             }
 
             // 写回本地调用日志，保障记录100%存库，UI立刻响应渲染对话气泡
+            val contentToStore = if (!imageBase64.isNullOrBlank()) {
+                "[ATTACHED_IMG:$imageBase64]$question"
+            } else {
+                question
+            }
             repository.saveAssistRecord(
                 AiAssistRecord(
                     studentId = studentId,
                     classId = classId,
-                    assistType = "在线对答",
+                    assistType = if (!imageBase64.isNullOrBlank()) "拍照识图" else "在线对答",
                     assistTypeInt = 1, // On-line dialog
-                    requestContent = question,
+                    requestContent = contentToStore,
                     aiResult = response,
                     draftId = null,
                     sessionId = sessionToUse

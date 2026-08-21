@@ -1055,7 +1055,8 @@ fun SmartAgentChatTab(viewModel: MainViewModel) {
                         .background(Color(0xFFE8EAF6), RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp, bottomStart = 16.dp))
                         .padding(12.dp)
                     ) {
-                        Text(msg.requestContent, color = Color(0xFF1A237E), fontSize = 14.sp)
+                        val (cleanContent, _) = parseMessageContent(msg.requestContent)
+                        Text(cleanContent.ifBlank { "📷 [图片提问]" }, color = Color(0xFF1A237E), fontSize = 14.sp)
                     }
                 }
                 // AI message (left side)
