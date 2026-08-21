@@ -43,6 +43,12 @@ android {
     val deepseekKey = (localProperties.getProperty("DEEPSEEK_API_KEY") ?: System.getenv("DEEPSEEK_API_KEY") ?: "").ifBlank { "" }
     buildConfigField("String", "DEEPSEEK_API_KEY", "\"$deepseekKey\"")
 
+    val qwenKey = (localProperties.getProperty("QWEN_API_KEY") ?: System.getenv("QWEN_API_KEY") ?: "").ifBlank { "sk-ws-H.EYMRYRM.L4OP.MEQCIFrjGO_RzZITt1Vrn6OJxCCVqp3cPraW3w7WWJXGkzHkAiBoiAgExPAiULbYzd7-px58voVRyJ2gjV_FbEMtcaWRng" }
+    buildConfigField("String", "QWEN_API_KEY", "\"$qwenKey\"")
+
+    val qwenBaseUrl = (localProperties.getProperty("QWEN_BASE_URL") ?: System.getenv("QWEN_BASE_URL") ?: "").ifBlank { "https://ws-zc3feu8uktn9ane2.cn-beijing.maas.aliyuncs.com/compatible-mode/v1" }
+    buildConfigField("String", "QWEN_BASE_URL", "\"$qwenBaseUrl\"")
+
     val geminiKey = (localProperties.getProperty("GEMINI_API_KEY") ?: System.getenv("GEMINI_API_KEY") ?: "").ifBlank { "AIzaSyCP8U0yipI8szm20UXAHBO861Jdfo2mR4I" }
     buildConfigField("String", "GEMINI_API_KEY", "\"$geminiKey\"")
 

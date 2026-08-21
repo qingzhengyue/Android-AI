@@ -15,26 +15,40 @@ object GeminiClient {
     private const val BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
 
     private val client = OkHttpClient.Builder()
-        .connectTimeout(8, TimeUnit.SECONDS)
-        .readTimeout(10, TimeUnit.SECONDS)
-        .writeTimeout(8, TimeUnit.SECONDS)
+        .connectTimeout(15, TimeUnit.SECONDS)
+        .readTimeout(20, TimeUnit.SECONDS)
+        .writeTimeout(15, TimeUnit.SECONDS)
         .build()
 
     private val mediaType = "application/json; charset=utf-8".toMediaType()
 
-    suspend fun generateContent(prompt: String, hasNetwork: Boolean = true): String = withContext(Dispatchers.IO) {
+    suspend fun generateContent(
+        prompt: String,
+        hasNetwork: Boolean = true,
+        imageBase64: String? = null
+    ): String = withContext(Dispatchers.IO) {
         if (!hasNetwork) {
             return@withContext getSmartScratchAnswer(prompt)
         }
 
-        val apiKey = BuildConfig.GEMINI_API_KEY.trim()
-        if (apiKey == "MY_GEMINI_API_KEY" || apiKey.isEmpty()) {
+        val qwenKey = BuildConfig.QWEN_API_KEY.trim()
+        val geminiKey = BuildConfig.GEMINI_API_KEY.trim()
+        val cerebrasKey = BuildConfig.CEREBRAS_API_KEY.trim()
+
+        val apiKey = when {
+            qwenKey.isNotBlank() && qwenKey.startsWith("sk-") -> qwenKey
+            geminiKey.isNotBlank() && geminiKey != "MY_GEMINI_API_KEY" -> geminiKey
+            cerebrasKey.isNotBlank() && cerebrasKey.startsWith("csk-") -> cerebrasKey
+            else -> qwenKey.ifBlank { geminiKey }
+        }
+
+        if (apiKey.isEmpty() || apiKey == "MY_GEMINI_API_KEY" || apiKey == "sk-placeholder") {
             return@withContext getSmartScratchAnswer(prompt)
         }
 
         val isSparkMaaS = apiKey.startsWith("dae06") || apiKey.contains(":")
         val isCSK = apiKey.startsWith("csk-")
-        val isQwen = apiKey.startsWith("sk-") && !isCSK // 默认通义千问
+        val isQwen = (apiKey.startsWith("sk-") || apiKey.startsWith("sk-ws-")) && !isCSK
         val isOpenAICompatible = isQwen || isSparkMaaS || isCSK
         var attempts = 0
         val maxAttempts = 1
@@ -45,22 +59,51 @@ object GeminiClient {
             try {
                 val request = if (isOpenAICompatible) {
                     val requestBodyJson = JSONObject()
+                    val hasImage = !imageBase64.isNullOrBlank()
+
                     val modelName = when {
                         isSparkMaaS -> "xopqwen36v35b"
                         isCSK -> "llama3.1-8b"
+                        hasImage -> "qwen-vl-max"
                         else -> "qwen-plus"
                     }
                     requestBodyJson.put("model", modelName)
+
                     val messagesArray = JSONArray()
                     val messageObj = JSONObject()
                     messageObj.put("role", "user")
-                    messageObj.put("content", prompt)
+
+                    if (hasImage) {
+                        val contentArray = JSONArray()
+                        val textPart = JSONObject()
+                        textPart.put("type", "text")
+                        textPart.put("text", prompt)
+                        contentArray.put(textPart)
+
+                        val imagePart = JSONObject()
+                        imagePart.put("type", "image_url")
+                        val imageUrlObj = JSONObject()
+                        val formattedUrl = if (imageBase64!!.startsWith("data:image")) imageBase64 else "data:image/jpeg;base64,$imageBase64"
+                        imageUrlObj.put("url", formattedUrl)
+                        imagePart.put("image_url", imageUrlObj)
+                        contentArray.put(imagePart)
+
+                        messageObj.put("content", contentArray)
+                    } else {
+                        messageObj.put("content", prompt)
+                    }
+
                     messagesArray.put(messageObj)
                     requestBodyJson.put("messages", messagesArray)
 
+                    val workspaceBaseUrl = BuildConfig.QWEN_BASE_URL.trim()
                     val targetUrl = when {
                         isSparkMaaS -> "https://maas-api.cn-huabei-1.xf-yun.com/v2/chat/completions"
                         isCSK -> "https://api.cerebras.ai/v1/chat/completions"
+                        workspaceBaseUrl.isNotBlank() && apiKey.startsWith("sk-ws-") -> {
+                            val cleanBase = workspaceBaseUrl.removeSuffix("/")
+                            if (cleanBase.endsWith("/chat/completions")) cleanBase else "$cleanBase/chat/completions"
+                        }
                         else -> "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"
                     }
 
@@ -75,8 +118,18 @@ object GeminiClient {
                     val contentsArray = JSONArray()
                     val contentObj = JSONObject()
                     val partsArray = JSONArray()
-                    val partObj = JSONObject()
 
+                    if (!imageBase64.isNullOrBlank()) {
+                        val cleanB64 = if (imageBase64.contains(",")) imageBase64.substringAfter(",") else imageBase64
+                        val inlineData = JSONObject()
+                        val imageObj = JSONObject()
+                        imageObj.put("mime_type", "image/jpeg")
+                        imageObj.put("data", cleanB64)
+                        inlineData.put("inline_data", imageObj)
+                        partsArray.put(inlineData)
+                    }
+
+                    val partObj = JSONObject()
                     partObj.put("text", prompt)
                     partsArray.put(partObj)
                     contentObj.put("parts", partsArray)

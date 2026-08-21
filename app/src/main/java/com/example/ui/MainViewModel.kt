@@ -1177,12 +1177,18 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun callAiCustomQuestion(question: String, mode: String = "快速", targetSessionId: String? = null, onResponse: (String) -> Unit = {}) {
+    fun callAiCustomQuestion(
+        question: String,
+        mode: String = "快速",
+        targetSessionId: String? = null,
+        imageBase64: String? = null,
+        onResponse: (String) -> Unit = {}
+    ) {
         val sessionToUse = if (!targetSessionId.isNullOrBlank()) targetSessionId else activeAiSessionId.value
         if (!targetSessionId.isNullOrBlank()) {
             activeAiSessionId.value = targetSessionId
         }
-        Log.d("AIFlow", "callAiCustomQuestion 被调用: question length=${question.length}, sessionToUse=$sessionToUse")
+        Log.d("AIFlow", "callAiCustomQuestion 被调用: question length=${question.length}, sessionToUse=$sessionToUse, hasImage=${!imageBase64.isNullOrBlank()}")
 
         viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
             val studentId = _currentUserId.value
@@ -1266,33 +1272,37 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     """.trimIndent()
 
                     response = try {
-                        val dsResult = try {
-                            withTimeoutOrNull(4000L) { deepSeekRepository.getAiTutorResponse(userQuery = prompt) } ?: ""
-                        } catch (e: Exception) { "" }
-
-                        if (dsResult.isNotBlank() && !dsResult.startsWith("【小精灵稍作休息") && !dsResult.startsWith("【网络连接超时")) {
-                            dsResult
+                        if (!imageBase64.isNullOrBlank()) {
+                            GeminiClient.generateContent(prompt, isNetworkAvailable(), imageBase64 = imageBase64)
                         } else {
-                            val cerebrasResult = try {
-                                withTimeoutOrNull(3000L) { cerebrasRepository.getAiTutorResponse(userQuery = prompt) } ?: ""
+                            val dsResult = try {
+                                withTimeoutOrNull(4000L) { deepSeekRepository.getAiTutorResponse(userQuery = prompt) } ?: ""
                             } catch (e: Exception) { "" }
 
-                            if (cerebrasResult.isNotBlank() && !cerebrasResult.startsWith("【小精灵稍作休息") && !cerebrasResult.startsWith("【网络连接超时")) {
-                                cerebrasResult
+                            if (dsResult.isNotBlank() && !dsResult.startsWith("【小精灵稍作休息") && !dsResult.startsWith("【网络连接超时")) {
+                                dsResult
                             } else {
-                                val geminiResult = try {
-                                    withTimeoutOrNull(3000L) { geminiRepository.getAiTutorResponse(userQuery = prompt) } ?: ""
+                                val cerebrasResult = try {
+                                    withTimeoutOrNull(3000L) { cerebrasRepository.getAiTutorResponse(userQuery = prompt) } ?: ""
                                 } catch (e: Exception) { "" }
 
-                                if (geminiResult.isNotBlank() && !geminiResult.startsWith("【小精灵稍作休息") && !geminiResult.startsWith("【网络连接超时")) {
-                                    geminiResult
+                                if (cerebrasResult.isNotBlank() && !cerebrasResult.startsWith("【小精灵稍作休息") && !cerebrasResult.startsWith("【网络连接超时")) {
+                                    cerebrasResult
                                 } else {
-                                    GeminiClient.generateContent(prompt, isNetworkAvailable())
+                                    val geminiResult = try {
+                                        withTimeoutOrNull(3000L) { geminiRepository.getAiTutorResponse(userQuery = prompt) } ?: ""
+                                    } catch (e: Exception) { "" }
+
+                                    if (geminiResult.isNotBlank() && !geminiResult.startsWith("【小精灵稍作休息") && !geminiResult.startsWith("【网络连接超时")) {
+                                        geminiResult
+                                    } else {
+                                        GeminiClient.generateContent(prompt, isNetworkAvailable())
+                                    }
                                 }
                             }
                         }
                     } catch (e: Exception) {
-                        GeminiClient.generateContent(prompt, false)
+                        GeminiClient.generateContent(prompt, false, imageBase64 = imageBase64)
                     }
                 }
             }

@@ -355,13 +355,33 @@ fun AITutoringScreen(viewModel: MainViewModel) {
                 MultiModalBottomBar(
                     onSend = { text ->
                         var sendPrompt = text.trim()
-                        if (attachedImageBitmap != null) {
-                            sendPrompt = if (sendPrompt.isBlank()) "请智能识别并解答图片中的少儿 Scratch 题目或脚本逻辑" else "[拍照图文识图解析] $sendPrompt"
-                            attachedImageBitmap = null
+                        val imageBitmap = attachedImageBitmap
+                        attachedImageBitmap = null
+
+                        val imgBase64 = if (imageBitmap != null) {
+                            try {
+                                val baos = java.io.ByteArrayOutputStream()
+                                imageBitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 85, baos)
+                                android.util.Base64.encodeToString(baos.toByteArray(), android.util.Base64.NO_WRAP)
+                            } catch (e: Exception) {
+                                null
+                            }
+                        } else null
+
+                        if (sendPrompt.isBlank() && imgBase64 != null) {
+                            sendPrompt = "请智能识别并详细解答图片中的少儿 Scratch 题目或积木代码逻辑"
+                        } else if (imgBase64 != null) {
+                            sendPrompt = "[拍照图文识图] $sendPrompt"
                         }
+
                         if (sendPrompt.isNotBlank() && !isLoading) {
                             val targetSid = selectedSessionId ?: activeSessionId
-                            viewModel.callAiCustomQuestion(sendPrompt, currentMode, targetSessionId = targetSid) { _ -> }
+                            viewModel.callAiCustomQuestion(
+                                question = sendPrompt,
+                                mode = currentMode,
+                                targetSessionId = targetSid,
+                                imageBase64 = imgBase64
+                            ) { _ -> }
                         }
                     },
                     onCameraClick = {
