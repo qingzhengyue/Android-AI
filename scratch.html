@@ -1064,7 +1064,8 @@ function executeDeleteVariable(varName) {
   try { notifyAndroidCodeChange(); } catch(e){}
 }
 
-function deleteVariable(varName) {
+function deleteVariable(varName, e) {
+  if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
   if (!varName) return;
   executeDeleteVariable(varName);
 }
@@ -1299,7 +1300,7 @@ function renderPalette(catKey) {
           <input type="checkbox" ${isChecked} onclick="event.stopPropagation()" onchange="toggleVariableVisibility('${safeVName}', this.checked)" title="在舞台显示/隐藏变量HUD" style="cursor:pointer;">
           <span onclick="selectActiveVariable('${safeVName}')" style="font-weight:800;color:${isSelected ? '#c2410c' : '#ea580c'};flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;cursor:pointer;" title="点击选用此变量">📦 ${vName}</span>
           ${isSelected ? '<span style="font-size:9px;background:#ea580c;color:#fff;padding:1px 4px;border-radius:3px;font-weight:800;pointer-events:none;">选用</span>' : ''}
-          <button type="button" class="del-var-btn" data-action="delete-variable" data-var="${safeVName}" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()" onclick="event.stopPropagation();deleteVariable('${safeVName}')" title="删除变量 ${vName}">✕</button>
+          <button type="button" class="del-var-btn" data-action="delete-variable" data-var="${safeVName}" onclick="deleteVariable('${safeVName}', event)" title="删除变量 ${vName}">✕</button>
         </div>`;
       });
 
@@ -1344,20 +1345,21 @@ function initTouchDragSupport() {
   document.addEventListener('touchcancel', handlePaletteTouchEnd, { passive: false });
 }
 
-// 全局强力删除委托处理 (在捕获阶段与冒泡阶段全面兜底，杜绝任何事件拦截问题)
+// 全局强力删除委托处理 (防御式点击委托，兼容直接点击与事件冒泡)
 function handleAnyDeleteClick(e) {
-  const target = e.target;
+  let target = e.target;
   if (!target) return;
+  if (target.nodeType === 3) target = target.parentElement;
+  if (!target || typeof target.closest !== 'function') return;
 
   // 1. 删除循环体内子积木
   const childDel = target.closest('[data-action="delete-child-block"]');
   if (childDel) {
-    e.stopPropagation();
-    e.preventDefault();
+    if (e.stopPropagation) e.stopPropagation();
     const parentId = childDel.getAttribute('data-parent-id');
     const childId = childDel.getAttribute('data-child-id');
     if (childId) {
-      removeChildBlock(parentId, childId);
+      removeChildBlock(parentId, childId, e);
     }
     return;
   }
@@ -1365,11 +1367,10 @@ function handleAnyDeleteClick(e) {
   // 2. 删除主画布积木
   const blockDel = target.closest('[data-action="delete-block"]') || (target.classList && target.classList.contains('del-btn') ? target : null);
   if (blockDel && !target.closest('.modal-dialog')) {
-    e.stopPropagation();
-    e.preventDefault();
+    if (e.stopPropagation) e.stopPropagation();
     const blockId = blockDel.getAttribute('data-block-id');
     if (blockId) {
-      removeBlock(blockId);
+      removeBlock(blockId, e);
     }
     return;
   }
@@ -1377,20 +1378,17 @@ function handleAnyDeleteClick(e) {
   // 3. 删除变量
   const varDel = target.closest('[data-action="delete-variable"]') || (target.classList && target.classList.contains('del-var-btn') ? target : null);
   if (varDel) {
-    e.stopPropagation();
-    e.preventDefault();
+    if (e.stopPropagation) e.stopPropagation();
     const vName = varDel.getAttribute('data-var');
     if (vName) {
-      deleteVariable(vName);
+      deleteVariable(vName, e);
     }
     return;
   }
 }
 
-// 立即绑定全局事件，无需等待 window.onload
-['click', 'pointerup', 'touchend'].forEach(evtName => {
-  document.addEventListener(evtName, handleAnyDeleteClick, true);
-});
+// 绑定全局点击委托
+document.addEventListener('click', handleAnyDeleteClick);
 
 function handlePaletteTouchStart(e) {
   const targetBlock = e.target.closest('.scratch-block');
@@ -1953,9 +1951,10 @@ function confirmAddChildDynamic(containerId, category, candidateIdx) {
   closeModal();
 }
 
-function removeChildBlock(containerId, childId) {
+function removeChildBlock(containerId, childId, e) {
+  if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
   if (!childId) return;
-  childId = String(childId);
+  childId = String(childId).trim();
   if (containerId) {
     const parent = findBlockById(containerId);
     if (parent && parent.children) {
@@ -1964,18 +1963,19 @@ function removeChildBlock(containerId, childId) {
         const removed = parent.children.splice(idx, 1)[0];
         updateWorkspaceUI();
         logMessage('🗑️ 从循环体内移除积木: ' + (OP_TRANSLATE_MAP[removed?.opcode] || removed?.opcode || ''));
-        try { notifyAndroidCodeChange(); } catch(e){}
+        try { notifyAndroidCodeChange(); } catch(err){}
         return;
       }
     }
   }
   // 兜底递归全树深度查找移除
-  removeBlock(childId);
+  removeBlock(childId, e);
 }
 
-function removeBlock(blockId) {
+function removeBlock(blockId, e) {
+  if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
   if (!blockId) return;
-  blockId = String(blockId);
+  blockId = String(blockId).trim();
 
   // 1. 顶层主列表直接匹配
   const topIdx = activeBlocks.findIndex(b => String(b.id) === blockId);
@@ -1983,7 +1983,7 @@ function removeBlock(blockId) {
     const removed = activeBlocks.splice(topIdx, 1)[0];
     updateWorkspaceUI();
     logMessage('🗑️ 移除积木: ' + (OP_TRANSLATE_MAP[removed?.opcode] || removed?.opcode || ''));
-    try { notifyAndroidCodeChange(); } catch(e){}
+    try { notifyAndroidCodeChange(); } catch(err){}
     return;
   }
 
@@ -1995,7 +1995,7 @@ function removeBlock(blockId) {
         const removed = list.splice(i, 1)[0];
         updateWorkspaceUI();
         logMessage('🗑️ 移除积木: ' + (OP_TRANSLATE_MAP[removed?.opcode] || removed?.opcode || ''));
-        try { notifyAndroidCodeChange(); } catch(e){}
+        try { notifyAndroidCodeChange(); } catch(err){}
         return true;
       }
       if (list[i].children && Array.isArray(list[i].children)) {
@@ -2015,7 +2015,7 @@ function removeBlock(blockId) {
     const removed = res.list.splice(res.index, 1)[0];
     updateWorkspaceUI();
     logMessage('🗑️ 移除积木: ' + (OP_TRANSLATE_MAP[removed?.opcode] || removed?.opcode || ''));
-    try { notifyAndroidCodeChange(); } catch(e){}
+    try { notifyAndroidCodeChange(); } catch(err){}
     return;
   }
 }
@@ -2286,7 +2286,7 @@ function renderBlockHtml(b, parentIndex = null) {
               <span class="step-number-tag">${cIdx + 1}</span>
               <span>${renderBlockInnerHtml(cBlock)}</span>
             </div>
-            <button type="button" class="del-btn" data-action="delete-child-block" data-parent-id="${b.id}" data-child-id="${cBlock.id}" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()" onclick="event.stopPropagation();event.preventDefault();removeChildBlock('${b.id}', '${cBlock.id}')" title="删除此积木">✕</button>
+            <button type="button" class="del-btn" data-action="delete-child-block" data-parent-id="${b.id}" data-child-id="${cBlock.id}" onclick="removeChildBlock('${b.id}', '${cBlock.id}', event)" title="删除此积木">✕</button>
           </div>
         `;
       });
@@ -2298,7 +2298,7 @@ function renderBlockHtml(b, parentIndex = null) {
       <div class="c-block-container" id="block_ui_${b.id}">
         <div class="c-block-header ${cls}">
           <span>${formattedLabel}</span>
-          <button type="button" class="del-btn" data-action="delete-block" data-block-id="${b.id}" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()" onclick="event.stopPropagation();event.preventDefault();removeBlock('${b.id}')" title="删除此积木">✕</button>
+          <button type="button" class="del-btn" data-action="delete-block" data-block-id="${b.id}" onclick="removeBlock('${b.id}', event)" title="删除此积木">✕</button>
         </div>
         <div class="c-block-body" id="container_body_${b.id}" data-container-body="true" data-container-id="${b.id}" ondragover="handleContainerDragOver(event, '${b.id}')" ondragleave="handleContainerDragLeave(event, '${b.id}')" ondrop="handleContainerDrop(event, '${b.id}')">
           ${childrenHtml}
@@ -2312,7 +2312,7 @@ function renderBlockHtml(b, parentIndex = null) {
   return `
     <div class="scratch-block ${cls} block-row" id="block_ui_${b.id}">
       <span>${formattedLabel}</span>
-      <button type="button" class="del-btn" data-action="delete-block" data-block-id="${b.id}" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()" onclick="event.stopPropagation();event.preventDefault();removeBlock('${b.id}')" title="删除此积木">✕</button>
+      <button type="button" class="del-btn" data-action="delete-block" data-block-id="${b.id}" onclick="removeBlock('${b.id}', event)" title="删除此积木">✕</button>
     </div>
   `;
 }
@@ -3034,7 +3034,12 @@ window.stopProject = stopScratchBlocks;
 window.runGreenFlag = runScratchBlocks;
 window.stopAll = stopScratchBlocks;
 
+let isAppFullyInitialized = false;
+
 function initApp() {
+  if (isAppFullyInitialized) return;
+  isAppFullyInitialized = true;
+
   renderPalette('motion');
   initTouchDragSupport();
   
