@@ -707,8 +707,8 @@
           </div>
 
           <div class="mt-6 p-4 bg-sky-50 rounded-2xl border border-sky-200 flex items-center justify-between">
-            <div class="text-xs text-sky-800">
-              <span class="font-bold">💡 教学小贴士：</span>可在任务发布中附带基础积木结构模板，引导学生注重初始状态重置。
+            <div id="analyticsTeachingTip" class="text-xs text-sky-800">
+              <span class="font-bold">💡 教学行动建议：</span>首要任务是推进作业催缴与基础答疑，排查未动笔学生卡壳环节。
             </div>
           </div>
         </div>
@@ -1260,13 +1260,20 @@
           taskId: 1,
           classId: 1,
           className: "三年级一班",
+          gameType: "cat_walk",
+          likes: 128,
           status: "approved",
           score: 92,
           submitTime: "2026-08-20 14:30",
           codeSummary: "[1] 当 🟢 被点击;\n[2] 将旋转方式设为 [左右翻转];\n[3] 重复执行 [无限循环] -> 嵌套内部包含[移动 10 步, 下一个造型, 等待 0.1 秒, 碰到边缘就反弹];",
           rubric: { grammar: 23, logic: 28, taskMatch: 23, creative: 18 },
           aiFeedback: "双向弹跳与造型切换逻辑写得非常规范生动，积木无死循环阻塞，角色物理动作流畅。",
-          teacherFeedback: "双向弹跳与造型切换逻辑写得非常规范生动，小猫咪十分欢快！"
+          teacherFeedback: "双向弹跳与造型切换逻辑写得非常规范生动，小猫咪十分欢快！",
+          comments: [
+            { user: "李小美", text: "双向反弹和造型切换结合得很流畅！", time: "10分钟前" },
+            { user: "蔡徐坤", text: "小猫走动时的小碎步很生动，向你学习！", time: "半小时前" },
+            { user: "王老师", text: "逻辑规范，左右翻转积木运用得很标准。", time: "1小时前" }
+          ]
         },
         {
           id: 2,
@@ -1277,13 +1284,20 @@
           taskId: 2,
           classId: 1,
           className: "三年级一班",
+          gameType: "fruit_catch",
+          likes: 256,
           status: "pending",
           score: 88,
           submitTime: "2026-08-20 16:15",
-          codeSummary: "[1] 当 🟢 被点击;\n[2] 重复执行 -> 如果 [按下右箭头] 那么 [将 x 坐标增加 10]; 如果 [按下左箭头] 那么 [将 x 坐标增加 -10];",
+          codeSummary: "[1] 当 🟢 被点击;\n[2] 将变量 [得分] 设为 0;\n[3] 碗角色: 重复执行 -> 如果 [按下右箭头] 那么 [将 x 坐标增加 12]; 如果 [按下左箭头] 那么 [将 x 坐标增加 -12];\n[4] 苹果角色: 重复执行 -> [将 y 坐标增加 -6]; 如果 [碰到 碗] 那么 [将变量 [得分] 增加 1, 移到 x: (随机数) y: 140];",
           rubric: { grammar: 22, logic: 26, taskMatch: 22, creative: 18 },
           aiFeedback: "建议在碰到水果时让变量【得分】增加 1 并播放 Pop 音效，游戏趣味性更佳。",
-          teacherFeedback: ""
+          teacherFeedback: "接水果与方向键控制响应灵敏，得分变量逻辑清晰！",
+          comments: [
+            { user: "张小帅", text: "太好玩了！我用左右键接了 12 个苹果！🍎", time: "5分钟前" },
+            { user: "谷爱凌", text: "得分变量和掉落重置做得很顺手！", time: "18分钟前" },
+            { user: "王老师", text: "变量初始化与条件碰撞侦测非常严密，很棒！", time: "45分钟前" }
+          ]
         },
         {
           id: 3,
@@ -1294,13 +1308,116 @@
           taskId: 1,
           classId: 1,
           className: "三年级一班",
+          gameType: "cat_dance",
+          likes: 89,
           status: "approved",
           score: 85,
           submitTime: "2026-08-20 18:00",
-          codeSummary: "[1] 当 🟢 被点击;\n[2] 重复执行 [无限循环] -> 嵌套内部包含[移动 10 步];",
+          codeSummary: "[1] 当 🟢 被点击;\n[2] 重复执行 [无限循环] -> [右转 15 度, 等待 0.2 秒, 左转 30 度, 等待 0.2 秒, 右转 15 度, 等待 0.2 秒];\n[3] 当角色被点击 -> [播放声音 Meow, 说 '哎哟不错哦! 🎵' 1 秒];",
           rubric: { grammar: 21, logic: 25, taskMatch: 21, creative: 18 },
-          aiFeedback: "小猫会一直往前走，建议补充【碰到边缘就反弹】积木防止走出舞台边界。",
-          teacherFeedback: "基础移动逻辑已搭建，注意边缘反弹的补充！"
+          aiFeedback: "小猫节奏摇摆富有创意，建议结合音频积木强化音画互动体验。",
+          teacherFeedback: "基础旋转与节拍逻辑已搭建，很有音乐律动感！",
+          comments: [
+            { user: "张小帅", text: "摇摆的节奏感绝了，超酷！😎", time: "15分钟前" },
+            { user: "陈小明", text: "旋转角度的对称控制写得真巧！", time: "35分钟前" },
+            { user: "王老师", text: "节奏循环很完整，可以尝试引入音频播放积木！", time: "2小时前" }
+          ]
+        },
+        {
+          id: 4,
+          workName: "蔡徐坤的动感投篮扣篮",
+          studentName: "蔡徐坤",
+          studentNumber: "3104",
+          studentId: 4,
+          taskId: 2,
+          classId: 1,
+          className: "三年级一班",
+          gameType: "basketball",
+          likes: 198,
+          status: "approved",
+          score: 95,
+          submitTime: "2026-08-20 19:10",
+          codeSummary: "[1] 当 🟢 被点击;\n[2] 将变量 [得分] 设为 0, 将变量 [垂直速度] 设为 12;\n[3] 重复执行 -> [将 y 坐标增加 垂直速度, 将变量 [垂直速度] 增加 -1]; 如果 [y 坐标 < -100] 那么 [将垂直速度设为 12];\n[4] 如果 [碰到 篮筐] 那么 [将变量 [得分] 增加 2, 说 '进球! 🎉' 1 秒];",
+          rubric: { grammar: 24, logic: 29, taskMatch: 24, creative: 18 },
+          aiFeedback: "重力加速度与反弹算法极为严谨，模拟出了真实的物理抛物线效果！",
+          teacherFeedback: "巧妙利用变量实现物理抛物线，思维极具创造力！",
+          comments: [
+            { user: "周杰伦", text: "重力加速度算法很逼真，物理模拟很赞！🏀", time: "8分钟前" },
+            { user: "李小美", text: "投篮进球反馈特别有成就感！", time: "20分钟前" },
+            { user: "王老师", text: "成功利用变量实现了简易重力物理引擎，非常棒！", time: "1小时前" }
+          ]
+        },
+        {
+          id: 5,
+          workName: "谷爱凌的极速滑雪避障",
+          studentName: "谷爱凌",
+          studentNumber: "3105",
+          studentId: 5,
+          taskId: 3,
+          classId: 1,
+          className: "三年级一班",
+          gameType: "ski_rush",
+          likes: 342,
+          status: "approved",
+          score: 96,
+          submitTime: "2026-08-20 20:00",
+          codeSummary: "[1] 当 🟢 被点击;\n[2] 重复执行 -> 如果 [按下左箭头] 那么 [左转 10 度, 将 x 增加 -8]; 如果 [按下右箭头] 那么 [右转 10 度, 将 x 增加 8];\n[3] 障碍物松树: 重复执行 -> [将 y 增加 -10]; 如果 [y 坐标 < -160] 那么 [移到 x: (随机数) y: 160, 将变量 [得分] 增加 1];",
+          rubric: { grammar: 25, logic: 29, taskMatch: 24, creative: 18 },
+          aiFeedback: "动态雪道渲染与双向避障响应迅速，障碍物重置逻辑严丝合缝。",
+          teacherFeedback: "综合运用坐标位移与条件判断，滑雪动态生动逼真！",
+          comments: [
+            { user: "张小帅", text: "滑雪速度感太强了，避障超刺激！⛷️", time: "3分钟前" },
+            { user: "蔡徐坤", text: "障碍物的随机生成机制设计得非常棒！", time: "14分钟前" },
+            { user: "王老师", text: "综合运用坐标位移与条件判断，游戏性极佳！", time: "30分钟前" }
+          ]
+        },
+        {
+          id: 6,
+          workName: "陈小明的太空星际探索",
+          studentName: "陈小明",
+          studentNumber: "3106",
+          studentId: 6,
+          taskId: 4,
+          classId: 1,
+          className: "三年级一班",
+          gameType: "space_ship",
+          likes: 165,
+          status: "approved",
+          score: 91,
+          submitTime: "2026-08-20 20:45",
+          codeSummary: "[1] 当 🟢 被点击;\n[2] 重复执行 -> [面向 鼠标指针, 移动 4 步];\n[3] 当按下 [空格] 键 -> [克隆 [激光子弹], 播放声音 Laser];\n[4] 当作为克隆体启动时 -> 重复执行 [将 y 坐标增加 15, 如果碰到陨石则删除此克隆体, 将变量 [得分] 增加 1];",
+          rubric: { grammar: 23, logic: 28, taskMatch: 22, creative: 18 },
+          aiFeedback: "克隆体机制运用娴熟，激光发射与碰撞销毁生命周期控制得当。",
+          teacherFeedback: "事件驱动与克隆体生命周期管理得当，逻辑完整！",
+          comments: [
+            { user: "谷爱凌", text: "星际飞行的操控感非常丝滑！🚀", time: "18分钟前" },
+            { user: "周杰伦", text: "克隆体机制发射子弹用得太熟练了！", time: "50分钟前" },
+            { user: "王老师", text: "事件驱动与克隆体生命周期管理得当，逻辑完整。", time: "3小时前" }
+          ]
+        },
+        {
+          id: 7,
+          workName: "林华华的深海小鱼吐泡泡",
+          studentName: "林华华",
+          studentNumber: "3107",
+          studentId: 7,
+          taskId: 1,
+          classId: 1,
+          className: "三年级一班",
+          gameType: "underwater_fish",
+          likes: 112,
+          status: "approved",
+          score: 90,
+          submitTime: "2026-08-20 21:15",
+          codeSummary: "[1] 当 🟢 被点击;\n[2] 重复执行 -> [移动 6 步, 下一个造型, 等待 0.08 秒, 碰到边缘就反弹];\n[3] 当角色被点击 -> [克隆 [水泡], 播放声音 Bubble, 将大小设为 120%, 等待 0.2 秒后复原];",
+          rubric: { grammar: 23, logic: 27, taskMatch: 22, creative: 18 },
+          aiFeedback: "深海生态与角色动画极为生动，点击交互音效反馈自然。",
+          teacherFeedback: "造型切换平滑，克隆气泡向上漂浮的代码很巧妙！",
+          comments: [
+            { user: "李小美", text: "水草小鱼的动画配合特别治愈！🐠", time: "30分钟前" },
+            { user: "张小帅", text: "吐泡泡的克隆体飘升效果很精巧！🫧", time: "1小时前" },
+            { user: "王老师", text: "造型切换自然，反弹与事件监听结合得很好。", time: "2小时前" }
+          ]
         }
       ]
     };
@@ -2016,7 +2133,22 @@
       const container = document.getElementById('openHallWorksList');
       if (!container) return;
       container.innerHTML = state.works.map(w => {
-        w.likes = w.likes || 18;
+        // 保障每位学生作业具有真实且独一无二的点赞数与个性化展示
+        const likeCount = w.likes !== undefined ? w.likes : (50 + (w.id * 37) % 250);
+        w.likes = likeCount;
+
+        // 根据作品类型展示专属标签与图标
+        const gameTagMap = {
+          cat_walk: '<span class="bg-amber-100 text-amber-700 text-[10px] px-2 py-0.5 rounded-full font-bold">🐱 角色漫步</span>',
+          fruit_catch: '<span class="bg-emerald-100 text-emerald-700 text-[10px] px-2 py-0.5 rounded-full font-bold">🍎 接水果小游戏</span>',
+          cat_dance: '<span class="bg-purple-100 text-purple-700 text-[10px] px-2 py-0.5 rounded-full font-bold">🎵 节奏音效</span>',
+          basketball: '<span class="bg-orange-100 text-orange-700 text-[10px] px-2 py-0.5 rounded-full font-bold">🏀 物理重力抛物</span>',
+          ski_rush: '<span class="bg-cyan-100 text-cyan-700 text-[10px] px-2 py-0.5 rounded-full font-bold">⛷️ 极速避障</span>',
+          space_ship: '<span class="bg-indigo-100 text-indigo-700 text-[10px] px-2 py-0.5 rounded-full font-bold">🚀 太空射击克隆</span>',
+          underwater_fish: '<span class="bg-teal-100 text-teal-700 text-[10px] px-2 py-0.5 rounded-full font-bold">🐠 水族馆动画</span>'
+        };
+        const tagHtml = gameTagMap[w.gameType] || '<span class="bg-sky-100 text-sky-700 text-[10px] px-2 py-0.5 rounded-full font-bold">🎮 Scratch创意</span>';
+
         return `
           <div class="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm hover:shadow-md transition flex flex-col justify-between">
             <div>
@@ -2028,7 +2160,10 @@
                     <div class="text-[10px] text-slate-400">${w.className}</div>
                   </div>
                 </div>
-                <span class="text-xs font-black text-purple-600 bg-purple-50 px-2 py-0.5 rounded-lg">${w.score} 分</span>
+                <div class="flex items-center gap-1.5">
+                  ${tagHtml}
+                  <span class="text-xs font-black text-purple-600 bg-purple-50 px-2 py-0.5 rounded-lg">${w.score} 分</span>
+                </div>
               </div>
               <h4 class="font-bold text-sm text-slate-800 mb-2">${w.workName}</h4>
               <div class="bg-slate-900 text-sky-300 font-mono text-[11px] p-3 rounded-xl mb-4 h-20 overflow-hidden leading-relaxed whitespace-pre-wrap">${w.codeSummary}</div>
@@ -2038,8 +2173,8 @@
                 <i class="fa-solid fa-gamepad"></i> 在线试玩
               </button>
               <div class="flex items-center gap-2">
-                <button onclick="toggleCardLike(${w.id})" class="text-slate-500 hover:text-rose-500 font-medium flex items-center gap-1">
-                  <i class="fa-solid fa-heart text-rose-400"></i> <span id="card-like-${w.id}">${w.likes}</span>
+                <button onclick="toggleCardLike(${w.id})" class="text-slate-500 hover:text-rose-500 font-medium flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-rose-50 transition">
+                  <i class="fa-solid fa-heart text-rose-500"></i> <span id="card-like-${w.id}" class="font-bold">${w.likes}</span>
                 </button>
                 <button onclick="openReportModal(${w.id})" class="text-sky-600 font-bold hover:underline">
                   五维报告
@@ -2054,28 +2189,35 @@
     function toggleCardLike(workId) {
       const work = state.works.find(w => w.id === workId);
       if (work) {
-        work.likes = (work.likes || 18) + 1;
+        work.likes = (work.likes || 0) + 1;
         const el = document.getElementById(`card-like-${workId}`);
         if (el) el.textContent = work.likes;
+        const modalLikeEl = document.getElementById('playModalLikeCount');
+        if (modalLikeEl && activePlayingWork && activePlayingWork.id === workId) {
+          modalLikeEl.textContent = work.likes;
+        }
       }
     }
 
-    // --- 互动广场: Scratch 作品在线试玩器 ---
+    // --- 互动广场: Scratch 作品在线试玩器 (支持7大差异化专属游戏物理引擎) ---
     let activePlayingWork = null;
     let playStageInterval = null;
     let playStagePosX = 0;
+    let playStagePosY = 0;
     let playStageScoreVal = 0;
+    let playStageCustomState = {};
 
     function openWorkPlayModal(workId) {
       activePlayingWork = state.works.find(w => w.id === workId) || state.works[0];
-      if (!activePlayingWork.comments) {
+      
+      // 确保每个作品有专属差异化评论列表
+      if (!activePlayingWork.comments || activePlayingWork.comments.length === 0) {
         activePlayingWork.comments = [
-          { user: "李小美", text: "这个弹跳动作做得很逼真流畅！", time: "10分钟前" },
-          { user: "周杰伦", text: "太赞了，向你学习！", time: "半小时前" },
-          { user: "王老师", text: "逻辑规范，左右翻转积木运用得很标准。", time: "1小时前" }
+          { user: "李小美", text: "这个程序写得真棒，向你学习！", time: "10分钟前" },
+          { user: "周杰伦", text: "运行很流畅，节奏感很好！", time: "半小时前" },
+          { user: "王老师", text: "积木结构严谨，逻辑清晰！", time: "1小时前" }
         ];
       }
-      activePlayingWork.likes = activePlayingWork.likes || 24;
 
       document.getElementById('playModalWorkTitle').textContent = `《${activePlayingWork.workName}》在线试玩与互动`;
       document.getElementById('playModalAuthorInfo').textContent = `作者: ${activePlayingWork.studentName} · ${activePlayingWork.className} · AI 评测 ${activePlayingWork.score}分`;
@@ -2083,13 +2225,19 @@
       document.getElementById('playModalCodeSummary').textContent = activePlayingWork.codeSummary;
 
       renderPlayModalComments();
+      buildDynamicStageView(activePlayingWork.gameType || 'cat_walk');
       resetPlayStage();
+
+      // 绑定全局按键事件
+      window.removeEventListener('keydown', handlePlayStageKeydown);
+      window.addEventListener('keydown', handlePlayStageKeydown);
 
       document.getElementById('workPlayModal').classList.remove('hidden');
     }
 
     function closeWorkPlayModal() {
       triggerPlayStageStop();
+      window.removeEventListener('keydown', handlePlayStageKeydown);
       document.getElementById('workPlayModal').classList.add('hidden');
     }
 
@@ -2130,39 +2278,423 @@
       if (cardLikeEl) cardLikeEl.textContent = activePlayingWork.likes;
     }
 
+    // 根据不同学生的作业类型，动态构建专属的舞台视觉元素
+    function buildDynamicStageView(gameType) {
+      const container = document.getElementById('playStageCanvasContainer');
+      if (!container) return;
+
+      playStageCustomState = {
+        type: gameType,
+        catDir: 1,
+        bowlX: 0,
+        appleX: (Math.random() * 200 - 100),
+        appleY: -110,
+        appleSpeed: 6,
+        danceAngle: 0,
+        danceDir: 1,
+        ballX: -70,
+        ballY: 40,
+        ballVY: 0,
+        isBallShooting: false,
+        skierX: 0,
+        treeX: (Math.random() * 180 - 90),
+        treeY: 120,
+        shipX: 0,
+        shipY: 40,
+        laserY: -999,
+        laserX: 0,
+        meteorX: 30,
+        meteorY: -80,
+        fishX: 0,
+        fishDir: 1,
+        bubbleY: 20
+      };
+
+      if (gameType === 'fruit_catch') {
+        container.className = "flex-1 flex flex-col items-center justify-center p-4 relative overflow-hidden bg-gradient-to-b from-emerald-950/70 via-slate-900 to-amber-950/40 select-none";
+        container.innerHTML = `
+          <!-- 果园背景装饰 -->
+          <div class="absolute top-2 left-4 text-emerald-400/40 text-xs font-mono">🍎 果园丰收大作战</div>
+          <div class="absolute inset-0 pointer-events-none opacity-20 bg-[radial-gradient(#10b981_1px,transparent_1px)] [background-size:16px_16px]"></div>
+          
+          <!-- 掉落的红苹果 -->
+          <div id="gameApple" class="absolute w-10 h-10 transition-transform duration-75 flex items-center justify-center" style="top: 20px; transform: translateX(0px);">
+            <div class="text-3xl drop-shadow-[0_4px_12px_rgba(239,68,68,0.7)] animate-bounce">🍎</div>
+          </div>
+
+          <!-- 底部接物小碗 -->
+          <div id="gameBowl" class="absolute bottom-10 w-24 h-12 flex flex-col items-center justify-center cursor-pointer transition-transform duration-75" style="transform: translateX(0px);" onclick="handleBowlClick()">
+            <div class="bg-gradient-to-r from-amber-400 to-yellow-500 text-amber-950 border-2 border-yellow-200 rounded-b-full rounded-t-lg w-20 h-8 flex items-center justify-center font-black text-[11px] shadow-lg shadow-yellow-500/30">
+              🥣 小碗
+            </div>
+          </div>
+
+          <!-- 提示与状态 -->
+          <div id="playSpeechBubble" class="hidden absolute top-8 bg-white text-slate-900 text-[11px] font-bold px-3 py-1 rounded-lg shadow-xl whitespace-nowrap border border-slate-300">
+            接住苹果! 🍎 得分 +1
+          </div>
+          <div class="absolute bottom-2 left-4 right-4 flex justify-between text-[11px] text-slate-400 font-mono">
+            <span>🎮 按键盘 ← / → 方向键移动小碗接住苹果</span>
+            <span id="playStagePos">碗坐标 X: 0</span>
+          </div>
+        `;
+      } else if (gameType === 'cat_dance') {
+        container.className = "flex-1 flex flex-col items-center justify-center p-4 relative overflow-hidden bg-gradient-to-b from-purple-950/80 via-slate-900 to-indigo-950/70 select-none";
+        container.innerHTML = `
+          <div class="absolute top-2 left-4 text-purple-400/50 text-xs font-mono">🎵 聚光灯音乐节拍</div>
+          <div class="absolute inset-0 pointer-events-none opacity-25 bg-[radial-gradient(#a855f7_1px,transparent_1px)] [background-size:20px_20px]"></div>
+          
+          <div id="gameDanceCat" class="w-24 h-24 flex flex-col items-center justify-center relative cursor-pointer transition-transform duration-100" onclick="handleDanceCatClick()">
+            <div class="text-5xl drop-shadow-[0_0_25px_rgba(168,85,247,0.8)]">🕶️🐱</div>
+            <div id="danceNotes" class="absolute -top-4 -right-2 text-xl text-yellow-300 animate-pulse">🎵</div>
+            <div id="playSpeechBubble" class="hidden absolute -top-10 bg-white text-slate-900 text-[11px] font-bold px-2.5 py-1 rounded-lg shadow-xl whitespace-nowrap border border-slate-300">
+              哎哟不错哦! 🎵
+            </div>
+          </div>
+
+          <div class="absolute bottom-2 left-4 right-4 flex justify-between text-[11px] text-slate-400 font-mono">
+            <span>按空格键或点击小猫跟随音乐律动</span>
+            <span id="playStagePos">律动角度: 0°</span>
+          </div>
+        `;
+      } else if (gameType === 'basketball') {
+        container.className = "flex-1 flex flex-col items-center justify-center p-4 relative overflow-hidden bg-gradient-to-b from-amber-950/70 via-slate-900 to-sky-950/50 select-none";
+        container.innerHTML = `
+          <div class="absolute top-2 left-4 text-amber-400/50 text-xs font-mono">🏀 物理重力篮球馆</div>
+          
+          <!-- 悬空篮筐 -->
+          <div class="absolute top-12 right-12 flex flex-col items-center">
+            <div class="w-16 h-1 bg-red-600 rounded-full shadow-md"></div>
+            <div class="w-12 h-10 border-x-2 border-b-2 border-white/60 rounded-b-xl flex items-center justify-center text-[10px] text-white/50 font-bold bg-white/5">
+              NET
+            </div>
+          </div>
+
+          <!-- 弹跳篮球 -->
+          <div id="gameBasketball" class="absolute w-12 h-12 flex items-center justify-center cursor-pointer transition-transform duration-75" style="transform: translate(-70px, 40px);" onclick="handleShootBasketball()">
+            <div class="text-4xl drop-shadow-[0_4px_16px_rgba(249,115,22,0.8)]">🏀</div>
+          </div>
+
+          <div id="playSpeechBubble" class="hidden absolute top-8 left-12 bg-white text-slate-900 text-[11px] font-bold px-2.5 py-1 rounded-lg shadow-xl whitespace-nowrap border border-slate-300">
+            空心入网! 进球得分 +2 🎉
+          </div>
+          <div class="absolute bottom-2 left-4 right-4 flex justify-between text-[11px] text-slate-400 font-mono">
+            <span>按空格键或点击篮球投篮</span>
+            <span id="playStagePos">球坐标 X: -70, Y: 40</span>
+          </div>
+        `;
+      } else if (gameType === 'ski_rush') {
+        container.className = "flex-1 flex flex-col items-center justify-center p-4 relative overflow-hidden bg-gradient-to-b from-cyan-950/70 via-slate-900 to-blue-950/60 select-none";
+        container.innerHTML = `
+          <div class="absolute top-2 left-4 text-cyan-400/50 text-xs font-mono">⛷️ 极速雪道避障</div>
+          <div class="absolute inset-0 pointer-events-none opacity-30 bg-[radial-gradient(#38bdf8_1px,transparent_1px)] [background-size:24px_24px]"></div>
+
+          <!-- 障碍物松树 -->
+          <div id="gameTree" class="absolute transition-transform duration-75 flex items-center justify-center text-3xl" style="transform: translate(0px, 100px);">
+            🌲
+          </div>
+
+          <!-- 滑雪小人 -->
+          <div id="gameSkier" class="absolute w-12 h-12 flex items-center justify-center cursor-pointer transition-transform duration-75" style="transform: translate(0px, -20px);" onclick="handleSkierClick()">
+            <div class="text-4xl drop-shadow-[0_0_15px_rgba(56,189,248,0.8)]">⛷️</div>
+          </div>
+
+          <div id="playSpeechBubble" class="hidden absolute top-8 bg-white text-slate-900 text-[11px] font-bold px-2.5 py-1 rounded-lg shadow-xl whitespace-nowrap border border-slate-300">
+            侧滑避障成功! ❄️
+          </div>
+          <div class="absolute bottom-2 left-4 right-4 flex justify-between text-[11px] text-slate-400 font-mono">
+            <span>按 ← / → 键避开迎面而来的松树</span>
+            <span id="playStagePos">滑雪者 X: 0</span>
+          </div>
+        `;
+      } else if (gameType === 'space_ship') {
+        container.className = "flex-1 flex flex-col items-center justify-center p-4 relative overflow-hidden bg-gradient-to-b from-indigo-950 via-slate-950 to-purple-950 select-none";
+        container.innerHTML = `
+          <div class="absolute top-2 left-4 text-indigo-400/50 text-xs font-mono">🚀 太空星际激光战</div>
+          
+          <!-- 浮动陨石 -->
+          <div id="gameMeteor" class="absolute transition-transform duration-100 flex items-center justify-center text-3xl" style="transform: translate(30px, -70px);">
+            🪨
+          </div>
+
+          <!-- 激光能量弹 -->
+          <div id="gameLaser" class="hidden absolute w-1.5 h-6 bg-sky-400 rounded-full shadow-[0_0_10px_#38bdf8] transition-transform duration-75"></div>
+
+          <!-- 太空飞船 -->
+          <div id="gameShip" class="absolute w-14 h-14 flex items-center justify-center cursor-pointer transition-transform duration-75" style="transform: translate(0px, 40px);" onclick="handleShootLaser()">
+            <div class="text-4xl drop-shadow-[0_0_20px_rgba(99,102,241,0.8)]">🚀</div>
+          </div>
+
+          <div id="playSpeechBubble" class="hidden absolute top-8 bg-white text-slate-900 text-[11px] font-bold px-2.5 py-1 rounded-lg shadow-xl whitespace-nowrap border border-slate-300">
+            击毁陨石! 💥 得分 +1
+          </div>
+          <div class="absolute bottom-2 left-4 right-4 flex justify-between text-[11px] text-slate-400 font-mono">
+            <span>按方向键飞行，按空格键发射激光</span>
+            <span id="playStagePos">飞船 X: 0, Y: 40</span>
+          </div>
+        `;
+      } else if (gameType === 'underwater_fish') {
+        container.className = "flex-1 flex flex-col items-center justify-center p-4 relative overflow-hidden bg-gradient-to-b from-teal-950/80 via-slate-900 to-blue-950/80 select-none";
+        container.innerHTML = `
+          <div class="absolute top-2 left-4 text-teal-400/50 text-xs font-mono">🐠 深海水族馆生态</div>
+          
+          <!-- 梦幻上升水泡 -->
+          <div id="gameBubble" class="hidden absolute text-lg text-sky-300 transition-all duration-300" style="transform: translate(0px, 0px);">
+            🫧
+          </div>
+
+          <!-- 深海小丑鱼 -->
+          <div id="gameFish" class="w-16 h-16 flex items-center justify-center cursor-pointer transition-transform duration-100" onclick="handleFishClick()">
+            <div class="text-5xl drop-shadow-[0_4px_20px_rgba(20,184,166,0.8)]">🐠</div>
+          </div>
+
+          <div id="playSpeechBubble" class="hidden absolute top-8 bg-white text-slate-900 text-[11px] font-bold px-2.5 py-1 rounded-lg shadow-xl whitespace-nowrap border border-slate-300">
+            吐泡泡咯~ 🫧
+          </div>
+          <div class="absolute bottom-2 left-4 right-4 flex justify-between text-[11px] text-slate-400 font-mono">
+            <span>按方向键游动，点击小鱼吐出梦幻泡泡</span>
+            <span id="playStagePos">小鱼 X: 0</span>
+          </div>
+        `;
+      } else {
+        // 默认 cat_walk: 小猫双向漫步
+        container.className = "flex-1 flex flex-col items-center justify-center p-4 relative overflow-hidden bg-gradient-to-b from-sky-900/40 via-slate-900 to-indigo-950/40 select-none";
+        container.innerHTML = `
+          <div class="absolute top-2 left-4 text-sky-400/50 text-xs font-mono">🐱 猫咪双向漫步</div>
+          <div id="playStageSprite" class="w-20 h-20 transition-all duration-100 flex flex-col items-center justify-center relative cursor-pointer" onclick="handlePlaySpriteClick()">
+            <svg class="w-16 h-16 drop-shadow-[0_4px_16px_rgba(0,0,0,0.6)] hover:scale-105 transition-transform" viewBox="0 0 100 100">
+              <path d="M20,30 L30,10 L45,25 L55,25 L70,10 L80,30 C90,45 85,70 50,85 C15,70 10,45 20,30 Z" fill="#FFAB19" stroke="#E67E22" stroke-width="2.5"/>
+              <circle cx="35" cy="40" r="7" fill="#ffffff"/>
+              <circle cx="36" cy="40" r="3.5" fill="#0f172a"/>
+              <circle cx="65" cy="40" r="7" fill="#ffffff"/>
+              <circle cx="64" cy="40" r="3.5" fill="#0f172a"/>
+              <path d="M44,54 Q50,62 56,54" stroke="#0f172a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+              <ellipse cx="50" cy="48" rx="3.5" ry="2.5" fill="#ef4444"/>
+              <line x1="14" y1="46" x2="30" y2="48" stroke="#0f172a" stroke-width="1.8" stroke-linecap="round"/>
+              <line x1="14" y1="54" x2="28" y2="57" stroke="#0f172a" stroke-width="1.8" stroke-linecap="round"/>
+              <line x1="86" y1="46" x2="70" y2="48" stroke="#0f172a" stroke-width="1.8" stroke-linecap="round"/>
+              <line x1="86" y1="54" x2="72" y2="57" stroke="#0f172a" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+            <div id="playSpeechBubble" class="hidden absolute -top-8 bg-white text-slate-900 text-[11px] font-bold px-2 py-1 rounded-lg shadow-lg whitespace-nowrap border border-slate-300">
+              喵~ 碰到边缘反弹成功! 🐱
+            </div>
+          </div>
+          <div class="absolute bottom-3 left-4 right-4 flex justify-between text-[11px] text-slate-400 font-mono">
+            <span>按键盘左右键或点击角色交互</span>
+            <span id="playStagePos">X: 0, Y: 0</span>
+          </div>
+        `;
+      }
+    }
+
     function resetPlayStage() {
       triggerPlayStageStop();
-      playStagePosX = 0;
       playStageScoreVal = 0;
       document.getElementById('playStageScore').textContent = '0';
       document.getElementById('playStageStatus').textContent = '已准备';
-      document.getElementById('playStagePos').textContent = 'X: 0, Y: 0';
-      const sprite = document.getElementById('playStageSprite');
-      if (sprite) {
-        sprite.style.transform = 'translate(0px, 0px) scaleX(1)';
-      }
-      document.getElementById('playSpeechBubble').classList.add('hidden');
     }
 
     function triggerPlayStageRun() {
       if (playStageInterval) clearInterval(playStageInterval);
       document.getElementById('playStageStatus').textContent = '🟢 运行中';
-      document.getElementById('playSpeechBubble').classList.remove('hidden');
+      const bubble = document.getElementById('playSpeechBubble');
+      if (bubble) {
+        bubble.classList.remove('hidden');
+        setTimeout(() => bubble.classList.add('hidden'), 2000);
+      }
 
-      let dir = 1;
-      playStageInterval = setInterval(() => {
-        playStagePosX += dir * 8;
-        if (playStagePosX > 140) {
-          dir = -1;
-        } else if (playStagePosX < -140) {
-          dir = 1;
-        }
-        const sprite = document.getElementById('playStageSprite');
-        if (sprite) {
-          sprite.style.transform = `translateX(${playStagePosX}px) scaleX(${dir > 0 ? 1 : -1})`;
-        }
-        document.getElementById('playStagePos').textContent = `X: ${playStagePosX}, Y: 0`;
-      }, 100);
+      const gType = activePlayingWork?.gameType || 'cat_walk';
+
+      if (gType === 'fruit_catch') {
+        // 接水果下落循环
+        playStageInterval = setInterval(() => {
+          playStageCustomState.appleY += playStageCustomState.appleSpeed;
+          const appleEl = document.getElementById('gameApple');
+          const bowlEl = document.getElementById('gameBowl');
+          const posEl = document.getElementById('playStagePos');
+          
+          if (appleEl) {
+            appleEl.style.transform = `translate(${playStageCustomState.appleX}px, ${playStageCustomState.appleY}px)`;
+          }
+
+          // 碰撞检测: 苹果掉落到底部小碗位置
+          if (playStageCustomState.appleY > 90) {
+            const diff = Math.abs(playStageCustomState.appleX - playStageCustomState.bowlX);
+            if (diff < 45) {
+              // 接住了！
+              playStageScoreVal += 1;
+              document.getElementById('playStageScore').textContent = playStageScoreVal;
+              if (bubble) {
+                bubble.textContent = `太棒了! 接住苹果 🍎 得分 +1 (当前: ${playStageScoreVal})`;
+                bubble.classList.remove('hidden');
+                setTimeout(() => bubble.classList.add('hidden'), 1200);
+              }
+              if (bowlEl) {
+                bowlEl.style.transform = `translateX(${playStageCustomState.bowlX}px) scale(1.15)`;
+                setTimeout(() => {
+                  bowlEl.style.transform = `translateX(${playStageCustomState.bowlX}px) scale(1)`;
+                }, 150);
+              }
+            }
+            // 重新从上方随机位置掉落
+            playStageCustomState.appleY = -110;
+            playStageCustomState.appleX = Math.floor(Math.random() * 220 - 110);
+          }
+
+          if (posEl) posEl.textContent = `碗 X: ${playStageCustomState.bowlX}, 果 X: ${playStageCustomState.appleX}`;
+        }, 50);
+
+      } else if (gType === 'cat_dance') {
+        // 摇滚节奏摆动
+        playStageInterval = setInterval(() => {
+          playStageCustomState.danceAngle += playStageCustomState.danceDir * 4;
+          if (playStageCustomState.danceAngle > 20) playStageCustomState.danceDir = -1;
+          else if (playStageCustomState.danceAngle < -20) playStageCustomState.danceDir = 1;
+
+          const catEl = document.getElementById('gameDanceCat');
+          const posEl = document.getElementById('playStagePos');
+          if (catEl) {
+            catEl.style.transform = `rotate(${playStageCustomState.danceAngle}deg)`;
+          }
+          if (posEl) posEl.textContent = `律动角度: ${playStageCustomState.danceAngle}°`;
+        }, 60);
+
+      } else if (gType === 'basketball') {
+        // 篮球重力循环
+        playStageInterval = setInterval(() => {
+          if (playStageCustomState.isBallShooting) {
+            playStageCustomState.ballX += 6;
+            playStageCustomState.ballY += playStageCustomState.ballVY;
+            playStageCustomState.ballVY += 1.2; // 重力下落
+
+            const ballEl = document.getElementById('gameBasketball');
+            if (ballEl) {
+              ballEl.style.transform = `translate(${playStageCustomState.ballX}px, ${playStageCustomState.ballY}px) rotate(${playStageCustomState.ballX * 4}deg)`;
+            }
+
+            // 判断进球: X 在 40~80, Y 在 -40~0
+            if (playStageCustomState.ballX > 50 && playStageCustomState.ballY < 0 && playStageCustomState.ballVY > 0) {
+              playStageScoreVal += 2;
+              document.getElementById('playStageScore').textContent = playStageScoreVal;
+              if (bubble) {
+                bubble.textContent = `🎉 空心三分球进啦! 得分 +2 (当前: ${playStageScoreVal})`;
+                bubble.classList.remove('hidden');
+                setTimeout(() => bubble.classList.add('hidden'), 1500);
+              }
+              playStageCustomState.isBallShooting = false;
+              playStageCustomState.ballX = -70;
+              playStageCustomState.ballY = 40;
+            } else if (playStageCustomState.ballY > 70 || playStageCustomState.ballX > 120) {
+              // 出界或落地重置
+              playStageCustomState.isBallShooting = false;
+              playStageCustomState.ballX = -70;
+              playStageCustomState.ballY = 40;
+            }
+          } else {
+            // 原地弹跳
+            playStageCustomState.ballY = 40 + Math.sin(Date.now() / 150) * 12;
+            const ballEl = document.getElementById('gameBasketball');
+            if (ballEl) {
+              ballEl.style.transform = `translate(${playStageCustomState.ballX}px, ${playStageCustomState.ballY}px)`;
+            }
+          }
+          const posEl = document.getElementById('playStagePos');
+          if (posEl) posEl.textContent = `球 X: ${Math.round(playStageCustomState.ballX)}, Y: ${Math.round(playStageCustomState.ballY)}`;
+        }, 40);
+
+      } else if (gType === 'ski_rush') {
+        // 松树向上运动循环
+        playStageInterval = setInterval(() => {
+          playStageCustomState.treeY -= 7;
+          const treeEl = document.getElementById('gameTree');
+          if (treeEl) {
+            treeEl.style.transform = `translate(${playStageCustomState.treeX}px, ${playStageCustomState.treeY}px)`;
+          }
+          // 躲过障碍加分
+          if (playStageCustomState.treeY < -110) {
+            playStageScoreVal += 1;
+            document.getElementById('playStageScore').textContent = playStageScoreVal;
+            playStageCustomState.treeY = 120;
+            playStageCustomState.treeX = Math.floor(Math.random() * 200 - 100);
+          }
+          const posEl = document.getElementById('playStagePos');
+          if (posEl) posEl.textContent = `滑雪 X: ${playStageCustomState.skierX}, 树 Y: ${playStageCustomState.treeY}`;
+        }, 50);
+
+      } else if (gType === 'space_ship') {
+        // 陨石漂浮循环
+        playStageInterval = setInterval(() => {
+          playStageCustomState.meteorY += 2;
+          if (playStageCustomState.meteorY > 100) {
+            playStageCustomState.meteorY = -80;
+            playStageCustomState.meteorX = Math.floor(Math.random() * 160 - 80);
+          }
+          const meteorEl = document.getElementById('gameMeteor');
+          if (meteorEl) {
+            meteorEl.style.transform = `translate(${playStageCustomState.meteorX}px, ${playStageCustomState.meteorY}px)`;
+          }
+
+          // 激光发射判定
+          if (playStageCustomState.laserY > -120 && playStageCustomState.laserY < 200) {
+            playStageCustomState.laserY -= 15;
+            const laserEl = document.getElementById('gameLaser');
+            if (laserEl) {
+              laserEl.style.transform = `translate(${playStageCustomState.laserX}px, ${playStageCustomState.laserY}px)`;
+            }
+            // 碰撞击中陨石
+            const dist = Math.hypot(playStageCustomState.laserX - playStageCustomState.meteorX, playStageCustomState.laserY - playStageCustomState.meteorY);
+            if (dist < 30) {
+              playStageScoreVal += 1;
+              document.getElementById('playStageScore').textContent = playStageScoreVal;
+              if (bubble) {
+                bubble.textContent = `💥 击中陨石! 得分 +1 (当前: ${playStageScoreVal})`;
+                bubble.classList.remove('hidden');
+                setTimeout(() => bubble.classList.add('hidden'), 1200);
+              }
+              playStageCustomState.laserY = -999;
+              playStageCustomState.meteorY = -80;
+              playStageCustomState.meteorX = Math.floor(Math.random() * 160 - 80);
+            }
+          }
+          const posEl = document.getElementById('playStagePos');
+          if (posEl) posEl.textContent = `飞船 X: ${playStageCustomState.shipX}, 陨石 Y: ${playStageCustomState.meteorY}`;
+        }, 40);
+
+      } else if (gType === 'underwater_fish') {
+        // 小鱼深海摆尾游动循环
+        playStageInterval = setInterval(() => {
+          playStageCustomState.fishX += playStageCustomState.fishDir * 5;
+          if (playStageCustomState.fishX > 110) playStageCustomState.fishDir = -1;
+          else if (playStageCustomState.fishX < -110) playStageCustomState.fishDir = 1;
+
+          const fishEl = document.getElementById('gameFish');
+          if (fishEl) {
+            const wave = Math.sin(Date.now() / 200) * 8;
+            fishEl.style.transform = `translate(${playStageCustomState.fishX}px, ${wave}px) scaleX(${playStageCustomState.fishDir > 0 ? 1 : -1})`;
+          }
+          const posEl = document.getElementById('playStagePos');
+          if (posEl) posEl.textContent = `小鱼 X: ${playStageCustomState.fishX}`;
+        }, 60);
+
+      } else {
+        // cat_walk 循环
+        playStagePosX = 0;
+        let dir = 1;
+        playStageInterval = setInterval(() => {
+          playStagePosX += dir * 8;
+          if (playStagePosX > 130) {
+            dir = -1;
+          } else if (playStagePosX < -130) {
+            dir = 1;
+          }
+          const sprite = document.getElementById('playStageSprite');
+          if (sprite) {
+            sprite.style.transform = `translateX(${playStagePosX}px) scaleX(${dir > 0 ? 1 : -1})`;
+          }
+          const posEl = document.getElementById('playStagePos');
+          if (posEl) posEl.textContent = `X: ${playStagePosX}, Y: 0`;
+        }, 100);
+      }
     }
 
     function triggerPlayStageStop() {
@@ -2170,9 +2702,120 @@
         clearInterval(playStageInterval);
         playStageInterval = null;
       }
-      document.getElementById('playStageStatus').textContent = '⏹️ 已停止';
+      const stEl = document.getElementById('playStageStatus');
+      if (stEl) stEl.textContent = '⏹️ 已停止';
       const bubble = document.getElementById('playSpeechBubble');
       if (bubble) bubble.classList.add('hidden');
+    }
+
+    // 键盘全局交互事件
+    function handlePlayStageKeydown(e) {
+      if (!activePlayingWork) return;
+      const gType = activePlayingWork.gameType || 'cat_walk';
+
+      if (gType === 'fruit_catch') {
+        if (e.key === 'ArrowLeft') {
+          playStageCustomState.bowlX = Math.max(-120, playStageCustomState.bowlX - 20);
+          const bowlEl = document.getElementById('gameBowl');
+          if (bowlEl) bowlEl.style.transform = `translateX(${playStageCustomState.bowlX}px)`;
+        } else if (e.key === 'ArrowRight') {
+          playStageCustomState.bowlX = Math.min(120, playStageCustomState.bowlX + 20);
+          const bowlEl = document.getElementById('gameBowl');
+          if (bowlEl) bowlEl.style.transform = `translateX(${playStageCustomState.bowlX}px)`;
+        }
+      } else if (gType === 'basketball') {
+        if (e.key === ' ' || e.key === 'Spacebar' || e.key === 'ArrowUp') {
+          handleShootBasketball();
+        }
+      } else if (gType === 'ski_rush') {
+        if (e.key === 'ArrowLeft') {
+          playStageCustomState.skierX = Math.max(-120, playStageCustomState.skierX - 18);
+          const skierEl = document.getElementById('gameSkier');
+          if (skierEl) skierEl.style.transform = `translate(${playStageCustomState.skierX}px, -20px) rotate(-15deg)`;
+        } else if (e.key === 'ArrowRight') {
+          playStageCustomState.skierX = Math.min(120, playStageCustomState.skierX + 18);
+          const skierEl = document.getElementById('gameSkier');
+          if (skierEl) skierEl.style.transform = `translate(${playStageCustomState.skierX}px, -20px) rotate(15deg)`;
+        }
+      } else if (gType === 'space_ship') {
+        if (e.key === ' ' || e.key === 'Spacebar') {
+          handleShootLaser();
+        } else if (e.key === 'ArrowLeft') {
+          playStageCustomState.shipX = Math.max(-120, playStageCustomState.shipX - 15);
+          const shipEl = document.getElementById('gameShip');
+          if (shipEl) shipEl.style.transform = `translate(${playStageCustomState.shipX}px, ${playStageCustomState.shipY}px)`;
+        } else if (e.key === 'ArrowRight') {
+          playStageCustomState.shipX = Math.min(120, playStageCustomState.shipX + 15);
+          const shipEl = document.getElementById('gameShip');
+          if (shipEl) shipEl.style.transform = `translate(${playStageCustomState.shipX}px, ${playStageCustomState.shipY}px)`;
+        }
+      } else if (gType === 'cat_dance') {
+        if (e.key === ' ' || e.key === 'Spacebar') {
+          handleDanceCatClick();
+        }
+      }
+    }
+
+    // 交互点击处理器
+    function handleBowlClick() {
+      playStageCustomState.bowlX = (playStageCustomState.bowlX > 0) ? -60 : 60;
+      const bowlEl = document.getElementById('gameBowl');
+      if (bowlEl) bowlEl.style.transform = `translateX(${playStageCustomState.bowlX}px)`;
+    }
+
+    function handleDanceCatClick() {
+      playStageScoreVal += 1;
+      document.getElementById('playStageScore').textContent = playStageScoreVal;
+      const bubble = document.getElementById('playSpeechBubble');
+      if (bubble) {
+        bubble.textContent = `哎哟不错哦! 🎵 得分 +1 (${playStageScoreVal})`;
+        bubble.classList.remove('hidden');
+        setTimeout(() => bubble.classList.add('hidden'), 1200);
+      }
+      const catEl = document.getElementById('gameDanceCat');
+      if (catEl) {
+        catEl.style.transform = `scale(1.2) rotate(15deg)`;
+        setTimeout(() => { catEl.style.transform = `scale(1) rotate(0deg)`; }, 150);
+      }
+    }
+
+    function handleShootBasketball() {
+      if (playStageCustomState.isBallShooting) return;
+      playStageCustomState.isBallShooting = true;
+      playStageCustomState.ballVY = -12;
+    }
+
+    function handleSkierClick() {
+      playStageCustomState.skierX = (playStageCustomState.skierX > 0) ? -50 : 50;
+      const skierEl = document.getElementById('gameSkier');
+      if (skierEl) skierEl.style.transform = `translate(${playStageCustomState.skierX}px, -20px)`;
+    }
+
+    function handleShootLaser() {
+      playStageCustomState.laserX = playStageCustomState.shipX;
+      playStageCustomState.laserY = playStageCustomState.shipY - 20;
+      const laserEl = document.getElementById('gameLaser');
+      if (laserEl) {
+        laserEl.classList.remove('hidden');
+        laserEl.style.transform = `translate(${playStageCustomState.laserX}px, ${playStageCustomState.laserY}px)`;
+      }
+    }
+
+    function handleFishClick() {
+      playStageScoreVal += 1;
+      document.getElementById('playStageScore').textContent = playStageScoreVal;
+      const bubble = document.getElementById('playSpeechBubble');
+      if (bubble) {
+        bubble.textContent = `啵啵~ 吐出梦幻水泡 🫧 得分 +1 (${playStageScoreVal})`;
+        bubble.classList.remove('hidden');
+        setTimeout(() => bubble.classList.add('hidden'), 1200);
+      }
+      const gameBubble = document.getElementById('gameBubble');
+      if (gameBubble) {
+        gameBubble.classList.remove('hidden');
+        gameBubble.style.transform = `translate(${playStageCustomState.fishX}px, -60px) scale(1.5)`;
+        setTimeout(() => gameBubble.classList.add('hidden'), 500);
+      }
     }
 
     function handlePlaySpriteClick() {
@@ -2184,6 +2827,12 @@
         setTimeout(() => {
           sprite.style.transform = `translate(${playStagePosX}px, 0px) scale(1)`;
         }, 150);
+      }
+      const bubble = document.getElementById('playSpeechBubble');
+      if (bubble) {
+        bubble.textContent = `喵~ 角色互动成功! 得分 +1 (${playStageScoreVal})`;
+        bubble.classList.remove('hidden');
+        setTimeout(() => bubble.classList.add('hidden'), 1200);
       }
     }
 
@@ -2269,6 +2918,7 @@
       // 计算五维平均分
       let avgGrammar = 0, avgLogic = 0, avgTaskMatch = 0, avgCreative = 0, avgTotal = 0;
       let errorSuggestions = [];
+      let teachingTipText = "可在任务发布中附带基础积木结构模板，引导学生注重初始状态重置。";
 
       if (filteredWorks.length > 0) {
         let sumGrammar = 0, sumLogic = 0, sumTask = 0, sumCreative = 0, sumTotal = 0;
@@ -2285,18 +2935,88 @@
         avgCreative = +(sumCreative / filteredWorks.length).toFixed(1);
         avgTotal = +(sumTotal / filteredWorks.length).toFixed(1);
 
-        if (avgGrammar < 18) errorSuggestions.push("语法格式：缺失事件启动块（如当绿旗被点击）");
-        if (avgLogic < 22) errorSuggestions.push("逻辑结构：条件嵌套层级过深，循环未加时间间隔");
-        if (avgTaskMatch < 18) errorSuggestions.push("任务偏离：角色未完全匹配作业所要求的指令动作");
-        if (avgCreative < 14) errorSuggestions.push("创新表现：造型与音效组合偏向单一，缺背景交替");
+        const unsubmittedCount = Math.max(0, totalStudents - submittedCount);
 
-        if (errorSuggestions.length === 0) {
-          errorSuggestions.push("班级整体掌握良好！少数同学需要注意变量初始化的逻辑规范与边界反弹方向设定。");
-          errorSuggestions.push("角色碰到边缘倒立问题：小猫漫步时未设置【将旋转方式设为左右翻转】，导致反弹时上下颠倒。");
-          errorSuggestions.push("得分变量未初始化归零：接水果或吃金币项目在绿旗点击时未执行【将得分设为 0】，二次运行时分数残留。");
+        // 1. 实事求是的样本量代表性诊断与全班掌握度研判
+        if (submitRate < 20) {
+          errorSuggestions.push(`
+            <div class="flex items-start gap-2">
+              <span class="text-rose-600 font-bold flex-shrink-0">⚠️ 样本严重不足警示:</span>
+              <span>当前全班仅 <b>${submittedCount}/${totalStudents} 人</b>（提交率仅 <b>${submitRate}%</b>）提交作业，数据仅代表极少数提前完工学生，<b>不足以推断班级整体学情与掌握度！</b></span>
+            </div>
+          `);
+          errorSuggestions.push(`
+            <div class="flex items-start gap-2">
+              <span class="text-amber-600 font-bold flex-shrink-0">🚨 首要教学任务:</span>
+              <span>尚有 <b>${unsubmittedCount} 位同学（${100 - submitRate}%）</b>尚未提交，存在大面积卡壳或拖延风险。建议教师优先进行课堂巡视，排查未动笔同学是否卡在“角色创建”、“积木拼接”或“绿旗事件绑定”等起步环节。</span>
+            </div>
+          `);
+          errorSuggestions.push(`
+            <div class="flex items-start gap-2">
+              <span class="text-purple-600 font-bold flex-shrink-0">🔍 先行样本初探:</span>
+              <span>已提交的 ${submittedCount} 份先行作业平均分达 <b>${avgTotal} 分</b>，表现较好但不能代表全班水平。其中发现的共性隐患：部分作品绿旗重新启动时未重置得分变量，或未锁定【左右翻转】导致小猫反弹倒立。</span>
+            </div>
+          `);
+          teachingTipText = `首要任务是推进作业催缴与基础答疑！建议在黑板演示“基础工程启动积木骨架”，帮扶尚未动笔的 ${unsubmittedCount} 位同学迈出第一步。`;
+        } else if (submitRate < 50) {
+          errorSuggestions.push(`
+            <div class="flex items-start gap-2">
+              <span class="text-amber-600 font-bold flex-shrink-0">📊 学情爬坡期诊断:</span>
+              <span>当前提交率 <b>${submitRate}%（${submittedCount}/${totalStudents} 人）</b>，数据处于上升期，初步反映部分中前段学生掌握良好（均分 ${avgTotal} 分），但仍有 <b>${unsubmittedCount} 位同学</b>未完成。</span>
+            </div>
+          `);
+          errorSuggestions.push(`
+            <div class="flex items-start gap-2">
+              <span class="text-indigo-600 font-bold flex-shrink-0">🎯 分层指导建议:</span>
+              <span>建议教师重点关注未提交学生的完成进度；对已提交作业中暴露出的逻辑结构与任务契合度问题进行集中答疑。</span>
+            </div>
+          `);
+          teachingTipText = `建议展示 1~2 份已提交的典型作品进行课堂剖析，兼顾后进生的模仿起步与已完成学生的拓展优化。`;
+        } else if (submitRate < 80) {
+          errorSuggestions.push(`
+            <div class="flex items-start gap-2">
+              <span class="text-sky-600 font-bold flex-shrink-0">📈 班级趋势已成型:</span>
+              <span>提交率达 <b>${submitRate}%（${submittedCount}/${totalStudents} 人）</b>，样本已具备统计显著性，能较好反映班级实际掌握水平（综合均分 ${avgTotal} 分）。</span>
+            </div>
+          `);
+          teachingTipText = `对掌握普遍较好的基础模块快速带过，将教学精力聚焦在得分较低的逻辑嵌套与创新拓展维度。`;
+        } else {
+          errorSuggestions.push(`
+            <div class="flex items-start gap-2">
+              <span class="text-emerald-600 font-bold flex-shrink-0">✅ 全班学情全面评测:</span>
+              <span>全班提交率高达 <b>${submitRate}%（${submittedCount}/${totalStudents} 人）</b>，数据全面客观，已形成完整的班级计算思维画像。</span>
+            </div>
+          `);
+          if (avgTotal >= 85) {
+            errorSuggestions.push(`
+              <div class="flex items-start gap-2">
+                <span class="text-purple-600 font-bold flex-shrink-0">🎉 能力表现:</span>
+                <span>班级整体对本单元知识掌握扎实（五维均分 ${avgTotal} 分）！建议引导学生进入“作品广场”开展同伴互评与创意二次创作。</span>
+              </div>
+            `);
+          }
+          teachingTipText = `可组织班级优秀作业展评，布置进阶挑战任务（如双人对战、多关卡扩展）。`;
+        }
+
+        // 2. 结合五维真实得分，动态提取具体的易错知识点
+        if (avgGrammar < 18) errorSuggestions.push(`<div class="flex items-start gap-2"><span class="text-rose-600 font-bold flex-shrink-0">• 语法规范薄弱 (${avgGrammar}/25分):</span><span>部分学生缺失事件启动块（如绿旗点击）或指令块顺序错乱。</span></div>`);
+        if (avgLogic < 22) errorSuggestions.push(`<div class="flex items-start gap-2"><span class="text-rose-600 font-bold flex-shrink-0">• 逻辑结构待加强 (${avgLogic}/30分):</span><span>循环体内缺少等待间隔导致角色移动过快，或条件判断分支不闭环。</span></div>`);
+        if (avgTaskMatch < 18) errorSuggestions.push(`<div class="flex items-start gap-2"><span class="text-amber-600 font-bold flex-shrink-0">• 任务契合度偏离 (${avgTaskMatch}/25分):</span><span>角色动作或核心功能未完全契合发布作业的验收标准。</span></div>`);
+        if (avgCreative < 14) errorSuggestions.push(`<div class="flex items-start gap-2"><span class="text-purple-600 font-bold flex-shrink-0">• 创新思维提升空间 (${avgCreative}/20分):</span><span>音效与造型切换较为单一，建议在下节课引导结合背景音乐与多关卡设计。</span></div>`);
+
+        // 3. 通用 Scratch 常见高频踩坑点（仅当提交率较高且各维度得分不错时作为巩固提醒）
+        if (submitRate >= 50 && errorSuggestions.length <= 3) {
+          errorSuggestions.push(`<div class="flex items-start gap-2"><span class="text-purple-600 font-bold flex-shrink-0">• 角色边缘反弹倒立:</span><span>小猫漫步时未设置【将旋转方式设为左右翻转】，导致反弹时上下颠倒。</span></div>`);
+          errorSuggestions.push(`<div class="flex items-start gap-2"><span class="text-purple-600 font-bold flex-shrink-0">• 得分变量未初始化归零:</span><span>接水果或吃金币项目在绿旗点击时未执行【将得分设为 0】，二次运行时分数残留。</span></div>`);
         }
       } else {
-        errorSuggestions.push("尚未有对应任务/班级的智能评测数据，待学生提交作业后自动生成。");
+        errorSuggestions.push(`
+          <div class="flex items-start gap-2">
+            <span class="text-amber-600 font-bold flex-shrink-0">⚠️ 暂无提交数据:</span>
+            <span>当前所选班级/任务尚无学生提交作业，无法评估班级整体掌握度。</span>
+          </div>
+        `);
+        teachingTipText = "建议确认任务是否已有效下发，并在课堂引导学生登录学生端开始制作。";
       }
 
       // 渲染教学建议列表
@@ -2304,9 +3024,14 @@
       if (errorListContainer) {
         errorListContainer.innerHTML = errorSuggestions.map(err => `
           <div class="p-3.5 bg-purple-50/90 border border-purple-100 rounded-2xl text-xs text-purple-900 leading-relaxed font-medium">
-            • ${err}
+            ${err}
           </div>
         `).join('');
+      }
+
+      const tipEl = document.getElementById('analyticsTeachingTip');
+      if (tipEl) {
+        tipEl.innerHTML = `<span class="font-bold">💡 教学行动建议：</span>${teachingTipText}`;
       }
 
       document.getElementById('statAvgTotalScore').textContent = `综合平均分: ${avgTotal} / 100`;

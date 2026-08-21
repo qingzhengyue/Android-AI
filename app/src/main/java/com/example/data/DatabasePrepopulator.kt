@@ -217,7 +217,9 @@ object DatabasePrepopulator {
                     reviewStatus = "已打分",
                     teacherScore = eval1.averageScore,
                     teacherComment = "双向弹跳与造型切换逻辑写得非常规范生动，小猫咪十分欢快！",
-                    teacherReviewTime = now - 1 * 3600 * 1000L
+                    teacherReviewTime = now - 1 * 3600 * 1000L,
+                    isPublic = true,
+                    likesCount = 68
                 )
             ).toInt()
 
@@ -251,7 +253,9 @@ object DatabasePrepopulator {
                         taskId = taskId2,
                         submitCount = 1,
                         submitTime = now - 4 * 3600 * 1000L,
-                        reviewStatus = "待审核"
+                        reviewStatus = "待审核",
+                        isPublic = true,
+                        likesCount = 125
                     )
                 ).toInt()
 
@@ -289,7 +293,9 @@ object DatabasePrepopulator {
                         reviewStatus = "已打分",
                         teacherScore = eval3.averageScore,
                         teacherComment = "基础移动逻辑已搭建，注意边缘反弹的补充！",
-                        teacherReviewTime = now - 5 * 3600 * 1000L
+                        teacherReviewTime = now - 5 * 3600 * 1000L,
+                        isPublic = true,
+                        likesCount = 42
                     )
                 ).toInt()
 

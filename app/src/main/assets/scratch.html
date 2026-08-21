@@ -944,22 +944,45 @@ function selectActiveVariable(varName) {
   logMessage(`🎯 当前选用变量切换为: 【${varName}】`);
 }
 
-function deleteVariable(varName) {
-  if (confirm(`确定要删除变量【${varName}】吗？`)) {
-    delete projectVariables[varName];
-    delete visibleVariables[varName];
-    
-    const remaining = Object.keys(projectVariables);
-    if (currentSelectedVar === varName) {
-      currentSelectedVar = remaining.length > 0 ? remaining[0] : '';
-    }
-    
-    updateStageVarHUD();
-    renderPalette('data');
-    updateWorkspaceUI();
-    logMessage(`🗑️ 成功删除变量: 【${varName}】`);
-    notifyAndroidCodeChange();
+function promptDeleteVariable(varName) {
+  const dialogHtml = `
+    <div class="modal-dialog" style="max-width:320px;" onclick="event.stopPropagation()">
+      <div class="modal-header-bar">
+        <div class="modal-title" style="color:#ef4444;">🗑️ 删除变量</div>
+        <span class="del-btn" onclick="closeModal()" style="font-size:16px;">✕</span>
+      </div>
+      <div class="modal-scroll-body">
+        <div style="font-size:13px;color:#334155;font-weight:700;">确定要删除变量 <span style="color:#ea580c;background:#fff7ed;padding:2px 6px;border-radius:4px;border:1px solid #fed7aa;">📦 ${varName}</span> 吗？</div>
+        <div style="font-size:11px;color:#94a3b8;margin-top:4px;">删除后，舞台监控和积木库中将不再保留该变量。</div>
+      </div>
+      <div class="modal-footer-bar" style="justify-content:flex-end;gap:8px;">
+        <button class="modal-btn modal-btn-cancel" onclick="closeModal()">取消</button>
+        <button class="modal-btn" style="background:#ef4444;color:#fff;box-shadow:0 2px 6px rgba(239,68,68,0.35);" onclick="executeDeleteVariable('${varName}')">确认删除</button>
+      </div>
+    </div>
+  `;
+  openModal(dialogHtml);
+}
+
+function executeDeleteVariable(varName) {
+  delete projectVariables[varName];
+  delete visibleVariables[varName];
+  
+  const remaining = Object.keys(projectVariables);
+  if (currentSelectedVar === varName) {
+    currentSelectedVar = remaining.length > 0 ? remaining[0] : '';
   }
+  
+  closeModal();
+  updateStageVarHUD();
+  renderPalette('data');
+  updateWorkspaceUI();
+  logMessage(`🗑️ 成功删除变量: 【${varName}】`);
+  notifyAndroidCodeChange();
+}
+
+function deleteVariable(varName) {
+  promptDeleteVariable(varName);
 }
 
 // 全中文、精准映射的 Scratch 3.0 Opcode 映射字典 (绝对杜绝任何英文 Opcode 泄露)
@@ -1560,7 +1583,8 @@ function openNewVariableDialog() {
       </div>
       <div class="modal-scroll-body">
         <div style="font-size:11px;color:#64748b;">请输入变量名称（如 x, y, 得分, 生命值, 计数器）:</div>
-        <input type="text" id="newVarInput" class="modal-input" placeholder="输入变量名称，如: x 或 得分" autofocus>
+        <input type="text" id="newVarInput" class="modal-input" placeholder="输入变量名称，如: 生命值 或 金币" onkeydown="if(event.key==='Enter')confirmNewVariable()" autofocus>
+        <div id="newVarError" style="color:#ef4444;font-size:11px;display:none;font-weight:700;">请输入有效的变量名称！</div>
       </div>
       <div class="modal-footer-bar">
         <button class="modal-btn modal-btn-cancel" onclick="closeModal()">取消</button>
@@ -1577,9 +1601,14 @@ function openNewVariableDialog() {
 
 function confirmNewVariable() {
   const input = document.getElementById('newVarInput');
+  const err = document.getElementById('newVarError');
   const name = input ? input.value.trim() : '';
   if (!name) {
-    alert('请输入变量名称哦！');
+    if (err) {
+      err.style.display = 'block';
+      err.innerText = '请输入变量名称哦！';
+    }
+    if (input) input.focus();
     return;
   }
   projectVariables[name] = 0;

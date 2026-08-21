@@ -685,9 +685,10 @@ class AppRepository(private val context: Context) {
 
         val totalStudents = students.size
         val submittedCount = works.distinctBy { it.studentId }.size
+        val submitRate = if (totalStudents > 0) (submittedCount * 100 / totalStudents) else 0
         val plagiarismRiskCount = works.count { it.plagiarismFlag }
 
-        if (reports.isEmpty()) {
+        if (reports.isEmpty() || submittedCount == 0) {
             return@withContext ClassAnalyticsData(
                 totalStudents = totalStudents,
                 submittedCount = submittedCount,
@@ -696,7 +697,10 @@ class AppRepository(private val context: Context) {
                 avgTaskMatch = 0f,
                 avgCreative = 0f,
                 avgTotal = 0f,
-                commonErrors = listOf("尚未有对应任务/班级的智能评测数据，待学生提交作业后自动生成"),
+                commonErrors = listOf(
+                    "⚠️【暂无提交数据】当前所选班级/任务尚无学生提交作业，无法评估班级整体掌握度。",
+                    "📌【教学行动建议】建议确认任务是否已有效下发，并在课堂引导学生登录学生端开始制作。"
+                ),
                 plagiarismRiskCount = plagiarismRiskCount
             )
         }
@@ -708,13 +712,40 @@ class AppRepository(private val context: Context) {
         val avgTotal = reports.map { it.averageScore }.average().toFloat()
 
         val errors = mutableListOf<String>()
-        if (avgGrammar < 18) errors.add("语法格式：缺失事件启动块（如当绿旗被点击）")
-        if (avgLogic < 22) errors.add("逻辑结构：条件嵌套层级过深，循环未加时间间隔")
-        if (avgTaskMatch < 18) errors.add("任务偏离：角色未完全匹配作业所要求的指令动作")
-        if (avgCreative < 14) errors.add("创新表现：造型与音效组合偏向单一，缺背景交替")
 
-        if (errors.isEmpty()) {
-            errors.add("班级整体掌握良好！少数同学需要注意变量初始化的逻辑规范。")
+        // 1. 根据真实提交率（样本充分度）进行严谨实事求是的学情定性诊断
+        val unsubmittedCount = (totalStudents - submittedCount).coerceAtLeast(0)
+        when {
+            submitRate < 20 -> {
+                errors.add("⚠️【样本严重不足警示·提交率仅 ${submitRate}%】当前全班仅 ${submittedCount}/${totalStudents} 人提交，数据仅代表极少数提前完工学生，不足以推断班级整体掌握情况！")
+                errors.add("🚨【首要教学任务·催缴与卡壳排查】尚有 ${unsubmittedCount} 位同学（${100 - submitRate}%）未提交作业，存在大面积卡壳或进度滞后风险。建议教师优先进行课堂巡视，排查未动笔同学是否卡在“角色创建”或“绿旗事件绑定”等起步环节。")
+                errors.add("🔍【先行样本初探】已提交的 ${submittedCount} 份先行作业均分虽然达到 ${String.format("%.1f", avgTotal)} 分，但不能代表全班水平。其中发现的共性细节：部分项目在绿旗重新启动时未初始化重置得分变量，或未锁定【左右翻转】导致小猫反弹倒立。")
+            }
+            submitRate < 50 -> {
+                errors.add("📊【学情爬坡期诊断·提交率 ${submitRate}%】当前已有 ${submittedCount}/${totalStudents} 人提交，已显现初步群体特征，但仍有近半数（${unsubmittedCount} 人）未提交。")
+                errors.add("🎯【教学建议·分层指导】建议教师重点关注未提交学生的完成进度；对已提交作业（五维均分 ${String.format("%.1f", avgTotal)} 分）中暴露出的逻辑与任务契合度问题进行集中答疑。")
+            }
+            submitRate < 80 -> {
+                errors.add("📈【班级整体趋势已成型·提交率 ${submitRate}%】提交率达到 ${submittedCount}/${totalStudents} 人，样本已具备统计显著性，能较好反映班级实际掌握水平。")
+            }
+            else -> {
+                errors.add("✅【全班学情全面评测·提交率高达 ${submitRate}%】全班 ${submittedCount}/${totalStudents} 人完成作业，数据全面客观，已形成完整的班级计算思维画像。")
+                if (avgTotal >= 85) {
+                    errors.add("🎉【能力表现】全班对本单元核心知识掌握扎实（五维综合均分 ${String.format("%.1f", avgTotal)} 分），可引导学生进入作品广场进行同伴互评与拓展二创。")
+                }
+            }
+        }
+
+        // 2. 结合五维真实得分，动态提取具体的易错知识点
+        if (avgGrammar < 18) errors.add("• 语法规范薄弱 (${String.format("%.1f", avgGrammar)}/25分)：部分学生缺失事件启动块（如绿旗点击）或指令块顺序错乱。")
+        if (avgLogic < 22) errors.add("• 逻辑结构待加强 (${String.format("%.1f", avgLogic)}/30分)：循环体内缺少等待间隔导致 CPU 高负荷运行，或条件判断分支不闭环。")
+        if (avgTaskMatch < 18) errors.add("• 任务契合度偏离 (${String.format("%.1f", avgTaskMatch)}/25分)：角色动作或核心功能未完全契合发布作业的验收标准。")
+        if (avgCreative < 14) errors.add("• 创新思维提升空间 (${String.format("%.1f", avgCreative)}/20分)：音效与造型切换较为单一，建议在下节课引导结合背景音乐与多关卡设计。")
+
+        // 3. 通用 Scratch 常见高频踩坑点（仅当提交率较高且各维度得分不错时作为巩固提醒）
+        if (submitRate >= 50 && errors.size <= 2) {
+            errors.add("• 角色碰到边缘倒立问题：小猫漫步时未设置【将旋转方式设为左右翻转】，导致反弹时上下颠倒。")
+            errors.add("• 得分变量未初始化归零：接水果或吃金币项目在绿旗点击时未执行【将得分设为 0】，二次运行时分数残留。")
         }
 
         ClassAnalyticsData(

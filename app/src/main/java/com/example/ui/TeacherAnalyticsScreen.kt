@@ -223,18 +223,59 @@ fun TeacherAnalyticsScreen(
                                 Spacer(modifier = Modifier.height(12.dp))
 
                                 data.commonErrors.forEach { err ->
+                                    val (bgColor, textColor, borderColor) = when {
+                                        err.contains("⚠️") || err.contains("🚨") -> Triple(Color(0xFFFEF2F2), Color(0xFF991B1B), Color(0xFFFECACA))
+                                        err.contains("📊") || err.contains("🔍") -> Triple(Color(0xFFEFF6FF), Color(0xFF1E40AF), Color(0xFFBFDBFE))
+                                        err.contains("✅") || err.contains("🎉") -> Triple(Color(0xFFECFDF5), Color(0xFF065F46), Color(0xFFA7F3D0))
+                                        else -> Triple(Color(0xFFF5F3FF), Color(0xFF5B21B6), Color(0xFFDDD6FE))
+                                    }
+
                                     Surface(
-                                        color = Color(0xFFF3E8FF),
-                                        shape = RoundedCornerShape(8.dp),
+                                        color = bgColor,
+                                        shape = RoundedCornerShape(12.dp),
+                                        border = androidx.compose.foundation.BorderStroke(1.dp, borderColor),
                                         modifier = Modifier
                                             .fillMaxWidth()
                                             .padding(vertical = 4.dp)
                                     ) {
                                         Text(
-                                            text = "• $err",
+                                            text = err,
                                             fontSize = 13.sp,
-                                            color = Color(0xFF6B21A8),
-                                            modifier = Modifier.padding(10.dp)
+                                            lineHeight = 19.sp,
+                                            fontWeight = if (err.contains("⚠️") || err.contains("🚨")) FontWeight.SemiBold else FontWeight.Normal,
+                                            color = textColor,
+                                            modifier = Modifier.padding(12.dp)
+                                        )
+                                    }
+                                }
+
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Surface(
+                                    color = Color(0xFFF0F9FF),
+                                    shape = RoundedCornerShape(12.dp),
+                                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFBAE6FD)),
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(12.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.TipsAndUpdates,
+                                            contentDescription = null,
+                                            tint = Color(0xFF0284C7),
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Text(
+                                            text = if (data.totalStudents > 0 && (data.submittedCount * 100 / data.totalStudents) < 20) {
+                                                "教学行动建议：首要任务是推进作业催缴与基础答疑，排查未动笔学生卡壳环节。"
+                                            } else {
+                                                "教学行动建议：可在任务发布中附带基础积木结构模板，引导学生注重初始状态重置。"
+                                            },
+                                            fontSize = 12.sp,
+                                            color = Color(0xFF0369A1),
+                                            fontWeight = FontWeight.Medium
                                         )
                                     }
                                 }
