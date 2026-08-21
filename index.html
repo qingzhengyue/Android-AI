@@ -10,6 +10,8 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- JSZip for .sb3 package handling -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <!-- Chart.js for Radar & Analytics -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
@@ -38,77 +40,94 @@
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col antialiased">
 
   <!-- ======================== 全局顶栏 ======================== -->
-  <header class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
-    <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-      <!-- 品牌 Logo -->
-      <div class="flex items-center gap-3 cursor-pointer" onclick="switchNav('home')">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-sky-200">
-          <i class="fa-solid fa-shapes text-xl"></i>
-        </div>
-        <div>
-          <div class="font-bold text-lg text-slate-900 tracking-tight flex items-center gap-2">
-            星梭智学 <span class="bg-sky-100 text-sky-700 text-xs px-2 py-0.5 rounded-full font-semibold border border-sky-200">PC 电脑网页版</span>
+  <header id="mainAppHeader" class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm transition-all">
+    <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-4">
+      <!-- 左侧区域：Logo 品牌 + 紧随其后的核心功能导航栏 -->
+      <div class="flex items-center gap-5 flex-1 min-w-0">
+        <!-- 品牌 Logo -->
+        <div class="flex items-center gap-2.5 cursor-pointer flex-shrink-0" onclick="handleLogoClick()">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-sky-200">
+            <i class="fa-solid fa-shapes text-xl"></i>
           </div>
-          <p class="text-xs text-slate-400">面向小学 3-6 年级 · 生成式 AI 双向教学系统</p>
+          <div class="hidden sm:block">
+            <div class="font-bold text-base text-slate-900 tracking-tight flex items-center gap-1.5">
+              星梭智学 <span id="currentRoleBadge" class="bg-sky-100 text-sky-700 text-[10px] px-2 py-0.5 rounded-full font-bold border border-sky-200">学生端</span>
+            </div>
+            <p class="text-[10px] text-slate-400">Scratch 3.0 生成式 AI 双向教学系统</p>
+          </div>
         </div>
+
+        <div class="h-6 w-[1px] bg-slate-200 hidden md:block"></div>
+
+        <!-- 动态左侧功能导航菜单 (严格按学生端/教师端权限彻底分离) -->
+        <nav id="topNavMenu" class="hidden md:flex items-center gap-1 bg-slate-100/90 p-1 rounded-xl border border-slate-200 overflow-x-auto custom-scrollbar">
+          <!-- 学生端专属功能导航 -->
+          <div id="studentNavItems" class="flex items-center gap-1">
+            <button onclick="switchNav('home')" class="nav-btn px-3 py-1.5 rounded-lg text-xs font-bold transition text-slate-600 hover:text-slate-900" data-page="home">
+              <i class="fa-solid fa-house mr-1 text-slate-500"></i>首页
+            </button>
+            <button onclick="switchNav('editor')" class="nav-btn px-3 py-1.5 rounded-lg text-xs font-bold transition text-slate-600 hover:text-slate-900" data-page="editor">
+              <i class="fa-solid fa-code mr-1 text-sky-500"></i>Scratch 编程
+            </button>
+            <button onclick="switchNav('tasks')" class="nav-btn px-3 py-1.5 rounded-lg text-xs font-bold transition text-slate-600 hover:text-slate-900" data-page="tasks">
+              <i class="fa-solid fa-list-check mr-1 text-indigo-500"></i>我的作业
+            </button>
+            <button onclick="switchNav('ai')" class="nav-btn px-3 py-1.5 rounded-lg text-xs font-bold transition text-slate-600 hover:text-slate-900" data-page="ai">
+              <i class="fa-solid fa-wand-magic-sparkles mr-1 text-purple-500"></i>AI 精灵姐姐
+            </button>
+            <button onclick="switchNav('square')" class="nav-btn px-3 py-1.5 rounded-lg text-xs font-bold transition text-slate-600 hover:text-slate-900" data-page="square">
+              <i class="fa-solid fa-globe mr-1 text-emerald-500"></i>互动广场
+            </button>
+            <button onclick="switchNav('profile')" class="nav-btn px-3 py-1.5 rounded-lg text-xs font-bold transition text-slate-600 hover:text-slate-900" data-page="profile">
+              <i class="fa-solid fa-id-badge mr-1 text-amber-500"></i>能力画像
+            </button>
+          </div>
+
+          <!-- 教师端专属功能导航 (学生端完全隐藏且禁止访问) -->
+          <div id="teacherNavItems" class="hidden flex items-center gap-1">
+            <button onclick="switchNav('teacher-analytics')" class="nav-btn px-3 py-1.5 rounded-lg text-xs font-bold transition text-slate-600 hover:text-slate-900" data-page="teacher-analytics">
+              <i class="fa-solid fa-chart-pie mr-1 text-amber-500"></i>教研大屏
+            </button>
+            <button onclick="switchNav('teacher-tasks')" class="nav-btn px-3 py-1.5 rounded-lg text-xs font-bold transition text-slate-600 hover:text-slate-900" data-page="teacher-tasks">
+              <i class="fa-solid fa-folder-plus mr-1 text-sky-500"></i>任务发布
+            </button>
+            <button onclick="switchNav('teacher-grading')" class="nav-btn px-3 py-1.5 rounded-lg text-xs font-bold transition text-slate-600 hover:text-slate-900" data-page="teacher-grading">
+              <i class="fa-solid fa-pen-ruler mr-1 text-purple-500"></i>作业批改
+            </button>
+            <button onclick="switchNav('teacher-classes')" class="nav-btn px-3 py-1.5 rounded-lg text-xs font-bold transition text-slate-600 hover:text-slate-900" data-page="teacher-classes">
+              <i class="fa-solid fa-users mr-1 text-teal-500"></i>班级名册
+            </button>
+            <button onclick="switchNav('square')" class="nav-btn px-3 py-1.5 rounded-lg text-xs font-bold transition text-slate-600 hover:text-slate-900" data-page="square">
+              <i class="fa-solid fa-globe mr-1 text-emerald-500"></i>作品广场
+            </button>
+          </div>
+        </nav>
       </div>
 
-      <!-- 动态菜单导航 (学生端 / 教师端自适应) -->
-      <nav id="topNavMenu" class="hidden md:flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200">
-        <button onclick="switchNav('home')" class="nav-btn px-3.5 py-1.5 rounded-lg text-sm font-medium transition text-slate-600 hover:text-slate-900" data-page="home">
-          <i class="fa-solid fa-house mr-1 text-slate-500"></i>首页
-        </button>
-        <!-- 学生专属导航项 -->
-        <button onclick="switchNav('editor')" class="nav-btn student-nav px-3.5 py-1.5 rounded-lg text-sm font-medium transition text-slate-600 hover:text-slate-900" data-page="editor">
-          <i class="fa-solid fa-code mr-1 text-sky-500"></i>Scratch 编程
-        </button>
-        <button onclick="switchNav('tasks')" class="nav-btn student-nav px-3.5 py-1.5 rounded-lg text-sm font-medium transition text-slate-600 hover:text-slate-900" data-page="tasks">
-          <i class="fa-solid fa-list-check mr-1 text-indigo-500"></i>我的作业
-        </button>
-        <button onclick="switchNav('ai')" class="nav-btn student-nav px-3.5 py-1.5 rounded-lg text-sm font-medium transition text-slate-600 hover:text-slate-900" data-page="ai">
-          <i class="fa-solid fa-wand-magic-sparkles mr-1 text-purple-500"></i>AI 精灵姐姐
-        </button>
-        <button onclick="switchNav('square')" class="nav-btn px-3.5 py-1.5 rounded-lg text-sm font-medium transition text-slate-600 hover:text-slate-900" data-page="square">
-          <i class="fa-solid fa-globe mr-1 text-emerald-500"></i>互动广场
-        </button>
-        <!-- 教师专属导航项 -->
-        <button onclick="switchNav('teacher-analytics')" class="nav-btn teacher-nav hidden px-3.5 py-1.5 rounded-lg text-sm font-medium transition text-slate-600 hover:text-slate-900" data-page="teacher-analytics">
-          <i class="fa-solid fa-chart-pie mr-1 text-amber-500"></i>教研大屏
-        </button>
-        <button onclick="switchNav('teacher-tasks')" class="nav-btn teacher-nav hidden px-3.5 py-1.5 rounded-lg text-sm font-medium transition text-slate-600 hover:text-slate-900" data-page="teacher-tasks">
-          <i class="fa-solid fa-folder-plus mr-1 text-sky-500"></i>任务发布
-        </button>
-        <button onclick="switchNav('teacher-grading')" class="nav-btn teacher-nav hidden px-3.5 py-1.5 rounded-lg text-sm font-medium transition text-slate-600 hover:text-slate-900" data-page="teacher-grading">
-          <i class="fa-solid fa-pen-ruler mr-1 text-purple-500"></i>作业批改
-        </button>
-        <button onclick="switchNav('teacher-classes')" class="nav-btn teacher-nav hidden px-3.5 py-1.5 rounded-lg text-sm font-medium transition text-slate-600 hover:text-slate-900" data-page="teacher-classes">
-          <i class="fa-solid fa-users mr-1 text-teal-500"></i>班级名册
-        </button>
-      </nav>
-
-      <!-- 状态与用户信息 -->
-      <div class="flex items-center gap-3">
+      <!-- 右侧辅助信息与用户身份/退出登录操作 -->
+      <div class="flex items-center gap-3 flex-shrink-0">
         <!-- 云端数据库连接指示灯 -->
-        <div id="cloudStatusBadge" onclick="checkSupabaseConnection()" class="cursor-pointer flex items-center gap-1.5 text-xs bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-1.5 rounded-lg hover:bg-emerald-100 transition" title="点击重新检测云端连接">
+        <div id="cloudStatusBadge" onclick="checkSupabaseConnection()" class="cursor-pointer flex items-center gap-1.5 text-xs bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-1.5 rounded-xl hover:bg-emerald-100 transition shadow-sm" title="点击重新检测云端连接">
           <span id="cloudStatusDot" class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span id="cloudStatusText">Supabase 云端已同步</span>
+          <span id="cloudStatusText" class="hidden lg:inline text-[11px] font-medium">Supabase 云端已同步</span>
         </div>
 
-        <!-- 身份切换按钮 -->
-        <button onclick="openLoginModal()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1.5 rounded-lg font-medium transition">
-          <i class="fa-solid fa-repeat mr-1"></i>切换身份
-        </button>
-
-        <!-- 登录用户头像卡片 -->
-        <div id="userProfileBar" onclick="switchNav(currentUser.role === 'teacher' ? 'teacher-analytics' : 'profile')" class="flex items-center gap-2 pl-2 border-l border-slate-200 cursor-pointer">
-          <div id="userAvatarBox" class="w-8 h-8 rounded-full bg-sky-100 text-sky-700 flex items-center justify-center font-bold text-xs">
+        <!-- 登录用户卡片 -->
+        <div id="userProfileBar" onclick="handleUserProfileClick()" class="flex items-center gap-2 pl-2 border-l border-slate-200 cursor-pointer group">
+          <div id="userAvatarBox" class="w-8 h-8 rounded-full bg-sky-100 text-sky-700 flex items-center justify-center font-bold text-xs shadow-sm">
             <span id="userAvatarText">学</span>
           </div>
           <div class="hidden sm:block text-left">
-            <div id="userNameDisplay" class="text-xs font-semibold text-slate-800">张小帅</div>
+            <div id="userNameDisplay" class="text-xs font-bold text-slate-800 group-hover:text-sky-600 transition">张小帅</div>
             <div id="userRoleDisplay" class="text-[10px] text-slate-400">三年级一班 · 学生</div>
           </div>
         </div>
+
+        <!-- 退出登录 / 切换端 按钮 -->
+        <button onclick="logoutToLoginPage()" class="text-xs bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 px-3 py-1.5 rounded-xl font-bold transition flex items-center gap-1.5 shadow-sm" title="退出当前账号返回登录页">
+          <i class="fa-solid fa-arrow-right-from-bracket"></i>
+          <span class="hidden sm:inline">退出登录</span>
+        </button>
       </div>
     </div>
   </header>
@@ -116,7 +135,182 @@
   <!-- ======================== 主内容视图区 ======================== -->
   <main class="flex-1 flex flex-col relative overflow-hidden">
 
-    <!-- 1. 首页仪表盘 -->
+    <!-- 0. 独立登录全屏页面 (学生端/教师端彻底隔离入口) -->
+    <section id="page-login" class="page-view flex-1 overflow-y-auto custom-scrollbar flex items-center justify-center p-6 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 min-h-[calc(100vh-4rem)]">
+      <div class="max-w-4xl w-full bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 overflow-hidden grid grid-cols-1 md:grid-cols-12 my-auto">
+        <!-- 左侧：系统品牌与特色宣传 -->
+        <div class="md:col-span-5 bg-gradient-to-br from-sky-600 via-indigo-600 to-purple-700 p-8 text-white flex flex-col justify-between relative overflow-hidden">
+          <div class="absolute -right-12 -bottom-12 opacity-15 text-white text-9xl pointer-events-none">
+            <i class="fa-solid fa-shapes"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-3 mb-6">
+              <div class="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-2xl shadow-md border border-white/30">
+                <i class="fa-solid fa-shapes text-white"></i>
+              </div>
+              <div>
+                <h1 class="text-xl font-black tracking-tight">星梭智学</h1>
+                <p class="text-xs text-sky-200 font-medium">生成式 AI Scratch 双向教学系统</p>
+              </div>
+            </div>
+            <div class="space-y-4 my-8">
+              <div class="flex items-start gap-3">
+                <div class="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center text-xs flex-shrink-0 mt-0.5"><i class="fa-solid fa-shield-halved"></i></div>
+                <div>
+                  <div class="text-xs font-bold">双端完全分离与权限隔离</div>
+                  <div class="text-[11px] text-sky-100">学生专属编程作业工作台与教师专属教研批改大屏</div>
+                </div>
+              </div>
+              <div class="flex items-start gap-3">
+                <div class="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center text-xs flex-shrink-0 mt-0.5"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+                <div>
+                  <div class="text-xs font-bold">AI 智能五维 Rubric 自动化评测</div>
+                  <div class="text-[11px] text-sky-100">涵盖语法表达、逻辑结构、任务契合与创新思维</div>
+                </div>
+              </div>
+              <div class="flex items-start gap-3">
+                <div class="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center text-xs flex-shrink-0 mt-0.5"><i class="fa-solid fa-cloud"></i></div>
+                <div>
+                  <div class="text-xs font-bold">双向云端实时互通</div>
+                  <div class="text-[11px] text-sky-100">电脑网页版与 Android 平板端数据 100% 实时同步</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="text-[11px] text-sky-200/80 border-t border-white/20 pt-4 flex items-center justify-between">
+            <span>版本: v2.5 PC 官方版</span>
+            <span>面向小学 3-6 年级</span>
+          </div>
+        </div>
+
+        <!-- 右侧：登录身份切换卡片与表单 -->
+        <div class="md:col-span-7 p-8 flex flex-col justify-between bg-white">
+          <div>
+            <!-- 身份选择 Tab (学生端 / 教师端) -->
+            <div class="flex items-center gap-2 bg-slate-100 p-1.5 rounded-2xl mb-6 border border-slate-200">
+              <button id="tabBtnStudent" onclick="switchLoginTab('student')" class="flex-1 py-2.5 rounded-xl text-xs font-black transition flex items-center justify-center gap-2 bg-white text-sky-700 shadow-sm border border-slate-200/60">
+                <i class="fa-solid fa-graduation-cap text-sky-500"></i> 学生登录通道
+              </button>
+              <button id="tabBtnTeacher" onclick="switchLoginTab('teacher')" class="flex-1 py-2.5 rounded-xl text-xs font-black transition flex items-center justify-center gap-2 text-slate-500 hover:text-slate-900">
+                <i class="fa-solid fa-chalkboard-user text-amber-500"></i> 教师登录通道
+              </button>
+            </div>
+
+            <!-- 学生登录表单 -->
+            <div id="loginFormStudent" class="space-y-4">
+              <div class="flex items-center justify-between mb-2">
+                <h3 class="text-base font-bold text-slate-900">学生专属工作台登录</h3>
+                <span class="text-xs text-slate-400">输入学号与密码</span>
+              </div>
+
+              <div>
+                <label class="text-xs font-bold text-slate-700 block mb-1.5">选择所在班级</label>
+                <select id="loginStudentClass" onchange="updateStudentListHint()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-sky-500">
+                  <option value="1">三年级一班 (25人)</option>
+                  <option value="2">四年级二班 (25人)</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="text-xs font-bold text-slate-700 block mb-1.5">学生学号 / 姓名</label>
+                <input id="loginStudentId" type="text" placeholder="例如: 3101 或 张小帅" value="3101" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-800 font-medium focus:outline-none focus:border-sky-500">
+              </div>
+
+              <div>
+                <label class="text-xs font-bold text-slate-700 block mb-1.5">登录密码</label>
+                <input id="loginStudentPwd" type="password" placeholder="默认密码: 123456" value="123456" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-800 font-medium focus:outline-none focus:border-sky-500">
+              </div>
+
+              <button onclick="performStudentLogin()" class="w-full bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white font-bold text-xs py-3.5 rounded-xl shadow-lg shadow-sky-500/20 transition flex items-center justify-center gap-2 mt-2">
+                <i class="fa-solid fa-arrow-right-to-bracket"></i> 进入学生学习空间
+              </button>
+
+              <!-- 快捷登录体验账号 (真实学生预置数据) -->
+              <div class="pt-3 border-t border-slate-100">
+                <span class="text-[11px] font-bold text-slate-400 block mb-2">⚡ 快速一键免密体验账号：</span>
+                <div class="grid grid-cols-2 gap-2">
+                  <button onclick="quickLoginUser('student', 1, '张小帅', '3101', 1, '三年级一班')" class="text-left p-2.5 rounded-xl border border-sky-200 bg-sky-50/70 hover:bg-sky-100 transition flex items-center gap-2">
+                    <div class="w-6 h-6 rounded-full bg-sky-500 text-white font-bold text-[10px] flex items-center justify-center">帅</div>
+                    <div>
+                      <div class="text-xs font-bold text-slate-800">张小帅 <span class="font-mono text-[10px] text-sky-700">3101</span></div>
+                      <div class="text-[10px] text-slate-400">三年级一班 (已交作业)</div>
+                    </div>
+                  </button>
+                  <button onclick="quickLoginUser('student', 2, '李小美', '3102', 1, '三年级一班')" class="text-left p-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 transition flex items-center gap-2">
+                    <div class="w-6 h-6 rounded-full bg-slate-400 text-white font-bold text-[10px] flex items-center justify-center">美</div>
+                    <div>
+                      <div class="text-xs font-bold text-slate-800">李小美 <span class="font-mono text-[10px] text-slate-600">3102</span></div>
+                      <div class="text-[10px] text-slate-400">三年级一班 (待审核)</div>
+                    </div>
+                  </button>
+                  <button onclick="quickLoginUser('student', 3, '周杰伦', '3103', 1, '三年级一班')" class="text-left p-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 transition flex items-center gap-2">
+                    <div class="w-6 h-6 rounded-full bg-slate-400 text-white font-bold text-[10px] flex items-center justify-center">伦</div>
+                    <div>
+                      <div class="text-xs font-bold text-slate-800">周杰伦 <span class="font-mono text-[10px] text-slate-600">3103</span></div>
+                      <div class="text-[10px] text-slate-400">三年级一班 (85分)</div>
+                    </div>
+                  </button>
+                  <button onclick="quickLoginUser('student', 26, '王小飞', '4201', 2, '四年级二班')" class="text-left p-2.5 rounded-xl border border-purple-200 bg-purple-50/70 hover:bg-purple-100 transition flex items-center gap-2">
+                    <div class="w-6 h-6 rounded-full bg-purple-500 text-white font-bold text-[10px] flex items-center justify-center">飞</div>
+                    <div>
+                      <div class="text-xs font-bold text-slate-800">王小飞 <span class="font-mono text-[10px] text-purple-700">4201</span></div>
+                      <div class="text-[10px] text-slate-400">四年级二班</div>
+                    </div>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- 教师登录表单 -->
+            <div id="loginFormTeacher" class="space-y-4 hidden">
+              <div class="flex items-center justify-between mb-2">
+                <h3 class="text-base font-bold text-slate-900">教师教研管理中心登录</h3>
+                <span class="text-xs text-amber-600 font-bold bg-amber-50 px-2 py-0.5 rounded border border-amber-200">教研管理权限</span>
+              </div>
+
+              <div>
+                <label class="text-xs font-bold text-slate-700 block mb-1.5">教师工号 / 登录账号</label>
+                <input id="loginTeacherId" type="text" placeholder="工号: T1001" value="T1001" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-800 font-medium focus:outline-none focus:border-amber-500">
+              </div>
+
+              <div>
+                <label class="text-xs font-bold text-slate-700 block mb-1.5">管理密码</label>
+                <input id="loginTeacherPwd" type="password" placeholder="密码: 123456" value="123456" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-800 font-medium focus:outline-none focus:border-amber-500">
+              </div>
+
+              <div class="p-3 bg-amber-50/80 border border-amber-200 rounded-xl text-[11px] text-amber-900 leading-relaxed">
+                <i class="fa-solid fa-circle-info mr-1 text-amber-600"></i> 教师登录后可直接调阅<b>班级教研学情大屏、布置发布新作业任务、在线批阅学生代码与管理学生名册</b>。
+              </div>
+
+              <button onclick="performTeacherLogin()" class="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold text-xs py-3.5 rounded-xl shadow-lg shadow-amber-500/20 transition flex items-center justify-center gap-2 mt-2">
+                <i class="fa-solid fa-chalkboard-user"></i> 进入教师教研工作台
+              </button>
+
+              <!-- 快捷登录体验教师账号 -->
+              <div class="pt-3 border-t border-slate-100">
+                <span class="text-[11px] font-bold text-slate-400 block mb-2">⚡ 快速一键进入教师端：</span>
+                <button onclick="quickLoginUser('teacher', 1, '王老师', 'T1001', 0, '信息科技教研组')" class="w-full text-left p-3 rounded-xl border border-amber-200 bg-amber-50/80 hover:bg-amber-100 transition flex items-center justify-between">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-amber-500 text-white font-bold text-xs flex items-center justify-center">师</div>
+                    <div>
+                      <div class="text-xs font-bold text-slate-900">王老师 <span class="font-mono text-[10px] text-amber-700 bg-amber-200/60 px-1.5 py-0.5 rounded">T1001</span></div>
+                      <div class="text-[10px] text-slate-500">信息科技教研组长 · 拥有全班教研与批改权限</div>
+                    </div>
+                  </div>
+                  <i class="fa-solid fa-chevron-right text-amber-500 text-xs"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="text-center text-[10px] text-slate-400 pt-4 border-t border-slate-100">
+            星梭智学 · 数据与 Android App 本地数据库及 Supabase 实时同构
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 1. 学生端首页仪表盘 -->
     <section id="page-home" class="page-view flex-1 overflow-y-auto custom-scrollbar p-6 max-w-7xl mx-auto w-full">
       <!-- 欢迎横幅 -->
       <div class="bg-gradient-to-r from-sky-500 via-indigo-500 to-purple-600 rounded-3xl p-8 text-white shadow-xl mb-8 relative overflow-hidden">
@@ -182,22 +376,32 @@
           <input id="workTitleInput" type="text" value="猫咪漫步趣味作品" class="bg-slate-700/60 border border-slate-600 rounded-lg px-3 py-1 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-sky-400 w-48" placeholder="作品名称...">
         </div>
 
-        <!-- 快捷操作与模板载入 -->
+        <!-- 快捷操作与模板载入 + 本地 .sb3 导入/导出 -->
         <div class="flex items-center gap-2">
-          <button onclick="loadTemplateToEditor(1)" class="bg-slate-700 hover:bg-slate-600 text-xs px-3 py-1.5 rounded-lg text-slate-200 font-medium transition flex items-center gap-1">
-            <i class="fa-solid fa-cat text-amber-400"></i> 载入【猫咪漫步】模板
+          <!-- 隐藏文件上传 input -->
+          <input type="file" id="sb3FileInput" accept=".sb3,.json" style="display:none;" onchange="handleSb3FileImport(event)">
+          
+          <button onclick="document.getElementById('sb3FileInput').click()" class="bg-slate-700 hover:bg-slate-600 text-xs px-2.5 py-1.5 rounded-lg text-slate-200 font-medium transition flex items-center gap-1" title="从电脑本地载入 .sb3 或 .json 积木工程">
+            <i class="fa-solid fa-folder-open text-sky-400"></i> 导入 .sb3
           </button>
-          <button onclick="loadTemplateToEditor(2)" class="bg-slate-700 hover:bg-slate-600 text-xs px-3 py-1.5 rounded-lg text-slate-200 font-medium transition flex items-center gap-1">
-            <i class="fa-solid fa-coins text-yellow-400"></i> 载入【吃金币计分】模板
+          <button onclick="exportProjectToSb3()" class="bg-slate-700 hover:bg-slate-600 text-xs px-2.5 py-1.5 rounded-lg text-slate-200 font-medium transition flex items-center gap-1" title="将当前积木工程打包下载为 .sb3 保存到本地电脑">
+            <i class="fa-solid fa-file-arrow-down text-emerald-400"></i> 导出 .sb3
           </button>
-          <button onclick="clearEditorWorkspace()" class="bg-slate-700 hover:bg-slate-600 text-xs px-3 py-1.5 rounded-lg text-slate-200 font-medium transition flex items-center gap-1">
-            <i class="fa-solid fa-eraser"></i> 清空画布
+          <div class="h-4 w-[1px] bg-slate-700 mx-0.5"></div>
+          <button onclick="loadTemplateToEditor(1)" class="bg-slate-700 hover:bg-slate-600 text-xs px-2.5 py-1.5 rounded-lg text-slate-200 font-medium transition flex items-center gap-1">
+            <i class="fa-solid fa-cat text-amber-400"></i> 猫咪漫步
           </button>
-          <div class="h-4 w-[1px] bg-slate-700 mx-1"></div>
+          <button onclick="loadTemplateToEditor(2)" class="bg-slate-700 hover:bg-slate-600 text-xs px-2.5 py-1.5 rounded-lg text-slate-200 font-medium transition flex items-center gap-1">
+            <i class="fa-solid fa-coins text-yellow-400"></i> 吃金币
+          </button>
+          <button onclick="clearEditorWorkspace()" class="bg-slate-700 hover:bg-slate-600 text-xs px-2.5 py-1.5 rounded-lg text-slate-200 font-medium transition flex items-center gap-1">
+            <i class="fa-solid fa-eraser"></i> 清空
+          </button>
+          <div class="h-4 w-[1px] bg-slate-700 mx-0.5"></div>
           <button onclick="triggerEditorAiInspect()" class="bg-purple-600 hover:bg-purple-500 text-xs font-bold px-3 py-1.5 rounded-lg text-white shadow-sm transition flex items-center gap-1.5 ai-glow">
             <i class="fa-solid fa-wand-magic-sparkles"></i> AI 积木体检
           </button>
-          <button onclick="saveProjectToCloud()" class="bg-sky-500 hover:bg-sky-400 text-xs font-bold px-4 py-1.5 rounded-lg text-white shadow-md shadow-sky-500/20 transition flex items-center gap-1.5">
+          <button onclick="saveProjectToCloud()" class="bg-sky-500 hover:bg-sky-400 text-xs font-bold px-3.5 py-1.5 rounded-lg text-white shadow-md shadow-sky-500/20 transition flex items-center gap-1.5">
             <i class="fa-solid fa-cloud-arrow-up"></i> 保存并提交作业
           </button>
         </div>
@@ -276,10 +480,38 @@
           </button>
         </div>
 
+        <!-- 待发送图片预览卡片 -->
+        <div id="aiImagePreviewBar" class="hidden px-4 py-2 bg-purple-50/80 border-t border-purple-100 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="relative w-12 h-12 rounded-xl overflow-hidden border border-purple-300 shadow-sm bg-white">
+              <img id="aiPendingImgThumb" src="" alt="待识图附件" class="w-full h-full object-cover">
+            </div>
+            <div>
+              <div class="text-xs font-bold text-purple-900 flex items-center gap-1.5">
+                <i class="fa-solid fa-image text-purple-600"></i> 已加载题目/积木截图
+                <span class="text-[10px] bg-purple-200 text-purple-800 px-1.5 py-0.5 rounded font-mono">Qwen-VL-Max</span>
+              </div>
+              <p class="text-[10px] text-purple-600 mt-0.5">将调用视觉大模型深度解析图中 Scratch 代码与题目要求</p>
+            </div>
+          </div>
+          <button onclick="clearPendingAiImage()" class="text-purple-400 hover:text-rose-500 p-1 text-sm transition">
+            <i class="fa-solid fa-circle-xmark"></i>
+          </button>
+        </div>
+
         <!-- 输入框区域 -->
-        <div class="p-4 bg-white border-t border-slate-200 flex items-center gap-3">
-          <input id="aiChatInput" onkeydown="if(event.key==='Enter') sendAiMessage()" type="text" placeholder="向精灵姐姐描述你的编程问题或积木想法..." class="flex-1 bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100 transition">
-          <button onclick="sendAiMessage()" class="bg-purple-600 hover:bg-purple-700 text-white font-bold px-5 py-3 rounded-2xl text-xs shadow-md shadow-purple-500/20 transition flex items-center gap-1.5">
+        <div class="p-4 bg-white border-t border-slate-200 flex items-center gap-2.5">
+          <!-- 隐藏图片上传 input -->
+          <input type="file" id="aiImageInput" accept="image/*" style="display:none;" onchange="handleAiImageSelected(event)">
+          
+          <button onclick="document.getElementById('aiImageInput').click()" class="bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 p-3 rounded-2xl text-xs font-bold transition flex items-center gap-1.5 flex-shrink-0" title="上传题目或积木截图拍照进行多模态视觉识题">
+            <i class="fa-solid fa-camera"></i>
+            <span class="hidden sm:inline">识题/代码</span>
+          </button>
+          
+          <input id="aiChatInput" onkeydown="if(event.key==='Enter') sendAiMessage()" type="text" placeholder="向精灵姐姐描述你的编程问题，或上传题目/积木截图..." class="flex-1 bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100 transition">
+          
+          <button onclick="sendAiMessage()" class="bg-purple-600 hover:bg-purple-700 text-white font-bold px-5 py-3 rounded-2xl text-xs shadow-md shadow-purple-500/20 transition flex items-center gap-1.5 flex-shrink-0">
             <span>发送</span>
             <i class="fa-solid fa-paper-plane"></i>
           </button>
@@ -521,16 +753,25 @@
 
     <!-- 10. 教师端: 班级花名册与学生管理 -->
     <section id="page-teacher-classes" class="page-view flex-1 hidden overflow-y-auto custom-scrollbar p-6 max-w-7xl mx-auto w-full">
-      <div class="flex items-center justify-between mb-6">
+      <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-3">
         <div>
-          <h2 class="text-2xl font-bold text-slate-900">班级学生花名册与学情档案</h2>
-          <p class="text-xs text-slate-500 mt-1">管理各班级学生学号、登录密码及学情统计</p>
+          <h2 class="text-2xl font-bold text-slate-900 flex items-center gap-2">
+            班级学生花名册与学情档案
+            <span id="currentClassArchiveBadge" class="hidden text-xs bg-slate-200 text-slate-700 px-2 py-0.5 rounded-full font-bold">已归档</span>
+          </h2>
+          <p class="text-xs text-slate-500 mt-1">管理各班级学生学号、登录密码及学情统计，支持快速新建班级与学期归档</p>
         </div>
-        <div class="flex items-center gap-3">
+        <div class="flex flex-wrap items-center gap-2.5">
           <select id="rosterClassSelector" onchange="renderTeacherClasses()" class="bg-white border border-slate-200 text-xs font-bold text-slate-700 px-3 py-2 rounded-xl shadow-sm focus:outline-none">
             <option value="1">三年级一班 (25人)</option>
             <option value="2">四年级二班 (25人)</option>
           </select>
+          <button onclick="toggleCurrentClassArchive()" id="archiveClassBtn" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs px-3 py-2 rounded-xl border border-slate-300 transition flex items-center gap-1.5">
+            <i class="fa-solid fa-box-archive text-slate-500"></i> <span id="archiveBtnText">归档班级</span>
+          </button>
+          <button onclick="openCreateClassModal()" class="bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs px-4 py-2 rounded-xl shadow-sm shadow-sky-600/20 transition flex items-center gap-1.5">
+            <i class="fa-solid fa-plus"></i> 新建班级
+          </button>
         </div>
       </div>
 
@@ -707,7 +948,12 @@
             </select>
           </div>
           <div>
-            <label class="text-xs font-bold text-slate-700 block mb-1">教师指导评语</label>
+            <div class="flex items-center justify-between mb-1">
+              <label class="text-xs font-bold text-slate-700">教师指导评语</label>
+              <button type="button" onclick="generateAiTeacherFeedback()" class="text-[11px] bg-purple-100 hover:bg-purple-200 text-purple-800 font-bold px-2.5 py-1 rounded-lg border border-purple-200 flex items-center gap-1 transition shadow-sm" title="根据当前学生代码优缺点与评分智能一键生成鼓励性评语">
+                <i class="fa-solid fa-wand-magic-sparkles text-purple-600"></i> AI 智能一键生成评语
+              </button>
+            </div>
             <textarea id="gradingTeacherFeedback" rows="4" class="w-full bg-white border border-slate-200 rounded-xl p-3 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500" placeholder="写下对该同学积木逻辑的肯定与修改建议..."></textarea>
           </div>
           <button onclick="submitTeacherGrading()" class="bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs py-3 rounded-xl shadow transition mt-auto">
@@ -752,6 +998,151 @@
         </button>
       </div>
     </div>
+  </div>
+
+  <!-- 5. 教师新建班级模态框 -->
+  <div id="createClassModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center hidden p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
+      <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
+        <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+          <i class="fa-solid fa-graduation-cap text-sky-600"></i> 创建新教学班级
+        </h3>
+        <button onclick="closeCreateClassModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="flex flex-col gap-3">
+        <div>
+          <label class="text-xs font-bold text-slate-700 block mb-1">班级名称</label>
+          <input id="newClassNameInput" type="text" placeholder="例如：五年级一班" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-xs font-bold text-slate-700 block mb-1">所属年级</label>
+            <select id="newClassGradeSelect" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800">
+              <option value="三年级">三年级</option>
+              <option value="四年级">四年级</option>
+              <option value="五年级" selected>五年级</option>
+              <option value="六年级">六年级</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-xs font-bold text-slate-700 block mb-1">初始学生人数</label>
+            <input id="newClassStudentCount" type="number" value="25" min="1" max="60" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800">
+          </div>
+        </div>
+        <div>
+          <label class="text-xs font-bold text-slate-700 block mb-1">任课教师</label>
+          <input type="text" value="王老师 (信息科技组)" readonly class="w-full bg-slate-100 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-500">
+        </div>
+        <button onclick="submitCreateNewClass()" class="bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs py-3 rounded-xl shadow transition mt-2">
+          确认创建班级并自动生成学号名册
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. 互动广场: Scratch 作品在线试玩与互动体验器 -->
+  <div id="workPlayModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center hidden p-4">
+    <div class="bg-slate-900 rounded-3xl max-w-4xl w-full p-6 shadow-2xl border border-slate-700 flex flex-col max-h-[95vh] overflow-hidden text-white">
+      <!-- 头部 -->
+      <div class="flex items-center justify-between pb-4 border-b border-slate-800 flex-shrink-0">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-orange-500 text-white flex items-center justify-center text-xl shadow-md shadow-orange-500/30">
+            <i class="fa-solid fa-gamepad"></i>
+          </div>
+          <div>
+            <h3 id="playModalWorkTitle" class="text-base font-bold text-white flex items-center gap-2">
+              作品在线试玩
+            </h3>
+            <p id="playModalAuthorInfo" class="text-xs text-slate-400">作者: 张小帅 · 三年级一班 · AI 评测 92分</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="togglePlayLike()" id="playModalLikeBtn" class="bg-slate-800 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5">
+            <i class="fa-solid fa-heart text-rose-500"></i> 点赞 <span id="playModalLikeCount">24</span>
+          </button>
+          <button onclick="closeWorkPlayModal()" class="text-slate-400 hover:text-white p-2 text-lg">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- 中间主内容: 左侧试玩舞台，右侧代码与实时评论流 -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 py-4 flex-1 min-h-0 overflow-y-auto custom-scrollbar">
+        <!-- 左侧: 2列宽的物理运行舞台 -->
+        <div class="lg:col-span-2 flex flex-col bg-slate-950 rounded-2xl border border-slate-800 overflow-hidden relative min-h-[340px]">
+          <!-- 舞台顶部控制栏 -->
+          <div class="h-10 bg-slate-800/90 px-4 flex items-center justify-between border-b border-slate-700">
+            <div class="flex items-center gap-2">
+              <button onclick="triggerPlayStageRun()" class="bg-emerald-500 hover:bg-emerald-400 text-white text-xs px-3 py-1 rounded-lg font-bold flex items-center gap-1 shadow-sm transition">
+                <i class="fa-solid fa-play text-[10px]"></i> 绿旗运行
+              </button>
+              <button onclick="triggerPlayStageStop()" class="bg-rose-500 hover:bg-rose-400 text-white text-xs px-3 py-1 rounded-lg font-bold flex items-center gap-1 shadow-sm transition">
+                <i class="fa-solid fa-stop text-[10px]"></i> 停止
+              </button>
+            </div>
+            <div class="text-xs font-mono text-amber-400 font-bold flex items-center gap-2">
+              <span>得分: <b id="playStageScore" class="text-white">0</b></span>
+              <span class="text-slate-500">|</span>
+              <span class="text-sky-400">状态: <b id="playStageStatus">已准备</b></span>
+            </div>
+          </div>
+
+          <!-- 模拟运行画布或 iframe 舞台 -->
+          <div id="playStageCanvasContainer" class="flex-1 flex flex-col items-center justify-center p-4 relative overflow-hidden bg-gradient-to-b from-sky-900/40 via-slate-900 to-indigo-950/40">
+            <div id="playStageSprite" class="w-20 h-20 transition-all duration-200 flex flex-col items-center justify-center relative cursor-pointer" onclick="handlePlaySpriteClick()">
+              <img id="playSpriteImg" src="https://scratch.mit.edu/static/blocks-media/default/costumes/cat.svg" onerror="this.src='https://cdn.jsdelivr.net/gh/scratchfoundation/scratch-gui@master/src/components/stage/stage.png'" class="w-16 h-16 drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)]" alt="Scratch角色">
+              <div id="playSpeechBubble" class="hidden absolute -top-8 bg-white text-slate-900 text-[11px] font-bold px-2 py-1 rounded-lg shadow-lg whitespace-nowrap border border-slate-300">
+                喵~ 欢迎试玩我的作品! 🐱
+              </div>
+            </div>
+            <div class="absolute bottom-3 left-4 right-4 flex justify-between text-[11px] text-slate-400 font-mono">
+              <span>按键盘左右键或点击角色交互</span>
+              <span id="playStagePos">X: 0, Y: 0</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 右侧: 积木逻辑与互动评论区 -->
+        <div class="flex flex-col gap-3 min-h-0">
+          <div class="bg-slate-800/80 rounded-2xl p-3 border border-slate-700">
+            <div class="text-xs font-bold text-sky-400 mb-1 flex items-center gap-1">
+              <i class="fa-solid fa-code"></i> 核心积木逻辑
+            </div>
+            <div id="playModalCodeSummary" class="text-[11px] text-slate-300 font-mono max-h-24 overflow-y-auto custom-scrollbar leading-relaxed whitespace-pre-wrap"></div>
+          </div>
+
+          <!-- 评论列表 -->
+          <div class="flex-1 flex flex-col bg-slate-800/80 rounded-2xl p-3 border border-slate-700 min-h-0">
+            <div class="text-xs font-bold text-slate-200 mb-2 flex items-center justify-between">
+              <span>💬 同学交流与评价 (<span id="playModalCommentCount">3</span>)</span>
+            </div>
+            <div id="playModalCommentsList" class="flex-1 overflow-y-auto custom-scrollbar space-y-2 text-xs min-h-[120px] max-h-[160px] pr-1">
+              <!-- 动态评论内容 -->
+            </div>
+            <div class="flex items-center gap-2 pt-2 border-t border-slate-700/80 mt-2">
+              <input id="playNewCommentInput" onkeydown="if(event.key==='Enter') submitPlayComment()" type="text" placeholder="写一句鼓励同学的话..." class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-sky-500">
+              <button onclick="submitPlayComment()" class="bg-sky-600 hover:bg-sky-500 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition">
+                发送
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. 高清大图查看器 / 全屏灯箱模态框 (支持多模态原图缩放查看) -->
+  <div id="imageLightboxModal" class="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex flex-col items-center justify-center hidden p-4 select-none">
+    <div class="absolute top-4 right-4 flex items-center gap-3 text-white z-20">
+      <button onclick="zoomLightbox(0.2)" class="p-2 bg-white/10 hover:bg-white/20 rounded-xl transition" title="放大"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
+      <button onclick="zoomLightbox(-0.2)" class="p-2 bg-white/10 hover:bg-white/20 rounded-xl transition" title="缩小"><i class="fa-solid fa-magnifying-glass-minus"></i></button>
+      <button onclick="resetLightboxZoom()" class="p-2 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-bold transition">100%</button>
+      <button onclick="closeImageLightbox()" class="p-2 bg-white/20 hover:bg-rose-600 rounded-xl transition text-lg"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="flex-1 w-full h-full flex items-center justify-center overflow-hidden relative cursor-grab" id="lightboxContainer">
+      <img id="lightboxImg" src="" alt="题目或代码截图原图" class="max-h-[85vh] max-w-[90vw] object-contain transition-transform duration-100 rounded-xl shadow-2xl">
+    </div>
+    <div class="text-xs text-slate-400 py-2">💡 支持鼠标滚轮缩放与拖拽查看 Scratch 积木高清细节</div>
   </div>
 
   <!-- ======================== 核心业务脚本逻辑 ======================== -->
@@ -902,6 +1293,9 @@
       ]
     };
 
+    // 登录与会话状态
+    let isLoggedIn = true; // 默认已登录，可随时点击退出登录进入独立登录门户
+
     // 当前登录用户信息 (默认 张小帅 学生端)
     let currentUser = {
       id: 1,
@@ -918,6 +1312,12 @@
       checkSupabaseConnection();
       await fetchRemoteSupabaseData();
       renderAllViews();
+      if (isLoggedIn) {
+        if (currentUser.role === 'teacher') switchNav('teacher-analytics');
+        else switchNav('home');
+      } else {
+        switchNav('login');
+      }
     }
 
     async function checkSupabaseConnection() {
@@ -990,12 +1390,34 @@
       }
     }
 
-    // --- 4. 路由与视图切换 ---
+    // --- 4. 路由与视图切换 (严格的角色权限隔离) ---
     function switchNav(pageId) {
+      if (!isLoggedIn && pageId !== 'login') {
+        pageId = 'login';
+      }
+
+      // 严格的角色访问拦截与安全重定向
+      if (isLoggedIn) {
+        if (currentUser.role === 'student') {
+          const teacherOnlyPages = ['teacher-analytics', 'teacher-tasks', 'teacher-grading', 'teacher-classes'];
+          if (teacherOnlyPages.includes(pageId)) {
+            alert("⚠️ 权限提示：当前为学生身份，无权访问教师教研管理页面。");
+            pageId = 'home';
+          }
+        } else if (currentUser.role === 'teacher') {
+          const studentOnlyPages = ['home', 'editor', 'tasks', 'ai', 'profile'];
+          if (studentOnlyPages.includes(pageId)) {
+            // 教师点击学生专属页面时，自动导向教研大屏
+            pageId = 'teacher-analytics';
+          }
+        }
+      }
+
       document.querySelectorAll('.page-view').forEach(el => el.classList.add('hidden'));
       const target = document.getElementById('page-' + pageId);
       if (target) target.classList.remove('hidden');
 
+      // 更新左侧顶部导航按钮高亮状态
       document.querySelectorAll('.nav-btn').forEach(btn => {
         if (btn.dataset.page === pageId) {
           btn.classList.add('bg-white', 'text-sky-600', 'shadow-sm');
@@ -1025,32 +1447,136 @@
       renderTeacherClasses();
     }
 
-    // --- 5. 身份应用与切换 ---
+    // --- 5. 身份应用、登录与登出逻辑 ---
     function applyUserRole() {
       const isTeacher = currentUser.role === 'teacher';
-      document.querySelectorAll('.student-nav').forEach(el => {
-        if (isTeacher) el.classList.add('hidden'); else el.classList.remove('hidden');
-      });
-      document.querySelectorAll('.teacher-nav').forEach(el => {
-        if (isTeacher) el.classList.remove('hidden'); else el.classList.add('hidden');
-      });
+      const studentNav = document.getElementById('studentNavItems');
+      const teacherNav = document.getElementById('teacherNavItems');
+      const roleBadge = document.getElementById('currentRoleBadge');
 
-      document.getElementById('userNameDisplay').textContent = currentUser.name;
-      document.getElementById('userRoleDisplay').textContent = isTeacher ? "信息科技教师 · 教学组长" : `${currentUser.className} · 学生`;
-      document.getElementById('userAvatarText').textContent = isTeacher ? "师" : "学";
-      document.getElementById('userAvatarBox').className = isTeacher ? "w-8 h-8 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center font-bold text-xs" : "w-8 h-8 rounded-full bg-sky-100 text-sky-700 flex items-center justify-center font-bold text-xs";
+      if (isLoggedIn) {
+        if (isTeacher) {
+          studentNav.classList.add('hidden');
+          teacherNav.classList.remove('hidden');
+          roleBadge.textContent = "教师端";
+          roleBadge.className = "bg-amber-100 text-amber-800 text-[10px] px-2 py-0.5 rounded-full font-bold border border-amber-200";
+        } else {
+          studentNav.classList.remove('hidden');
+          teacherNav.classList.add('hidden');
+          roleBadge.textContent = "学生端";
+          roleBadge.className = "bg-sky-100 text-sky-700 text-[10px] px-2 py-0.5 rounded-full font-bold border border-sky-200";
+        }
+      } else {
+        studentNav.classList.add('hidden');
+        teacherNav.classList.add('hidden');
+        roleBadge.textContent = "未登录";
+        roleBadge.className = "bg-slate-100 text-slate-500 text-[10px] px-2 py-0.5 rounded-full font-bold border border-slate-200";
+      }
+
+      document.getElementById('userNameDisplay').textContent = isLoggedIn ? currentUser.name : "请登录";
+      document.getElementById('userRoleDisplay').textContent = isLoggedIn ? (isTeacher ? "信息科技教师 · 教学组长" : `${currentUser.className} · 学生`) : "点击登录身份";
+      document.getElementById('userAvatarText').textContent = isLoggedIn ? (isTeacher ? "师" : "学") : "登";
+      document.getElementById('userAvatarBox').className = isLoggedIn ? (isTeacher ? "w-8 h-8 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center font-bold text-xs shadow-sm" : "w-8 h-8 rounded-full bg-sky-100 text-sky-700 flex items-center justify-center font-bold text-xs shadow-sm") : "w-8 h-8 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-xs";
       
       const badge = document.getElementById('studentTasksClassBadge');
       if (badge) badge.textContent = currentUser.className;
     }
 
-    function openLoginModal() { document.getElementById('loginModal').classList.remove('hidden'); }
-    function closeLoginModal() { document.getElementById('loginModal').classList.add('hidden'); }
+    // 登录界面 Tab 切换
+    function switchLoginTab(tab) {
+      const studentBtn = document.getElementById('tabBtnStudent');
+      const teacherBtn = document.getElementById('tabBtnTeacher');
+      const studentForm = document.getElementById('loginFormStudent');
+      const teacherForm = document.getElementById('loginFormTeacher');
 
-    function switchUserRole(role, id, name, identifier, classId, className) {
-      currentUser = { role, id, name, identifier, classId, className };
+      if (tab === 'student') {
+        studentForm.classList.remove('hidden');
+        teacherForm.classList.add('hidden');
+        studentBtn.className = "flex-1 py-2.5 rounded-xl text-xs font-black transition flex items-center justify-center gap-2 bg-white text-sky-700 shadow-sm border border-slate-200/60";
+        teacherBtn.className = "flex-1 py-2.5 rounded-xl text-xs font-black transition flex items-center justify-center gap-2 text-slate-500 hover:text-slate-900";
+      } else {
+        studentForm.classList.add('hidden');
+        teacherForm.classList.remove('hidden');
+        teacherBtn.className = "flex-1 py-2.5 rounded-xl text-xs font-black transition flex items-center justify-center gap-2 bg-white text-amber-800 shadow-sm border border-slate-200/60";
+        studentBtn.className = "flex-1 py-2.5 rounded-xl text-xs font-black transition flex items-center justify-center gap-2 text-slate-500 hover:text-slate-900";
+      }
+    }
+
+    function updateStudentListHint() {
+      const classId = parseInt(document.getElementById('loginStudentClass').value);
+      const studentInput = document.getElementById('loginStudentId');
+      if (classId === 1) {
+        studentInput.placeholder = "例如: 3101 或 张小帅";
+        if (!studentInput.value || studentInput.value === "4201") studentInput.value = "3101";
+      } else {
+        studentInput.placeholder = "例如: 4201 或 王小飞";
+        if (!studentInput.value || studentInput.value === "3101") studentInput.value = "4201";
+      }
+    }
+
+    // 学生登录表单提交
+    function performStudentLogin() {
+      const classId = parseInt(document.getElementById('loginStudentClass').value);
+      const query = document.getElementById('loginStudentId').value.trim();
+      const pwd = document.getElementById('loginStudentPwd').value.trim();
+
+      if (!query) {
+        alert("请输入学生学号或姓名");
+        return;
+      }
+
+      // 匹配学生
+      const matched = state.students.find(s => s.classId === classId && (s.studentNumber === query || s.name === query || s.name.includes(query))) || {
+        studentId: classId === 1 ? 1 : 26,
+        studentNumber: query,
+        name: isNaN(query) ? query : (classId === 1 ? "张小帅" : "王小飞"),
+        classId: classId,
+        className: classId === 1 ? "三年级一班" : "四年级二班"
+      };
+
+      currentUser = {
+        id: matched.studentId,
+        name: matched.name,
+        role: "student",
+        identifier: matched.studentNumber,
+        classId: matched.classId,
+        className: matched.className
+      };
+      isLoggedIn = true;
+
       applyUserRole();
-      closeLoginModal();
+      renderAllViews();
+      switchNav('home');
+      alert(`🎉 登录成功！欢迎 ${currentUser.name} 同学进入 Scratch 智能学习空间！`);
+    }
+
+    // 教师登录表单提交
+    function performTeacherLogin() {
+      const teacherId = document.getElementById('loginTeacherId').value.trim();
+      const pwd = document.getElementById('loginTeacherPwd').value.trim();
+
+      currentUser = {
+        id: 1,
+        name: "王老师",
+        role: "teacher",
+        identifier: teacherId || "T1001",
+        classId: 0,
+        className: "信息科技教研组"
+      };
+      isLoggedIn = true;
+
+      applyUserRole();
+      renderAllViews();
+      switchNav('teacher-analytics');
+      alert(`👋 欢迎王老师！已进入 Scratch 教学教研管理大屏与批改中心。`);
+    }
+
+    // 快捷免密一键登录
+    function quickLoginUser(role, id, name, identifier, classId, className) {
+      currentUser = { role, id, name, identifier, classId, className };
+      isLoggedIn = true;
+      applyUserRole();
+      renderAllViews();
       if (role === 'teacher') {
         switchNav('teacher-analytics');
       } else {
@@ -1058,7 +1584,43 @@
       }
     }
 
-    // --- 6. Scratch 3.0 编辑器通信 ---
+    // 退出登录
+    function logoutToLoginPage() {
+      isLoggedIn = false;
+      applyUserRole();
+      switchNav('login');
+    }
+
+    function handleLogoClick() {
+      if (!isLoggedIn) {
+        switchNav('login');
+      } else if (currentUser.role === 'teacher') {
+        switchNav('teacher-analytics');
+      } else {
+        switchNav('home');
+      }
+    }
+
+    function handleUserProfileClick() {
+      if (!isLoggedIn) {
+        switchNav('login');
+      } else if (currentUser.role === 'teacher') {
+        switchNav('teacher-analytics');
+      } else {
+        switchNav('profile');
+      }
+    }
+
+    function openLoginModal() { logoutToLoginPage(); }
+    function closeLoginModal() {}
+
+    function switchUserRole(role, id, name, identifier, classId, className) {
+      quickLoginUser(role, id, name, identifier, classId, className);
+    }
+
+    // --- 6. Scratch 3.0 编辑器通信与本地 .sb3 导入导出 ---
+    let isExportingSb3Pending = false;
+
     function sendMsgToEditor(type, payload = {}) {
       const iframe = document.getElementById('scratchEditorIframe');
       if (iframe && iframe.contentWindow) {
@@ -1069,11 +1631,105 @@
     window.addEventListener('message', function(event) {
       if (!event.data || typeof event.data !== 'object') return;
       if (event.data.type === 'PROJECT_JSON_RESPONSE') {
+        if (isExportingSb3Pending) {
+          isExportingSb3Pending = false;
+          doExportSb3Package(event.data.projectJson);
+          return;
+        }
         handleSavedProject(event.data.projectJson, event.data.codeSummary);
       }
     });
 
     function clearEditorWorkspace() { sendMsgToEditor('CLEAR_WORKSPACE'); }
+
+    // 本地导入 .sb3 或 .json 文件
+    function handleSb3FileImport(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const fileName = file.name;
+      const cleanTitle = fileName.replace(/\.(sb3|json|zip)$/i, '');
+      document.getElementById('workTitleInput').value = cleanTitle;
+
+      if (fileName.toLowerCase().endsWith('.sb3') || fileName.toLowerCase().endsWith('.zip')) {
+        if (window.JSZip) {
+          JSZip.loadAsync(file).then(function(zip) {
+            const projectJsonFile = zip.file("project.json");
+            if (projectJsonFile) {
+              return projectJsonFile.async("string");
+            } else {
+              throw new Error("所选 .sb3 压缩包内未找到 project.json 文件");
+            }
+          }).then(function(jsonStr) {
+            try {
+              const parsed = JSON.parse(jsonStr);
+              sendMsgToEditor('LOAD_PROJECT', { projectJson: parsed });
+              alert(`✅ 成功从本地载入 Scratch 3.0 工程: 《${cleanTitle}》！\n积木已完全导入编辑工作区。`);
+            } catch(e) {
+              sendMsgToEditor('LOAD_PROJECT', { projectJson: jsonStr });
+              alert(`✅ 成功解析并载入本地工程《${cleanTitle}》！`);
+            }
+          }).catch(function(err) {
+            alert("❌ 读取 .sb3 文件失败: " + err.message);
+          });
+        } else {
+          alert("JSZip 库加载中，请稍后再试");
+        }
+      } else {
+        // 读取普通 JSON 文件
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          try {
+            const parsed = JSON.parse(e.target.result);
+            sendMsgToEditor('LOAD_PROJECT', { projectJson: parsed });
+            alert(`✅ 成功从本地载入 Scratch 项目 JSON: 《${cleanTitle}》！`);
+          } catch(err) {
+            alert("❌ 读取 JSON 文件失败: " + err.message);
+          }
+        };
+        reader.readAsText(file);
+      }
+
+      // 重置 input 以便下次选择同一文件也能触发
+      event.target.value = '';
+    }
+
+    // 导出打包为 .sb3 并下载到本地
+    function exportProjectToSb3() {
+      isExportingSb3Pending = true;
+      sendMsgToEditor('GET_PROJECT_JSON', { requestId: 'export_sb3_' + Date.now() });
+    }
+
+    function doExportSb3Package(jsonStr) {
+      try {
+        if (!window.JSZip) {
+          alert("正在准备导出组件，请稍候...");
+          return;
+        }
+        const title = document.getElementById('workTitleInput').value.trim() || `${currentUser.name}的Scratch作品`;
+        const zip = new JSZip();
+        
+        let formattedJson = jsonStr;
+        if (typeof jsonStr === 'object') {
+          formattedJson = JSON.stringify(jsonStr, null, 2);
+        }
+        zip.file("project.json", formattedJson);
+        
+        zip.generateAsync({ type: "blob", mimeType: "application/x.scratch.sb3" }).then(function(blob) {
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `${title}.sb3`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+          alert(`💾 已成功导出《${title}.sb3》！文件已下载至本地电脑。随时可通过“导入 .sb3”重新载入！`);
+        });
+      } catch(e) {
+        alert("导出 .sb3 失败: " + e.message);
+      }
+    }
 
     function loadTemplateToEditor(templateId) {
       let blocks = [];
@@ -1196,8 +1852,10 @@
       }).join('');
     }
 
-    // --- 8. AI 助教交互 ---
+    // --- 8. AI 助教多模态交互与视觉识题 ---
     let activeAiMode = 'socratic';
+    let pendingAiImageDataUrl = null;
+
     function setAiMode(mode) {
       activeAiMode = mode;
       document.querySelectorAll('.ai-mode-btn').forEach(btn => {
@@ -1209,6 +1867,24 @@
       });
     }
 
+    function handleAiImageSelected(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        pendingAiImageDataUrl = e.target.result;
+        document.getElementById('aiPendingImgThumb').src = pendingAiImageDataUrl;
+        document.getElementById('aiImagePreviewBar').classList.remove('hidden');
+      };
+      reader.readAsDataURL(file);
+      event.target.value = '';
+    }
+
+    function clearPendingAiImage() {
+      pendingAiImageDataUrl = null;
+      document.getElementById('aiImagePreviewBar').classList.add('hidden');
+    }
+
     function sendQuickPrompt(text) {
       document.getElementById('aiChatInput').value = text;
       sendAiMessage();
@@ -1217,14 +1893,38 @@
     function sendAiMessage() {
       const input = document.getElementById('aiChatInput');
       const text = input.value.trim();
-      if (!text) return;
+      const attachedImage = pendingAiImageDataUrl;
+
+      if (!text && !attachedImage) return;
+
       input.value = '';
+      clearPendingAiImage();
 
       const chatStream = document.getElementById('aiChatStream');
+      
+      // 用户气泡内容
+      let userBubbleHtml = '';
+      if (attachedImage) {
+        userBubbleHtml += `
+          <div class="mb-2 relative cursor-pointer rounded-xl overflow-hidden border border-purple-300 max-w-xs shadow-md group" onclick="openImageLightbox('${attachedImage}')">
+            <img src="${attachedImage}" class="w-full h-32 object-cover" alt="题目/积木截图">
+            <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white text-xs font-bold gap-1.5">
+              <i class="fa-solid fa-magnifying-glass-plus"></i> 点击全屏高清查看
+            </div>
+            <div class="absolute bottom-1 right-1 bg-black/70 text-[10px] text-purple-200 px-1.5 py-0.5 rounded">
+              通义千问视觉识图
+            </div>
+          </div>
+        `;
+      }
+      if (text) {
+        userBubbleHtml += `<div>${text}</div>`;
+      }
+
       chatStream.innerHTML += `
         <div class="flex items-start justify-end gap-3">
           <div class="bg-purple-600 text-white rounded-2xl p-4 text-xs leading-relaxed max-w-xl shadow-sm">
-            ${text}
+            ${userBubbleHtml}
           </div>
           <div class="w-8 h-8 rounded-full bg-slate-300 text-slate-700 flex items-center justify-center text-xs flex-shrink-0 font-bold">学</div>
         </div>
@@ -1232,16 +1932,36 @@
 
       chatStream.scrollTop = chatStream.scrollHeight;
 
+      // 模拟多模态大模型智能响应
       setTimeout(() => {
         let reply = "";
-        if (text.includes("边缘") || text.includes("倒立") || text.includes("反弹")) {
+
+        if (attachedImage) {
+          reply = `
+            <div class="space-y-2">
+              <div class="flex items-center gap-1.5 text-purple-800 font-bold">
+                <i class="fa-solid fa-camera-retro text-purple-600"></i> 通义千问 Qwen-VL-Max 视觉大模型深度识图诊断:
+              </div>
+              <p>我已清晰看懂你上传的题目/积木照片！👀</p>
+              <div class="bg-purple-50 p-2.5 rounded-xl border border-purple-200 text-purple-900 font-mono text-[11px] leading-relaxed">
+                🔍 <b>识别到的积木片段</b>: [当绿旗被点击] ➔ [重复执行] ➔ [移动 10 步] ➔ [碰到边缘就反弹]
+              </div>
+              <p>💡 <b>视觉诊断结论与引导</b>：</p>
+              <ul class="list-disc pl-4 space-y-1 text-slate-700">
+                <li><b>现象分析</b>：图中积木已能实现基础移动与反弹，但在绿旗启动处<b>缺少了初始化【将旋转方式设为 [左右翻转]】</b>，导致小猫反弹时上下颠倒倒立。</li>
+                <li><b>解决步骤</b>：请在左侧【运动】积木库中找到蓝色积木 <b>【将旋转方式设为 [左右翻转]】</b>，拼接在【当绿旗被点击】下方即可！</li>
+              </ul>
+              <p class="text-purple-700 font-bold mt-1">快回工作台试一试吧，如果还有疑惑随时给我发图哦！🧚</p>
+            </div>
+          `;
+        } else if (text.includes("边缘") || text.includes("倒立") || text.includes("反弹")) {
           reply = "你观察得真仔细！👀 当小猫碰到边缘反弹时倒立，是因为默认旋转方式是【任意旋转】。<br><br>💡 <b>精灵姐姐启发你</b>：试着在运动积木分类中找到 <b>【将旋转方式设为 [左右翻转]】</b>，放在绿旗点击下方初始化，小猫就会像真人一样优雅转身啦！快去试试看吧！";
         } else if (text.includes("金币") || text.includes("得分") || text.includes("变量")) {
           reply = "制作计分系统需要两步核心逻辑哦！🪙<br><br>1. <b>初始化</b>：绿旗点击时，必须用【将变量 [得分] 设为 0】积木归零；<br>2. <b>碰撞检测</b>：在重复执行循环内部，使用【如果 碰到金币 那么 将得分增加 1】。<br>想一想，吃到金币后金币本身要不要瞬移到下一个随机位置呢？✨";
         } else if (text.includes("方向键") || text.includes("键盘") || text.includes("控制")) {
           reply = "键盘交互非常简单！🎮<br><br>在【重复执行】主循环内部放入两个【如果...那么】条件积木：<br>• 如果【按下右箭头按键】，执行【将 x 坐标增加 10】；<br>• 如果【按下左箭头按键】，执行【将 x 坐标增加 -10】。<br>动手拼搭一下，看看角色是不是能灵活移动啦！";
         } else {
-          reply = "这是一个非常棒的思考！💡 在 Scratch 中，复杂的项目都是由【事件启动】+【循环控制】+【条件分支】三大基石搭建起来的。我们可以把任务拆解为两步：第一步让角色动起来，第二步加入侦测条件。你目前搭建到哪一步了呢？";
+          reply = "这是一个非常棒的思考！💡 在 Scratch 中，复杂的项目都是由【事件启动】+【循环控制】+【条件分支】三大基石搭建起来的。我们可以把任务拆解为两步：第一步让角色动起来，第二步加入侦测条件。你目前搭建到哪一步了呢？也可以点击左侧相机直接上传照片让我帮你看看代码哦！";
         }
 
         chatStream.innerHTML += `
@@ -1256,34 +1976,203 @@
       }, 500);
     }
 
-    // --- 9. 互动广场 ---
+    // --- 高清大图查看器 / 全屏灯箱逻辑 ---
+    let currentLightboxScale = 1;
+    function openImageLightbox(src) {
+      document.getElementById('lightboxImg').src = src;
+      currentLightboxScale = 1;
+      document.getElementById('lightboxImg').style.transform = 'scale(1)';
+      document.getElementById('imageLightboxModal').classList.remove('hidden');
+    }
+
+    function closeImageLightbox() {
+      document.getElementById('imageLightboxModal').classList.add('hidden');
+    }
+
+    function zoomLightbox(delta) {
+      currentLightboxScale = Math.max(0.4, Math.min(3.5, currentLightboxScale + delta));
+      document.getElementById('lightboxImg').style.transform = `scale(${currentLightboxScale})`;
+    }
+
+    function resetLightboxZoom() {
+      currentLightboxScale = 1;
+      document.getElementById('lightboxImg').style.transform = 'scale(1)';
+    }
+
+    // --- 9. 互动广场与在线试玩 ---
     function renderOpenHall() {
       const container = document.getElementById('openHallWorksList');
       if (!container) return;
-      container.innerHTML = state.works.map(w => `
-        <div class="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm hover:shadow-md transition">
-          <div class="flex items-center justify-between mb-3">
-            <div class="flex items-center gap-2">
-              <div class="w-7 h-7 rounded-full bg-sky-100 text-sky-700 flex items-center justify-center font-bold text-xs">学</div>
-              <div>
-                <div class="text-xs font-bold text-slate-900">${w.studentName}</div>
-                <div class="text-[10px] text-slate-400">${w.className}</div>
+      container.innerHTML = state.works.map(w => {
+        w.likes = w.likes || 18;
+        return `
+          <div class="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm hover:shadow-md transition flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center gap-2">
+                  <div class="w-7 h-7 rounded-full bg-sky-100 text-sky-700 flex items-center justify-center font-bold text-xs">学</div>
+                  <div>
+                    <div class="text-xs font-bold text-slate-900">${w.studentName}</div>
+                    <div class="text-[10px] text-slate-400">${w.className}</div>
+                  </div>
+                </div>
+                <span class="text-xs font-black text-purple-600 bg-purple-50 px-2 py-0.5 rounded-lg">${w.score} 分</span>
+              </div>
+              <h4 class="font-bold text-sm text-slate-800 mb-2">${w.workName}</h4>
+              <div class="bg-slate-900 text-sky-300 font-mono text-[11px] p-3 rounded-xl mb-4 h-20 overflow-hidden leading-relaxed whitespace-pre-wrap">${w.codeSummary}</div>
+            </div>
+            <div class="flex items-center justify-between pt-3 border-t border-slate-100 text-xs gap-2">
+              <button onclick="openWorkPlayModal(${w.id})" class="bg-orange-500 hover:bg-orange-600 text-white font-bold px-3 py-1.5 rounded-xl shadow-sm transition flex items-center gap-1">
+                <i class="fa-solid fa-gamepad"></i> 在线试玩
+              </button>
+              <div class="flex items-center gap-2">
+                <button onclick="toggleCardLike(${w.id})" class="text-slate-500 hover:text-rose-500 font-medium flex items-center gap-1">
+                  <i class="fa-solid fa-heart text-rose-400"></i> <span id="card-like-${w.id}">${w.likes}</span>
+                </button>
+                <button onclick="openReportModal(${w.id})" class="text-sky-600 font-bold hover:underline">
+                  五维报告
+                </button>
               </div>
             </div>
-            <span class="text-xs font-black text-purple-600 bg-purple-50 px-2 py-0.5 rounded-lg">${w.score} 分</span>
           </div>
-          <h4 class="font-bold text-sm text-slate-800 mb-2">${w.workName}</h4>
-          <div class="bg-slate-900 text-sky-300 font-mono text-[11px] p-3 rounded-xl mb-4 h-20 overflow-hidden leading-relaxed whitespace-pre-wrap">${w.codeSummary}</div>
-          <div class="flex items-center justify-between pt-3 border-t border-slate-100 text-xs">
-            <button onclick="alert('❤️ 点赞成功！已为 ${w.studentName} 的作品送上鼓励！')" class="text-slate-500 hover:text-rose-500 font-medium">
-              <i class="fa-regular fa-heart mr-1"></i> 点赞支持
-            </button>
-            <button onclick="openReportModal(${w.id})" class="text-sky-600 font-bold hover:underline">
-              五维报告
-            </button>
+        `;
+      }).join('');
+    }
+
+    function toggleCardLike(workId) {
+      const work = state.works.find(w => w.id === workId);
+      if (work) {
+        work.likes = (work.likes || 18) + 1;
+        const el = document.getElementById(`card-like-${workId}`);
+        if (el) el.textContent = work.likes;
+      }
+    }
+
+    // --- 互动广场: Scratch 作品在线试玩器 ---
+    let activePlayingWork = null;
+    let playStageInterval = null;
+    let playStagePosX = 0;
+    let playStageScoreVal = 0;
+
+    function openWorkPlayModal(workId) {
+      activePlayingWork = state.works.find(w => w.id === workId) || state.works[0];
+      if (!activePlayingWork.comments) {
+        activePlayingWork.comments = [
+          { user: "李小美", text: "这个弹跳动作做得很逼真流畅！", time: "10分钟前" },
+          { user: "周杰伦", text: "太赞了，向你学习！", time: "半小时前" },
+          { user: "王老师", text: "逻辑规范，左右翻转积木运用得很标准。", time: "1小时前" }
+        ];
+      }
+      activePlayingWork.likes = activePlayingWork.likes || 24;
+
+      document.getElementById('playModalWorkTitle').textContent = `《${activePlayingWork.workName}》在线试玩与互动`;
+      document.getElementById('playModalAuthorInfo').textContent = `作者: ${activePlayingWork.studentName} · ${activePlayingWork.className} · AI 评测 ${activePlayingWork.score}分`;
+      document.getElementById('playModalLikeCount').textContent = activePlayingWork.likes;
+      document.getElementById('playModalCodeSummary').textContent = activePlayingWork.codeSummary;
+
+      renderPlayModalComments();
+      resetPlayStage();
+
+      document.getElementById('workPlayModal').classList.remove('hidden');
+    }
+
+    function closeWorkPlayModal() {
+      triggerPlayStageStop();
+      document.getElementById('workPlayModal').classList.add('hidden');
+    }
+
+    function renderPlayModalComments() {
+      if (!activePlayingWork) return;
+      const listEl = document.getElementById('playModalCommentsList');
+      document.getElementById('playModalCommentCount').textContent = activePlayingWork.comments.length;
+      listEl.innerHTML = activePlayingWork.comments.map(c => `
+        <div class="p-2 bg-slate-900/60 rounded-xl border border-slate-700/60">
+          <div class="flex items-center justify-between text-[10px] text-slate-400 mb-0.5">
+            <span class="font-bold text-sky-400">${c.user}</span>
+            <span>${c.time}</span>
           </div>
+          <p class="text-slate-200 leading-relaxed">${c.text}</p>
         </div>
       `).join('');
+      listEl.scrollTop = listEl.scrollHeight;
+    }
+
+    function submitPlayComment() {
+      const input = document.getElementById('playNewCommentInput');
+      const text = input.value.trim();
+      if (!text || !activePlayingWork) return;
+      activePlayingWork.comments.push({
+        user: currentUser.name,
+        text: text,
+        time: "刚刚"
+      });
+      input.value = '';
+      renderPlayModalComments();
+    }
+
+    function togglePlayLike() {
+      if (!activePlayingWork) return;
+      activePlayingWork.likes += 1;
+      document.getElementById('playModalLikeCount').textContent = activePlayingWork.likes;
+      const cardLikeEl = document.getElementById(`card-like-${activePlayingWork.id}`);
+      if (cardLikeEl) cardLikeEl.textContent = activePlayingWork.likes;
+    }
+
+    function resetPlayStage() {
+      triggerPlayStageStop();
+      playStagePosX = 0;
+      playStageScoreVal = 0;
+      document.getElementById('playStageScore').textContent = '0';
+      document.getElementById('playStageStatus').textContent = '已准备';
+      document.getElementById('playStagePos').textContent = 'X: 0, Y: 0';
+      const sprite = document.getElementById('playStageSprite');
+      if (sprite) {
+        sprite.style.transform = 'translate(0px, 0px) scaleX(1)';
+      }
+      document.getElementById('playSpeechBubble').classList.add('hidden');
+    }
+
+    function triggerPlayStageRun() {
+      if (playStageInterval) clearInterval(playStageInterval);
+      document.getElementById('playStageStatus').textContent = '🟢 运行中';
+      document.getElementById('playSpeechBubble').classList.remove('hidden');
+
+      let dir = 1;
+      playStageInterval = setInterval(() => {
+        playStagePosX += dir * 8;
+        if (playStagePosX > 140) {
+          dir = -1;
+        } else if (playStagePosX < -140) {
+          dir = 1;
+        }
+        const sprite = document.getElementById('playStageSprite');
+        if (sprite) {
+          sprite.style.transform = `translateX(${playStagePosX}px) scaleX(${dir > 0 ? 1 : -1})`;
+        }
+        document.getElementById('playStagePos').textContent = `X: ${playStagePosX}, Y: 0`;
+      }, 100);
+    }
+
+    function triggerPlayStageStop() {
+      if (playStageInterval) {
+        clearInterval(playStageInterval);
+        playStageInterval = null;
+      }
+      document.getElementById('playStageStatus').textContent = '⏹️ 已停止';
+      const bubble = document.getElementById('playSpeechBubble');
+      if (bubble) bubble.classList.add('hidden');
+    }
+
+    function handlePlaySpriteClick() {
+      playStageScoreVal += 1;
+      document.getElementById('playStageScore').textContent = playStageScoreVal;
+      const sprite = document.getElementById('playStageSprite');
+      if (sprite) {
+        sprite.style.transform = `translate(${playStagePosX}px, -20px) scale(1.1)`;
+        setTimeout(() => {
+          sprite.style.transform = `translate(${playStagePosX}px, 0px) scale(1)`;
+        }, 150);
+      }
     }
 
     // --- 10. 学生个人画像与历史 ---
@@ -1365,7 +2254,7 @@
       document.getElementById('statSubmitRate').innerHTML = `${submitRate}% <span id="statSubmitCountTip" class="text-xs font-normal text-slate-400">(${submittedCount}/${totalStudents})</span>`;
       document.getElementById('statPlagiarismCount').innerHTML = `0 <span class="text-sm font-normal text-slate-400">件</span>`;
 
-      // 计算五维平均分 (与 AppRepository.kt 算法及 Room 数据库逻辑 100% 对齐)
+      // 计算五维平均分
       let avgGrammar = 0, avgLogic = 0, avgTaskMatch = 0, avgCreative = 0, avgTotal = 0;
       let errorSuggestions = [];
 
@@ -1419,7 +2308,7 @@
       document.getElementById('barTaskMatch').style.width = `${(avgTaskMatch / 25) * 100}%`;
       document.getElementById('barCreative').style.width = `${(avgCreative / 20) * 100}%`;
 
-      // 绘制雷达图 (与 Android TeacherAnalyticsScreen.kt 视觉色彩、维度名称 100% 保持一致)
+      // 绘制雷达图
       const ctx = document.getElementById('classRadarCanvas');
       if (ctx) {
         if (classRadarChart) classRadarChart.destroy();
@@ -1528,11 +2417,14 @@
       const desc = document.getElementById('newTaskDesc').value.trim();
       if (!title) { alert("请输入任务标题"); return; }
 
+      const targetClass = state.classes.find(c => c.classId === classId);
+      const className = targetClass ? targetClass.className : "五年级一班";
+
       const newTask = {
         id: state.tasks.length + 1,
         title,
         classId,
-        className: classId === 1 ? "三年级一班" : "四年级二班",
+        className,
         deadline,
         description: desc || "按要求完成 Scratch 积木拼搭。",
         status: "进行中"
@@ -1543,7 +2435,7 @@
         supabaseClient.from('learning_task').insert([{
           task_name: title,
           task_detail: desc || "按要求完成 Scratch 积木拼搭。",
-          grade: classId === 1 ? "三年级" : "四年级",
+          grade: targetClass ? targetClass.grade : "五年级",
           deadline: deadline,
           deadline_time: new Date(deadline).getTime(),
           teacher_id: 1,
@@ -1557,7 +2449,7 @@
       renderTeacherTasks();
     }
 
-    // --- 13. 教师端: 在线作业批改 ---
+    // --- 13. 教师端: 在线作业批改与 AI 一键评语生成 ---
     let activeGradingWorkId = 1;
     function renderGradingWorks() {
       const container = document.getElementById('teacherGradingTableContainer');
@@ -1615,6 +2507,27 @@
 
     function closeGradingModal() { document.getElementById('gradingModal').classList.add('hidden'); }
 
+    // AI 智能一键生成专业评语
+    function generateAiTeacherFeedback() {
+      const work = state.works.find(w => w.id === activeGradingWorkId) || state.works[0];
+      const score = parseInt(document.getElementById('gradingTeacherScoreInput').value) || work.score;
+      
+      let generatedComment = "";
+      if (score >= 90) {
+        generatedComment = `【代码亮点】${work.studentName}同学的代码结构非常清晰，熟练运用了事件触发、循环控制与造型动画，角色物理动作自然流畅！\n【逻辑启发】可以尝试为背景增加滚动效果或添加得分音效，提升整体交互表现力！\n【教师寄语】思维敏捷，编程习惯极佳，继续保持探索精神！🌟`;
+      } else if (score >= 80) {
+        generatedComment = `【代码优点】成功搭建了核心交互动作，能够较好地理解方向键控制与条件侦测。\n【修改建议】建议在绿旗启动处补充【将变量 [得分] 设为 0】进行初始化归零，避免多次运行时分数残留。\n【教师寄语】逻辑完整度很高，细节微调后就是一个完美的 Scratch 小游戏啦！加油！💪`;
+      } else {
+        generatedComment = `【基础分析】已完成基础运动搭建，构思很有创意。\n【指导建议】注意检查边界侦测积木，补充【碰到边缘就反弹】与【左右翻转】防止角色移出舞台。\n【教师寄语】遇到问题多向 AI 精灵姐姐提问，一步步调试，你一定能攻克难关！✨`;
+      }
+
+      const feedbackInput = document.getElementById('gradingTeacherFeedback');
+      feedbackInput.value = generatedComment;
+      feedbackInput.focus();
+      feedbackInput.classList.add('ring-2', 'ring-purple-400');
+      setTimeout(() => feedbackInput.classList.remove('ring-2', 'ring-purple-400'), 1000);
+    }
+
     function submitTeacherGrading() {
       const work = state.works.find(w => w.id === activeGradingWorkId);
       if (work) {
@@ -1636,11 +2549,50 @@
       renderTeacherAnalytics();
     }
 
-    // --- 14. 教师端: 班级花名册 ---
+    // --- 14. 教师端: 班级花名册、新建班级与归档管理 ---
+    function updateAllClassSelectors() {
+      const selectors = [
+        document.getElementById('rosterClassSelector'),
+        document.getElementById('analyticsClassSelector'),
+        document.getElementById('newTaskClassSelect'),
+        document.getElementById('loginStudentClass')
+      ];
+
+      const currentRosterVal = document.getElementById('rosterClassSelector') ? document.getElementById('rosterClassSelector').value : null;
+
+      selectors.forEach(sel => {
+        if (!sel) return;
+        const isAnalytics = sel.id === 'analyticsClassSelector';
+        let html = isAnalytics ? '<option value="-1">🏫 全部班级汇总</option>' : '';
+        state.classes.forEach(c => {
+          const archiveTag = c.isArchived ? ' [已归档]' : '';
+          html += `<option value="${c.classId}">${c.className} (${c.studentCount}人)${archiveTag}</option>`;
+        });
+        sel.innerHTML = html;
+      });
+
+      if (currentRosterVal && document.getElementById('rosterClassSelector')) {
+        document.getElementById('rosterClassSelector').value = currentRosterVal;
+      }
+    }
+
     function renderTeacherClasses() {
       const container = document.getElementById('teacherStudentRoster');
       if (!container) return;
       const classId = parseInt(document.getElementById('rosterClassSelector').value);
+      const currentClass = state.classes.find(c => c.classId === classId);
+
+      // 更新归档状态提示与按钮
+      const badge = document.getElementById('currentClassArchiveBadge');
+      const archiveBtnText = document.getElementById('archiveBtnText');
+      if (currentClass && currentClass.isArchived) {
+        if (badge) badge.classList.remove('hidden');
+        if (archiveBtnText) archiveBtnText.textContent = "取消归档";
+      } else {
+        if (badge) badge.classList.add('hidden');
+        if (archiveBtnText) archiveBtnText.textContent = "归档班级";
+      }
+
       const students = state.students.filter(s => s.classId === classId);
 
       container.innerHTML = `
@@ -1656,7 +2608,7 @@
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-100">
-            ${students.map(s => {
+            ${students.length > 0 ? students.map(s => {
               const myWorks = state.works.filter(w => w.studentId === s.studentId);
               const worksCount = myWorks.length;
               const avgScore = worksCount > 0 ? Math.round(myWorks.reduce((acc, w) => acc + w.score, 0) / worksCount) : '--';
@@ -1674,10 +2626,84 @@
                   </td>
                 </tr>
               `;
-            }).join('')}
+            }).join('') : `
+              <tr>
+                <td colspan="6" class="p-8 text-center text-slate-400">该班级暂无学生记录</td>
+              </tr>
+            `}
           </tbody>
         </table>
       `;
+    }
+
+    function toggleCurrentClassArchive() {
+      const classId = parseInt(document.getElementById('rosterClassSelector').value);
+      const currentClass = state.classes.find(c => c.classId === classId);
+      if (!currentClass) return;
+
+      currentClass.isArchived = !currentClass.isArchived;
+      updateAllClassSelectors();
+      renderTeacherClasses();
+
+      alert(`📁 班级【${currentClass.className}】已成功${currentClass.isArchived ? '归档' : '取消归档'}！`);
+    }
+
+    function openCreateClassModal() {
+      document.getElementById('createClassModal').classList.remove('hidden');
+    }
+
+    function closeCreateClassModal() {
+      document.getElementById('createClassModal').classList.add('hidden');
+    }
+
+    function submitCreateNewClass() {
+      const name = document.getElementById('newClassNameInput').value.trim();
+      const grade = document.getElementById('newClassGradeSelect').value;
+      const count = parseInt(document.getElementById('newClassStudentCount').value) || 25;
+
+      if (!name) {
+        alert("请输入班级名称（如：五年级一班）");
+        return;
+      }
+
+      const newClassId = state.classes.length + 1;
+      const newClass = {
+        classId: newClassId,
+        className: name,
+        grade: grade,
+        teacherId: 1,
+        studentCount: count,
+        isArchived: false
+      };
+      state.classes.push(newClass);
+
+      // 自动批量生成学号名册 (例如 5101 ~ 5125)
+      const gradePrefix = grade.includes('三') ? 3 : grade.includes('四') ? 4 : grade.includes('五') ? 5 : 6;
+      const sampleNames = ["王晨晨", "张子涵", "李欣怡", "刘浩宇", "陈博文", "杨梓萱", "赵宇轩", "周雨桐", "徐子墨", "孙浩然", "朱芷晴", "高梓萌", "何俊熙", "郭俊杰", "马雅琴", "罗俊伟", "宋美萱", "谢雨泽", "韩梓欣", "曹景澄", "曾思博", "彭天宇", "萧子昂", "潘浩楠", "蒋依依"];
+      
+      const newStudents = [];
+      for (let i = 1; i <= count; i++) {
+        const stNum = `${gradePrefix}${newClassId}${i < 10 ? '0' + i : i}`;
+        const stName = sampleNames[(i - 1) % sampleNames.length] + (i > sampleNames.length ? i : '');
+        newStudents.push({
+          studentId: state.students.length + i,
+          studentNumber: stNum,
+          name: stName,
+          classId: newClassId,
+          className: name,
+          worksCount: 0,
+          avgScore: 0
+        });
+      }
+      state.students.push(...newStudents);
+
+      updateAllClassSelectors();
+      document.getElementById('rosterClassSelector').value = newClassId;
+      closeCreateClassModal();
+      renderTeacherClasses();
+      renderTeacherAnalytics();
+
+      alert(`🎉 恭喜！新班级【${name}】创建成功！已自动生成 ${count} 名学生名册及初始学号。`);
     }
 
     // --- 15. AI 五维评测报告模态框 ---
@@ -1697,7 +2723,10 @@
     function closeReportModal() { document.getElementById('aiReportModal').classList.add('hidden'); }
 
     // 页面载入时启动
-    window.addEventListener('DOMContentLoaded', initAppData);
+    window.addEventListener('DOMContentLoaded', () => {
+      updateAllClassSelectors();
+      initAppData();
+    });
   </script>
 </body>
 </html>

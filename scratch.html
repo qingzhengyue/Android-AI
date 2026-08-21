@@ -2677,8 +2677,36 @@ window.onload = function() {
     }
     setTimeout(tryFetchAndLoad, 200);
     setTimeout(tryFetchAndLoad, 600);
-    setTimeout(tryFetchAndLoad, 1500);
-  }
+  // 监听来自父级网页 (index.html / web_portal.html) 的 postMessage 指令
+  window.addEventListener('message', function(event) {
+    if (!event.data || typeof event.data !== 'object') return;
+    const { type, projectJson, requestId } = event.data;
+    if (type === 'LOAD_PROJECT') {
+      if (projectJson) {
+        window.loadProject(projectJson);
+      }
+    } else if (type === 'CLEAR_WORKSPACE') {
+      activeBlocks = [];
+      updateWorkspaceUI();
+      logMessage('🗑️ 画布已清空');
+      notifyAndroidCodeChange();
+    } else if (type === 'GET_PROJECT_JSON') {
+      const jsonStr = window.getProjectJson ? window.getProjectJson() : '{}';
+      const summary = window.getProjectCodeSummary ? window.getProjectCodeSummary() : '';
+      if (window.parent) {
+        window.parent.postMessage({
+          type: 'PROJECT_JSON_RESPONSE',
+          requestId: requestId,
+          projectJson: jsonStr,
+          codeSummary: summary
+        }, '*');
+      }
+    } else if (type === 'RUN_GREEN_FLAG') {
+      if (typeof window.runGreenFlag === 'function') window.runGreenFlag();
+    } else if (type === 'STOP_ALL') {
+      if (typeof window.stopAll === 'function') window.stopAll();
+    }
+  });
 };
 </script>
 </body>
